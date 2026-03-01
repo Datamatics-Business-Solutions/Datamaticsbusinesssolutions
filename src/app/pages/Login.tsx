@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 import { Mail, Lock, Eye, EyeOff, CheckCircle2, Quote, Check, Loader2 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useParallax } from '../hooks/useParallax';
-import certifications from 'figma:asset/b24b9bef2212c68559759883c7aca917e374398b.png';
 
 // Testimonials data with sophisticated red gradients
 const testimonials = [
