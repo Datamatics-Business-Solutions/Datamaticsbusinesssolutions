@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
+import { motion, AnimatePresence } from 'motion/react';
 import { Bell, Sun, Moon, Menu, X, BarChart3, Users, FileText, CreditCard, UserCircle, FolderOpen, HelpCircle, Home } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { mockNotifications } from '../mockData';

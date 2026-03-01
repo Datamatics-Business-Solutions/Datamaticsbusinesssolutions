@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { motion, AnimatePresence } from 'motion/react';
 import { TrendingUp, Target, DollarSign, Search, ArrowUpRight, ArrowDownRight, Circle, CheckCircle2, Pause, Clock, MoreVertical, FileText, Download, FolderOpen } from 'lucide-react';
 import { mockCampaigns } from '../mockData';
 import { GlassNavigation } from '../components/GlassNavigation';
@@ -9,6 +10,7 @@ import { useCountUp } from '../hooks/useCountUp';
 import { NewCampaignModal, CampaignFormData } from '../components/NewCampaignModal';
 import { EmptyState } from '../components/EmptyState';
 import { EnhancedButton } from '../components/EnhancedButton';
+import { AnimatedNumber } from '../components/AnimatedNumber';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -336,11 +338,19 @@ export default function Dashboard() {
                   const progress = (campaign.delivered / campaign.target) * 100;
                   const isInProgress = campaign.status === 'In progress';
                   return (
-                    <tr
+                    <motion.tr
                       key={campaign.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05, duration: 0.3 }}
+                      whileHover={{ 
+                        scale: 1.005,
+                        backgroundColor: isDark ? 'rgba(30, 28, 36, 0.8)' : 'rgba(255, 245, 245, 0.8)',
+                        transition: { duration: 0.2 }
+                      }}
                       className={`group relative ${
                         index % 2 === 1 ? (isDark ? 'bg-white/[0.02]' : 'bg-[#F8FCFD]/50') : ''
-                      } hover:${isDark ? 'bg-[#1E1C24]' : 'bg-[#FFF5F5]'} transition-all duration-300 border-t ${isDark ? 'border-white/[0.04]' : 'border-[#F0F0F0]'} cursor-pointer`}
+                      } border-t ${isDark ? 'border-white/[0.04]' : 'border-[#F0F0F0]'} cursor-pointer`}
                       style={{
                         borderImage: isDark 
                           ? 'linear-gradient(90deg, rgba(230, 57, 70, 0.05) 0%, rgba(230, 57, 70, 0.15) 50%, rgba(230, 57, 70, 0.05) 100%) 1'
@@ -422,7 +432,7 @@ export default function Dashboard() {
                           </button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
               </tbody>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -23,6 +24,7 @@ import { Footer } from '../components/Footer';
 import { useTheme } from '../context/ThemeContext';
 import { useCountUp } from '../hooks/useCountUp';
 import { EnhancedButton } from '../components/EnhancedButton';
+import { AnimatedNumber } from '../components/AnimatedNumber';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -110,22 +112,54 @@ export default function HomePage() {
     <div style={backgroundStyle}>
       <GlassNavigation />
       
-      <div className="max-w-[1400px] mx-auto px-6 py-8">
+      <motion.div 
+        className="max-w-[1400px] mx-auto px-6 py-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         {/* Header - Reduced spacing */}
-        <div className="mb-5">
+        <motion.div 
+          className="mb-5"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
           <h1 className={`text-3xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-[#1A1A1A]'}`}>
             Welcome back, John
           </h1>
           <p className={`text-base ${isDark ? 'text-[#A0A0A0]' : 'text-[#6B7280]'}`}>
             Here's what's happening with your campaigns today
           </p>
-        </div>
+        </motion.div>
 
-        {/* KPI Cards - Compact design with reduced padding and height */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+        {/* KPI Cards - Compact design with Motion stagger animation */}
+        <motion.div 
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.08 }
+            }
+          }}
+        >
           {/* Total Leads This Month */}
-          <div 
-            className={`${glassCardStyle} rounded-xl p-3.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:-translate-y-1 cursor-pointer active:scale-[0.98]`}
+          <motion.div 
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -4,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+            className={`${glassCardStyle} rounded-xl p-3.5 cursor-pointer`}
             style={{
               boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04)'
             }}
@@ -144,16 +178,27 @@ export default function HomePage() {
               Total Leads This Month
             </h3>
             <p className={`text-xl font-semibold mb-0.5 ${isDark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-              {totalLeads.toLocaleString()}
+              <AnimatedNumber value={totalLeads} />
             </p>
             <p className={`text-[10px] ${isDark ? 'text-[#6B7280]' : 'text-[#9CA3AF]'}`}>
               12% from last month
             </p>
-          </div>
+          </motion.div>
 
           {/* Active Campaigns */}
-          <div 
-            className={`${glassCardStyle} rounded-xl p-3.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:-translate-y-1 cursor-pointer active:scale-[0.98]`}
+          <motion.div 
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -4,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+            className={`${glassCardStyle} rounded-xl p-3.5 cursor-pointer`}
             style={{
               boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04)'
             }}
@@ -175,16 +220,27 @@ export default function HomePage() {
               Active Campaigns
             </h3>
             <p className={`text-xl font-semibold mb-0.5 ${isDark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-              {activeCampaigns}
+              <AnimatedNumber value={activeCampaigns} />
             </p>
             <p className={`text-[10px] ${isDark ? 'text-[#6B7280]' : 'text-[#9CA3AF]'}`}>
               Currently running
             </p>
-          </div>
+          </motion.div>
 
           {/* Acceptance Rate */}
-          <div 
-            className={`${glassCardStyle} rounded-xl p-3.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:-translate-y-1 cursor-pointer active:scale-[0.98]`}
+          <motion.div 
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -4,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+            className={`${glassCardStyle} rounded-xl p-3.5 cursor-pointer`}
             style={{
               boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04)'
             }}
@@ -208,11 +264,22 @@ export default function HomePage() {
             <p className={`text-[10px] ${isDark ? 'text-[#6B7280]' : 'text-[#9CA3AF]'}`}>
               1,175 accepted of 1,265
             </p>
-          </div>
+          </motion.div>
 
           {/* Pending Invoices */}
-          <div 
-            className={`${glassCardStyle} rounded-xl p-3.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:-translate-y-1 cursor-pointer active:scale-[0.98]`}
+          <motion.div 
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -4,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+            className={`${glassCardStyle} rounded-xl p-3.5 cursor-pointer`}
             style={{
               boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04)'
             }}
@@ -235,11 +302,22 @@ export default function HomePage() {
             <p className={`text-[10px] ${isDark ? 'text-[#6B7280]' : 'text-[#9CA3AF]'}`}>
               1 invoice awaiting payment
             </p>
-          </div>
+          </motion.div>
 
           {/* Total Revenue YTD */}
-          <div 
-            className={`${glassCardStyle} rounded-xl p-3.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:-translate-y-1 cursor-pointer active:scale-[0.98]`}
+          <motion.div 
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -4,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+            className={`${glassCardStyle} rounded-xl p-3.5 cursor-pointer`}
             style={{
               boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04)'
             }}
@@ -263,11 +341,22 @@ export default function HomePage() {
             <p className={`text-[10px] ${isDark ? 'text-[#6B7280]' : 'text-[#9CA3AF]'}`}>
               $49.6K avg per month
             </p>
-          </div>
+          </motion.div>
 
           {/* Open Support Tickets */}
-          <div 
-            className={`${glassCardStyle} rounded-xl p-3.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:-translate-y-1 cursor-pointer active:scale-[0.98]`}
+          <motion.div 
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -4,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+            className={`${glassCardStyle} rounded-xl p-3.5 cursor-pointer`}
             style={{
               boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04)'
             }}
@@ -290,26 +379,58 @@ export default function HomePage() {
             <p className={`text-[10px] ${isDark ? 'text-[#6B7280]' : 'text-[#9CA3AF]'}`}>
               All clear
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Recent Activity & Needs Attention - Side by Side with reduced spacing */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <motion.div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-3"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.1, delayChildren: 0.4 }
+            }
+          }}
+        >
           {/* Recent Activity - Compact single-line items, limited to 4 */}
-          <div className={`${glassCardStyle} rounded-2xl p-5`}>
+          <motion.div 
+            className={`${glassCardStyle} rounded-2xl p-5`}
+            variants={{
+              hidden: { opacity: 0, x: -20 },
+              visible: { opacity: 1, x: 0 }
+            }}
+          >
             <h2 className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-[#1A1A1A]'}`}>
               Recent Activity
             </h2>
-            <div className="space-y-1.5">
-              {recentActivity.slice(0, 4).map((activity, index) => (
-                <div 
+            <motion.div 
+              className="space-y-1.5"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.1 }
+                }
+              }}
+            >
+              {recentActivity.slice(0, 4).map((activity) => (
+                <motion.div 
                   key={activity.id}
-                  className={`flex items-center gap-2.5 p-2 rounded-lg transition-all duration-300 hover:scale-[1.01] cursor-pointer ${
-                    isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
-                  }`}
-                  style={{
-                    animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`
+                  variants={{
+                    hidden: { opacity: 0, x: -10 },
+                    visible: { opacity: 1, x: 0 }
                   }}
+                  whileHover={{ 
+                    scale: 1.01,
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                    transition: { duration: 0.2 }
+                  }}
+                  className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer`}
                 >
                   <div className={`p-1.5 rounded-lg ${activity.bg} flex-shrink-0`}>
                     <activity.icon className={`w-3.5 h-3.5 ${activity.color}`} />
@@ -322,30 +443,60 @@ export default function HomePage() {
                       {activity.time}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Needs Your Attention - Compact single-line items with text links */}
-          <div className={`${glassCardStyle} rounded-2xl p-5`}>
+          <motion.div 
+            className={`${glassCardStyle} rounded-2xl p-5`}
+            variants={{
+              hidden: { opacity: 0, x: 20 },
+              visible: { opacity: 1, x: 0 }
+            }}
+          >
             <h2 className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-[#1A1A1A]'}`}>
               Needs Your Attention
             </h2>
-            <div className="space-y-1.5">
-              {needsAttention.map((item, index) => (
-                <div 
+            <motion.div 
+              className="space-y-1.5"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.1 }
+                }
+              }}
+            >
+              {needsAttention.map((item) => (
+                <motion.div 
                   key={item.id}
-                  className={`flex items-center gap-2.5 p-2 rounded-lg border-l-2 transition-all duration-300 hover:scale-[1.01] cursor-pointer ${
+                  variants={{
+                    hidden: { opacity: 0, x: 10 },
+                    visible: { opacity: 1, x: 0 }
+                  }}
+                  whileHover={{ 
+                    scale: 1.01,
+                    transition: { duration: 0.2 }
+                  }}
+                  animate={item.type === 'error' ? {
+                    boxShadow: [
+                      "0 0 0px rgba(192, 57, 43, 0)",
+                      "0 0 10px rgba(192, 57, 43, 0.3)",
+                      "0 0 0px rgba(192, 57, 43, 0)"
+                    ]
+                  } : {}}
+                  transition={item.type === 'error' ? { duration: 2, repeat: Infinity } : {}}
+                  className={`flex items-center gap-2.5 p-2 rounded-lg border-l-2 cursor-pointer ${
                     item.type === 'error' 
                       ? (isDark ? 'border-l-[#C0392B] bg-red-900/5' : 'border-l-[#C0392B] bg-red-50/50')
                       : item.type === 'warning'
                       ? (isDark ? 'border-l-orange-500 bg-orange-900/5' : 'border-l-orange-500 bg-orange-50/50')
                       : (isDark ? 'border-l-blue-500 bg-blue-900/5' : 'border-l-blue-500 bg-blue-50/50')
                   }`}
-                  style={{
-                    animation: `fadeInUp 0.5s ease-out ${index * 0.15}s both`
-                  }}
                   onClick={item.buttonAction}
                 >
                   <item.icon className={`w-4 h-4 ${item.iconColor} flex-shrink-0`} />
@@ -362,14 +513,19 @@ export default function HomePage() {
                       item.type === 'error' ? 'text-[#C0392B]' : 'text-[#1E3A5F]'
                     }`} />
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
 
         {/* Campaign Snapshot - Full width section */}
-        <div className={`${glassCardStyle} rounded-2xl p-5 mt-3`}>
+        <motion.div 
+          className={`${glassCardStyle} rounded-2xl p-5 mt-3`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+        >
           <div className="flex items-center justify-between mb-3">
             <h2 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-[#1A1A1A]'}`}>
               Campaign Snapshot
@@ -492,8 +648,8 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       <div className="mt-8">
         <Footer />
