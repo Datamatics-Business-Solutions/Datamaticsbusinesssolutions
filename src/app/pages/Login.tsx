@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { Mail, Lock, Eye, EyeOff, CheckCircle2, Quote, Check, Loader2 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useParallax } from '../hooks/useParallax';
-import certifications from 'figma:asset/b24b9bef2212c68559759883c7aca917e374398b.png';
+const certifications = "https://www.datamatics.com/hubfs/ISO-Certified.png";
 
 // Testimonials data with sophisticated red gradients
 const testimonials = [
@@ -401,11 +401,14 @@ export default function Login() {
               Certified & Compliant
             </p>
             <div className="flex items-center justify-center">
-              <img 
-                src={certifications} 
-                alt="ISO 27001:2022, ISO 9001:2015, SOC 1 & 2 Type II, GDPR Certified" 
-                className="h-12 opacity-80"
-              />
+            <div className="flex items-center justify-center gap-3">
+  {["ISO 27001", "ISO 9001", "SOC 2", "GDPR"].map((cert) => (
+    <span key={cert} className="text-[10px] font-semibold px-2 py-1 rounded border border-gray-300 text-[#6B7280]">
+      {cert}
+    </span>
+  ))}
+</div>
+
             </div>
           </div>
 
