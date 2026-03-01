@@ -1,0 +1,576 @@
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   DATAMATICSBPM — DESIGN SYSTEM
+   Tailwind v4 CSS Variables
+   ============================================ */
+
+:root {
+  /* --- Brand --- */
+  --brand-red:         #BA2027;
+  --brand-red-dark:    #A01C22;
+  --brand-red-light:   #D32F2F;
+  --brand-gray:        #5A555D;
+  --brand-gray-light:  #78757D;
+  --brand-gray-dark:   #3A373D;
+
+  /* --- Backgrounds --- */
+  --background:        #FFFFFF;
+  --background-muted:  #F8F9FA;
+  --card:              #FFFFFF;
+  --card-hover:        #F8F9FA;
+  --popover:           #FFFFFF;
+  --sidebar:           #FFFFFF;
+
+  /* --- Foregrounds --- */
+  --foreground:              #1E1E1E;
+  --card-foreground:         #1E1E1E;
+  --popover-foreground:      #1E1E1E;
+  --sidebar-foreground:      #1E1E1E;
+  --muted-foreground:        #6B6B6B;
+
+  /* --- Primary / Secondary / Accent --- */
+  --primary:             #BA2027;
+  --primary-foreground:  #FFFFFF;
+  --primary-hover:       #A01C22;
+
+  --secondary:             #5A555D;
+  --secondary-foreground:  #FFFFFF;
+
+  --accent:             #BA2027;
+  --accent-foreground:  #FFFFFF;
+  --accent-tertiary:    #0891B2;
+
+  --muted:  #F5F5F5;
+
+  /* --- Status --- */
+  --success:     #0F9D58;
+  --success-alt: #34A853;
+  --warning:     #F4B400;
+  --warning-alt: #FBBC04;
+  --error:       #DB4437;
+  --error-alt:   #EA4335;
+  --info:        #4285F4;
+  --info-alt:    #5A9BF5;
+  --destructive:             #DB4437;
+  --destructive-foreground:  #FFFFFF;
+
+  /* --- Borders & Rings --- */
+  --border:  rgba(186, 32, 39, 0.10);
+  --ring:    rgba(186, 32, 39, 0.30);
+
+  /* --- Inputs --- */
+  --input:             transparent;
+  --input-background:  #F8F8F8;
+  --switch-background: #D0D0D0;
+
+  /* --- Glass Effect --- */
+  --glass-bg:     rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(186, 32, 39, 0.12);
+  --glass-shadow: 0 8px 32px rgba(186, 32, 39, 0.08);
+
+  /* --- Card Shadows --- */
+  --card-shadow:    0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --card-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --card-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.10);
+  --card-shadow-hover: 0 12px 32px rgba(186, 32, 39, 0.12), 0 4px 16px rgba(186, 32, 39, 0.08);
+
+  /* --- Charts --- */
+  --chart-1: #BA2027;
+  --chart-2: #5A555D;
+  --chart-3: #0891B2;
+  --chart-4: #0F9D58;
+  --chart-5: #F4B400;
+  --chart-6: #8E44AD;
+
+  /* --- Sidebar --- */
+  --sidebar-primary:             #BA2027;
+  --sidebar-primary-foreground:  #FFFFFF;
+  --sidebar-accent:              #F8F9FA;
+  --sidebar-accent-foreground:   #1E1E1E;
+  --sidebar-border:              rgba(186, 32, 39, 0.10);
+  --sidebar-ring:                rgba(186, 32, 39, 0.30);
+
+  /* --- Radius --- */
+  --radius:     0.75rem;
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+
+  /* --- Typography --- */
+  --font-size:           16px;
+  --font-weight-normal:  400;
+  --font-weight-medium:  500;
+}
+
+/* ============================================
+   DARK MODE — "Datamatics Midnight"
+   ============================================ */
+
+[data-theme="dark"] {
+  /* --- Brand Dark --- */
+  --brand-red:        #E63946;
+  --brand-red-dark:   #A01C22;
+  --brand-red-light:  #FF4D5A;
+  --brand-gray:       #78757D;
+  --brand-gray-light: #9E9B9F;
+  --brand-gray-dark:  #5A555D;
+
+  /* --- Backgrounds Dark (blue-tinted deep darks) --- */
+  --background:       #0F1117;
+  --background-muted: #161926;
+  --card:             #1C1F2E;
+  --card-hover:       #252938;
+  --popover:          #1C1F2E;
+  --sidebar:          #161926;
+
+  /* --- Foregrounds Dark (warm gray-purple) --- */
+  --foreground:             #F1F0F5;
+  --card-foreground:        #D8D6E3;
+  --popover-foreground:     #F1F0F5;
+  --sidebar-foreground:     #D8D6E3;
+  --muted-foreground:       #8B9CB0;
+
+  /* --- Primary / Secondary / Accent Dark --- */
+  --primary:             #E63946;
+  --primary-foreground:  #FFFFFF;
+  --primary-hover:       #FF4D5A;
+
+  --secondary:             #78757D;
+  --secondary-foreground:  #FFFFFF;
+
+  --accent:             #E63946;
+  --accent-foreground:  #FFFFFF;
+  --accent-tertiary:    #0EA5E9;
+
+  --muted: rgba(255, 255, 255, 0.05);
+
+  /* --- Status Dark --- */
+  --success:     #34D399;
+  --success-alt: #5FBB72;
+  --warning:     #F4B400;
+  --warning-alt: #FBBC04;
+  --error:       #E63946;
+  --error-alt:   #FF4D5A;
+  --info:        #0EA5E9;
+  --info-alt:    #38BDF8;
+  --destructive:             #E63946;
+  --destructive-foreground:  #FFFFFF;
+
+  /* --- Borders & Rings Dark (glow-based) --- */
+  --border: rgba(255, 255, 255, 0.08);
+  --ring:   rgba(230, 57, 70, 0.40);
+
+  /* --- Inputs Dark --- */
+  --input:             transparent;
+  --input-background:  #1A1820;
+  --switch-background: #3D3B48;
+
+  /* --- Glass Effect Dark --- */
+  --glass-bg:     rgba(26, 5, 8, 0.92);
+  --glass-border: rgba(230, 57, 70, 0.12);
+  --glass-shadow: 0 2px 12px rgba(0, 0, 0, 0.40);
+
+  /* --- Card Shadows Dark --- */
+  --card-shadow:    0 2px 8px rgba(0, 0, 0, 0.20), 0 1px 3px rgba(0, 0, 0, 0.30);
+  --card-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.40);
+  --card-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.40), 0 4px 12px rgba(0, 0, 0, 0.50);
+  --card-shadow-hover: 0 12px 32px rgba(230, 57, 70, 0.20), 0 4px 16px rgba(0, 0, 0, 0.40);
+
+  /* --- Charts Dark --- */
+  --chart-1: #E63946;
+  --chart-2: #78757D;
+  --chart-3: #0EA5E9;
+  --chart-4: #34D399;
+  --chart-5: #FBBC04;
+  --chart-6: #A569BD;
+
+  /* --- Sidebar Dark --- */
+  --sidebar-primary:             #E63946;
+  --sidebar-primary-foreground:  #FFFFFF;
+  --sidebar-accent:              rgba(230, 57, 70, 0.10);
+  --sidebar-accent-foreground:   #F1F0F5;
+  --sidebar-border:              rgba(230, 57, 70, 0.12);
+  --sidebar-ring:                rgba(230, 57, 70, 0.40);
+}
+
+/* ============================================
+   TAILWIND THEME BRIDGE
+   Maps CSS vars → Tailwind color utilities
+   ============================================ */
+
+@theme inline {
+  /* Core */
+  --color-background:   var(--background);
+  --color-foreground:   var(--foreground);
+
+  /* Components */
+  --color-card:             var(--card);
+  --color-card-foreground:  var(--card-foreground);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+
+  /* Brand Actions */
+  --color-primary:             var(--primary);
+  --color-primary-foreground:  var(--primary-foreground);
+  --color-secondary:             var(--secondary);
+  --color-secondary-foreground:  var(--secondary-foreground);
+  --color-accent:             var(--accent);
+  --color-accent-foreground:  var(--accent-foreground);
+  --color-muted:             var(--muted);
+  --color-muted-foreground:  var(--muted-foreground);
+  --color-destructive:             var(--destructive);
+  --color-destructive-foreground:  var(--destructive-foreground);
+
+  /* Forms */
+  --color-border:           var(--border);
+  --color-input:            var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background:var(--switch-background);
+  --color-ring:             var(--ring);
+
+  /* Charts */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  /* Sidebar */
+  --color-sidebar:                      var(--sidebar);
+  --color-sidebar-foreground:           var(--sidebar-foreground);
+  --color-sidebar-primary:              var(--sidebar-primary);
+  --color-sidebar-primary-foreground:   var(--sidebar-primary-foreground);
+  --color-sidebar-accent:               var(--sidebar-accent);
+  --color-sidebar-accent-foreground:    var(--sidebar-accent-foreground);
+  --color-sidebar-border:               var(--sidebar-border);
+  --color-sidebar-ring:                 var(--sidebar-ring);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    font-size: var(--font-size);
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont,
+                 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* --- Headings --- */
+  h1 { font-size: 2rem;    font-weight: 600; line-height: 1.30; letter-spacing: -0.02em; }
+  h2 { font-size: 1.5rem;  font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; }
+  h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.40; }
+  h4 { font-size: 1.125rem;font-weight: 600; line-height: 1.45; }
+
+  h1, h2, h3, h4 { color: var(--foreground); }
+
+  /* --- Form Elements --- */
+  label  { font-size: 0.875rem;   font-weight: 500; line-height: 1.5; letter-spacing: 0.01em; color: var(--muted-foreground); }
+  button { font-size: 0.9375rem;  font-weight: 500; line-height: 1.5; letter-spacing: 0.01em; }
+  input  { font-size: 0.9375rem;  font-weight: 400; line-height: 1.5; }
+
+  /* --- Animations --- */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes gradientShift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-slideInUp {
+    animation: slideInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-slideInRight {
+    animation: slideInRight 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-slideInLeft {
+    animation: slideInLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-gradientShift {
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes floatDelayed {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(20px);
+    }
+  }
+
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+      transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+      transform: translateX(5px);
+    }
+  }
+
+  @keyframes buttonPulse {
+    0%, 100% {
+      box-shadow: 0 4px 20px rgba(230, 57, 70, 0.3);
+    }
+    50% {
+      box-shadow: 0 4px 30px rgba(230, 57, 70, 0.5), 0 0 40px rgba(230, 57, 70, 0.2);
+    }
+  }
+
+  @keyframes checkmark {
+    0% {
+      transform: scale(0) rotate(-45deg);
+    }
+    50% {
+      transform: scale(1.2) rotate(5deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+    }
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  @keyframes progress-stripe {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 40px 0;
+    }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(230, 57, 70, 0.3), 0 0 40px rgba(230, 57, 70, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(230, 57, 70, 0.5), 0 0 60px rgba(230, 57, 70, 0.2);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: floatDelayed 8s ease-in-out infinite;
+  }
+
+  .animate-shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
+  .animate-button-pulse {
+    animation: buttonPulse 3s ease-in-out infinite;
+  }
+
+  .animate-checkmark {
+    animation: checkmark 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .animate-pulse-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+  }
+
+  .animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  .animate-progress-stripe {
+    animation: progress-stripe 1s linear infinite;
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.2s ease-out;
+  }
+
+  .animate-ripple {
+    animation: ripple 0.6s ease-out;
+  }
+
+  /* --- Card Shadow Utilities --- */
+  .card-shadow {
+    box-shadow: var(--card-shadow);
+  }
+
+  .card-shadow-md {
+    box-shadow: var(--card-shadow-md);
+  }
+
+  .card-shadow-lg {
+    box-shadow: var(--card-shadow-lg);
+  }
+
+  .card-shadow-hover {
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  .card-shadow-hover:hover {
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-2px);
+  }
+}

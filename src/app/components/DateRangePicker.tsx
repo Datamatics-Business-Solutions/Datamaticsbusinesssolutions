@@ -1,0 +1,84 @@
+import { useState } from 'react';
+import { Calendar, ChevronDown, X } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+
+interface DateRangePickerProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const DATE_RANGES = [
+  { label: 'Today', value: 'today' },
+  { label: 'Yesterday', value: 'yesterday' },
+  { label: 'Last 7 Days', value: '7days' },
+  { label: 'Last 30 Days', value: '30days' },
+  { label: 'This Month', value: 'month' },
+  { label: 'Last Month', value: 'lastmonth' },
+  { label: 'This Quarter', value: 'quarter' },
+  { label: 'This Year', value: 'year' },
+  { label: 'All Time', value: 'all' }
+];
+
+export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const selectedRange = DATE_RANGES.find(r => r.value === value) || DATE_RANGES[3];
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`px-4 py-2.5 rounded-lg border transition-all flex items-center gap-2 text-sm font-medium ${
+          isDark
+            ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+        }`}
+      >
+        <Calendar className="w-4 h-4" />
+        <span>{selectedRange.label}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)}
+          />
+          <div 
+            className={`absolute top-full right-0 mt-2 w-56 rounded-xl shadow-2xl border z-50 overflow-hidden animate-slideInUp ${
+              isDark
+                ? 'bg-[#1A1820] border-white/10'
+                : 'bg-white border-gray-200'
+            }`}
+          >
+            <div className="p-2">
+              {DATE_RANGES.map((range) => (
+                <button
+                  key={range.value}
+                  onClick={() => {
+                    onChange(range.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
+                    value === range.value
+                      ? isDark
+                        ? 'bg-[#E63946] text-white'
+                        : 'bg-[#BA2027] text-white'
+                      : isDark
+                        ? 'text-gray-300 hover:bg-white/5'
+                        : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {range.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
