@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { mockAnalytics, mockCampaigns } from '../mockData';
 import { AnimatedCounter } from '../components/AnimatedCounter';
+import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { DateRangePicker } from '../components/DateRangePicker';
 import { ExportModal } from '../components/ExportModal';
 import { ProgressBar } from '../components/ProgressBar';
@@ -29,73 +30,6 @@ const TOOLTIP_STYLE = (isDark: boolean) => ({
   boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
   padding: '12px'
 });
-
-// KPI Card with animated counter
-function KpiCard({ icon: Icon, iconColor, iconBg, value, label, footer, trend, trendValue, index = 0 }: any) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-  const isPositive = trendValue >= 0;
-  const numericValue = typeof value === 'string' ? parseInt(value.replace(/[^0-9]/g, '')) : value;
-
-  return (
-    <div 
-      className={`rounded-xl p-5 border flex flex-col gap-3 transition-all hover:scale-105 hover:shadow-2xl animate-slideInUp ${
-        isDark
-          ? 'bg-gradient-to-br from-[#1A1820]/90 to-[#16151A]/90 border-[#E63946]/15 backdrop-blur-md'
-          : 'bg-gradient-to-br from-white to-gray-50/50 border-[#BA2027]/10 shadow-lg'
-      }`}
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
-      <div className="flex items-center justify-between">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${iconBg}`}>
-          <Icon className={`w-6 h-6 ${iconColor}`} />
-        </div>
-        {trend === 'live' ? (
-          <span className="flex items-center gap-1.5 text-sm font-medium text-[#0F9D58]">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#0F9D58] animate-pulse" />
-            Live
-          </span>
-        ) : (
-          <span className={`flex items-center gap-1.5 text-base font-bold ${
-            isPositive ? 'text-[#0F9D58]' : 'text-[#EA4335]'
-          }`}>
-            {isPositive ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-            {Math.abs(trendValue)}%
-          </span>
-        )}
-      </div>
-
-      <div>
-        <div className={`text-3xl font-bold tracking-tight leading-none ${
-          isDark ? 'text-white' : 'text-[#1E1E1E]'
-        }`}>
-          {typeof value === 'string' && value.includes('$') ? (
-            <>
-              $<AnimatedCounter end={numericValue} duration={2000} />K
-            </>
-          ) : typeof value === 'string' && value.includes('%') ? (
-            <>
-              <AnimatedCounter end={numericValue} duration={2000} />%
-            </>
-          ) : (
-            <AnimatedCounter end={numericValue} duration={2000} />
-          )}
-        </div>
-        <div className={`text-sm font-medium mt-2 ${
-          isDark ? 'text-[#94A3B8]' : 'text-[#64748B]'
-        }`}>
-          {label}
-        </div>
-      </div>
-
-      <div className={`text-xs pt-3 border-t ${
-        isDark ? 'text-[#64748B] border-white/5' : 'text-[#94A3B8] border-gray-200'
-      }`}>
-        {footer}
-      </div>
-    </div>
-  );
-}
 
 // Chart Card with enhanced styling
 function ChartCard({ title, children, actions }: any) {
@@ -298,7 +232,7 @@ export default function ReportsPage() {
 
         {/* KPI Cards with animated counters */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <KpiCard
+          <UnifiedKpiCard
             index={0}
             icon={Target}
             iconColor="text-[#0891B2]"
@@ -308,7 +242,7 @@ export default function ReportsPage() {
             trendValue={12}
             footer={`Target: ${totalTarget.toLocaleString()} · ${Math.round((totalDelivered / totalTarget) * 100)}% achieved`}
           />
-          <KpiCard
+          <UnifiedKpiCard
             index={1}
             icon={CheckCircle}
             iconColor="text-[#0F9D58]"
@@ -318,7 +252,7 @@ export default function ReportsPage() {
             trendValue={3}
             footer={`${totalAccepted.toLocaleString()} accepted of ${totalDelivered.toLocaleString()}`}
           />
-          <KpiCard
+          <UnifiedKpiCard
             index={2}
             icon={DollarSign}
             iconColor={isDark ? 'text-[#E63946]' : 'text-[#BA2027]'}
@@ -328,7 +262,7 @@ export default function ReportsPage() {
             trendValue={revenueGrowth}
             footer={`$${(totalRevenue / 6 / 1000).toFixed(1)}K avg per month`}
           />
-          <KpiCard
+          <UnifiedKpiCard
             index={3}
             icon={Activity}
             iconColor={isDark ? 'text-[#F4B400]' : 'text-[#5A555D]'}

@@ -14,6 +14,7 @@ import { LeadAvatar } from '../components/LeadAvatar';
 import { LeadDistributionChart } from '../components/LeadDistributionChart';
 import { FloatingActionButton } from '../components/FloatingActionButton';
 import { AdvancedFiltersPanel } from '../components/AdvancedFiltersPanel';
+import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { toast } from 'sonner';
 
 type SortField = 'leadScore' | 'deliveryDate' | 'company' | 'status';
@@ -226,31 +227,46 @@ export default function LeadsPage() {
 
           {/* Quick Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            {[
-              { label: 'Total Leads', value: stats.total, icon: Users, color: isDark ? 'from-blue-500/20 to-cyan-500/20' : 'from-blue-50 to-cyan-50', iconColor: '#4285F4' },
-              { label: 'Pending', value: stats.pending, icon: Clock, color: isDark ? 'from-yellow-500/20 to-amber-500/20' : 'from-yellow-50 to-amber-50', iconColor: '#F4B400' },
-              { label: 'Hot Leads', value: stats.hotLeads, icon: TrendingUp, color: isDark ? 'from-red-500/20 to-pink-500/20' : 'from-red-50 to-pink-50', iconColor: '#EA4335' },
-              { label: 'Accepted', value: stats.accepted, icon: CheckCircle, color: isDark ? 'from-green-500/20 to-emerald-500/20' : 'from-green-50 to-emerald-50', iconColor: '#0F9D58' },
-              { label: 'Avg Score', value: stats.avgScore, icon: Award, color: isDark ? 'from-purple-500/20 to-indigo-500/20' : 'from-purple-50 to-indigo-50', iconColor: '#8E44AD' }
-            ].map((stat, index) => (
-              <div
-                key={stat.label}
-                className={`rounded-xl p-5 border backdrop-blur-sm transition-all hover:scale-105 animate-slideInUp ${
-                  isDark ? 'bg-gradient-to-br border-white/10' : 'bg-gradient-to-br border-gray-200'
-                } ${stat.color}`}
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <stat.icon className="w-5 h-5" style={{ color: stat.iconColor }} />
-                </div>
-                <div className={`text-3xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {stat.value}
-                </div>
-                <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {stat.label}
-                </div>
-              </div>
-            ))}
+            <UnifiedKpiCard
+              index={0}
+              icon={Users}
+              iconColor="text-[#4285F4]"
+              iconBg={isDark ? 'bg-gradient-to-br from-[#4285F4]/20 to-[#4285F4]/10' : 'bg-gradient-to-br from-[#4285F4]/10 to-[#4285F4]/5'}
+              value={stats.total}
+              label="Total Leads"
+            />
+            <UnifiedKpiCard
+              index={1}
+              icon={Clock}
+              iconColor="text-[#F4B400]"
+              iconBg={isDark ? 'bg-gradient-to-br from-[#F4B400]/20 to-[#F4B400]/10' : 'bg-gradient-to-br from-[#F4B400]/10 to-[#F4B400]/5'}
+              value={stats.pending}
+              label="Pending"
+            />
+            <UnifiedKpiCard
+              index={2}
+              icon={TrendingUp}
+              iconColor={isDark ? 'text-[#E63946]' : 'text-[#BA2027]'}
+              iconBg={isDark ? 'bg-gradient-to-br from-[#E63946]/20 to-[#E63946]/10' : 'bg-gradient-to-br from-[#BA2027]/10 to-[#BA2027]/5'}
+              value={stats.hotLeads}
+              label="Hot Leads"
+            />
+            <UnifiedKpiCard
+              index={3}
+              icon={CheckCircle}
+              iconColor="text-[#0F9D58]"
+              iconBg={isDark ? 'bg-gradient-to-br from-[#0F9D58]/20 to-[#0F9D58]/10' : 'bg-gradient-to-br from-[#0F9D58]/10 to-[#0F9D58]/5'}
+              value={stats.accepted}
+              label="Accepted"
+            />
+            <UnifiedKpiCard
+              index={4}
+              icon={Award}
+              iconColor="text-[#8E44AD]"
+              iconBg={isDark ? 'bg-gradient-to-br from-[#8E44AD]/20 to-[#8E44AD]/10' : 'bg-gradient-to-br from-[#8E44AD]/10 to-[#8E44AD]/5'}
+              value={stats.avgScore}
+              label="Avg Score"
+            />
           </div>
         </div>
 

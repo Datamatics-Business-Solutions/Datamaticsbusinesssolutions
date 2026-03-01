@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { mockInvoices } from '../mockInvoices';
 import { PaymentTimeline } from '../components/PaymentTimeline';
 import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
+import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 
 export default function Invoices() {
   const { theme } = useTheme();
@@ -126,7 +127,7 @@ export default function Invoices() {
           </div>
         </div>
 
-        {/* Payment Distribution Chart - SECTION 1: REDESIGNED */}
+        {/* Payment Distribution with UnifiedKpiCard */}
         <div className={`rounded-xl p-6 pb-6 pt-8 mb-5 border backdrop-blur-md animate-fadeIn ${
           isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
         }`}>
@@ -137,83 +138,47 @@ export default function Invoices() {
             Payment Distribution
           </h3>
           
-          {/* Four-column grid layout */}
-          <div className="grid grid-cols-4 gap-4">
-            {/* Total Amount Box */}
-            <div className={`rounded-xl p-4 border ${
-              isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
-            }`}>
-              <div className="flex items-start justify-between mb-2">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-[#6B7280]'}`}>
-                  Total Amount
-                </span>
-                <PieChartIcon className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
-              </div>
-              <div className={`text-2xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                ${(totalAmount / 1000).toFixed(1)}K
-              </div>
-              <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-[#6B7280]'}`}>
-                {filteredInvoices.length} total invoices
-              </div>
-            </div>
-
-            {/* Total Paid Box */}
-            <div className={`rounded-xl p-4 border ${
-              isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
-            }`}>
-              <div className="flex items-start justify-between mb-2">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-[#6B7280]'}`}>
-                  Total Paid
-                </span>
-                <CheckCircle className="w-4 h-4 text-[#0F9D58]" />
-              </div>
-              <div className={`text-2xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                ${(totalPaid / 1000).toFixed(1)}K
-              </div>
-              <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-[#6B7280]'}`}>
-                {paidCount} invoices • {((totalPaid / totalAmount) * 100).toFixed(1)}%
-              </div>
-            </div>
-            
-            {/* Pending Box */}
-            <div className={`rounded-xl p-4 border ${
-              isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
-            }`}>
-              <div className="flex items-start justify-between mb-2">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-[#6B7280]'}`}>
-                  Pending
-                </span>
-                <Clock className="w-4 h-4 text-[#F59E0B]" />
-              </div>
-              <div className={`text-2xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                ${(totalPending / 1000).toFixed(1)}K
-              </div>
-              <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-[#6B7280]'}`}>
-                {pendingCount} invoices • {((totalPending / totalAmount) * 100).toFixed(1)}%
-              </div>
-            </div>
-            
-            {/* Overdue Box */}
-            <div className={`rounded-xl p-4 border ${
-              isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
-            }`}>
-              <div className="flex items-start justify-between mb-2">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-[#6B7280]'}`}>
-                  Overdue
-                </span>
-                <AlertCircle className="w-4 h-4 text-[#EA4335]" />
-              </div>
-              <div className={`text-2xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                ${(totalOverdue / 1000).toFixed(1)}K
-              </div>
-              <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-[#6B7280]'}`}>
-                {overdueCount} invoices • {((totalOverdue / totalAmount) * 100).toFixed(1)}%
-              </div>
-            </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <UnifiedKpiCard
+              index={0}
+              icon={PieChartIcon}
+              iconColor={isDark ? 'text-gray-400' : 'text-[#5A555D]'}
+              iconBg={isDark ? 'bg-gradient-to-br from-[#5A555D]/20 to-[#5A555D]/10' : 'bg-gradient-to-br from-[#5A555D]/10 to-[#5A555D]/5'}
+              value={`$${(totalAmount / 1000).toFixed(1)}K`}
+              label="Total Amount"
+              footer={`${filteredInvoices.length} total invoices`}
+            />
+            <UnifiedKpiCard
+              index={1}
+              icon={CheckCircle}
+              iconColor="text-[#0F9D58]"
+              iconBg={isDark ? 'bg-gradient-to-br from-[#0F9D58]/20 to-[#0F9D58]/10' : 'bg-gradient-to-br from-[#0F9D58]/10 to-[#0F9D58]/5'}
+              value={`$${(totalPaid / 1000).toFixed(1)}K`}
+              label="Total Paid"
+              footer={`${paidCount} invoices • ${((totalPaid / totalAmount) * 100).toFixed(1)}%`}
+            />
+            <UnifiedKpiCard
+              index={2}
+              icon={Clock}
+              iconColor="text-[#F4B400]"
+              iconBg={isDark ? 'bg-gradient-to-br from-[#F4B400]/20 to-[#F4B400]/10' : 'bg-gradient-to-br from-[#F4B400]/10 to-[#F4B400]/5'}
+              value={`$${(totalPending / 1000).toFixed(1)}K`}
+              label="Pending"
+              footer={`${pendingCount} invoices • ${((totalPending / totalAmount) * 100).toFixed(1)}%`}
+            />
+            <UnifiedKpiCard
+              index={3}
+              icon={AlertCircle}
+              iconColor="text-[#EA4335]"
+              iconBg={isDark ? 'bg-gradient-to-br from-[#EA4335]/20 to-[#EA4335]/10' : 'bg-gradient-to-br from-[#EA4335]/10 to-[#EA4335]/5'}
+              value={`$${(totalOverdue / 1000).toFixed(1)}K`}
+              label="Overdue"
+              footer={`${overdueCount} invoices • ${((totalOverdue / totalAmount) * 100).toFixed(1)}%`}
+            />
           </div>
         </div>
 
-        {/* SECTION 2: Overdue Alert Banner */}
+        {/* Overdue Alert Banner */}
         {overdueInvoice && (
           <div className="bg-[#FEF2F2] border border-[rgba(220,38,38,0.15)] rounded-[10px] px-4 py-3 mb-5 flex items-center gap-3 animate-fadeIn">
             <AlertCircle className="w-5 h-5 text-[#DC2626] flex-shrink-0" />
@@ -232,91 +197,55 @@ export default function Invoices() {
           </div>
         )}
 
-        {/* SECTION 4: Filters with Date Range */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-5">
-          <div className="lg:col-span-5 relative">
-            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-              isDark ? 'text-gray-400' : 'text-gray-500'
-            }`} />
+        {/* Search and Filter Bar */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-6">
+          <div className="flex-1 relative">
+            <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
             <input
               type="text"
               placeholder="Search invoices by number or campaign..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full h-[42px] pl-10 pr-4 rounded-lg border transition-all ${
+              className={`w-full pl-12 pr-4 py-3 rounded-xl border text-base ${
                 isDark
-                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-[#E63946]'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#BA2027]'
-              } outline-none`}
+                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
+                  : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
+              } focus:outline-none focus:ring-2 focus:ring-[#BA2027]/20`}
             />
           </div>
-          <div className="lg:col-span-2">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className={`w-full h-[42px] px-4 rounded-lg border transition-all ${
-                isDark
-                  ? 'bg-white/5 border-white/10 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              } outline-none`}
-            >
-              <option value="All">All Status</option>
-              <option value="Paid">Paid</option>
-              <option value="Pending">Pending</option>
-              <option value="Overdue">Overdue</option>
-            </select>
-          </div>
-          <div className="lg:col-span-2">
-            <button
-              className={`w-full h-[42px] px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                isDark
-                  ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
-                  : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Date Range</span>
-            </button>
-          </div>
-          <div className="lg:col-span-3 flex gap-2">
-            <button
-              onClick={handleBulkDownload}
-              className={`flex-1 h-[42px] px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                isDark
-                  ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
-                  : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">Bulk Download</span>
-            </button>
+          <div className="flex gap-3">
+            {['All', 'Paid', 'Pending', 'Overdue'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-5 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  statusFilter === status
+                    ? isDark
+                      ? 'bg-gradient-to-r from-[#E63946] to-[#BA2027] text-white shadow-lg'
+                      : 'bg-gradient-to-r from-[#BA2027] to-[#8E1C22] text-white shadow-lg'
+                    : isDark
+                      ? 'bg-white/5 text-gray-300 hover:bg-white/10'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Invoices Table */}
-        <div 
-          className={`rounded-xl overflow-hidden animate-fadeIn ${
-            isDark ? 'bg-white/5 backdrop-blur-md' : 'bg-white'
-          }`}
-          style={isDark ? {
-            border: '1px solid rgba(255, 255, 255, 0.10)',
-            boxShadow: '0 4px 32px rgba(0, 0, 0, 0.4)'
-          } : {
-            border: '1px solid rgba(0, 0, 0, 0.06)',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)'
-          }}
-        >
+        <div className={`rounded-xl border backdrop-blur-md overflow-hidden ${
+          isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+        }`}>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
-              <thead>
-                <tr className={`${isDark ? 'bg-white/5' : 'bg-gray-50'} border-b ${
-                  isDark ? 'border-white/10' : 'border-gray-200'
-                }`}>
-                  <th className={`text-left px-6 py-4 text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+            <table className="w-full">
+              <thead className={`${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <tr>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                     <input
                       type="checkbox"
+                      checked={selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
                       onChange={(e) => {
                         if (e.target.checked) {
                           setSelectedInvoices(filteredInvoices.map(inv => inv.id));
@@ -324,71 +253,21 @@ export default function Invoices() {
                           setSelectedInvoices([]);
                         }
                       }}
-                      checked={selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
-                      className={`w-4 h-4 rounded cursor-pointer transition-all appearance-none ${
-                        isDark 
-                          ? 'bg-white/10 border-2 border-white/20 hover:border-white/40' 
-                          : 'bg-white border-2 border-gray-300 hover:border-gray-400'
-                      } checked:bg-[#E63946] checked:border-[#E63946] focus:ring-2 focus:ring-offset-0 focus:ring-[#E63946]/50 relative`}
-                      style={{
-                        backgroundImage: selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0 
-                          ? `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E")`
-                          : 'none',
-                        backgroundSize: '100% 100%',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat'
-                      }}
+                      className="rounded"
                     />
                   </th>
-                  <th className={`text-left px-6 py-4 text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`} style={{ minWidth: '150px' }}>
-                    Invoice #
-                  </th>
-                  <th className={`text-left px-6 py-4 text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`} style={{ width: '220px', maxWidth: '220px' }}>
-                    Campaign
-                  </th>
-                  <th className={`text-left px-6 py-4 text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Timeline
-                  </th>
-                  <th className={`text-left px-6 py-4 text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Amount
-                  </th>
-                  <th className={`text-left px-6 py-4 text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Method
-                  </th>
-                  <th className={`text-left px-6 py-4 text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Status
-                  </th>
-                  <th className={`text-left px-6 py-4 text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Actions
-                  </th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Invoice</th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Campaign</th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Amount</th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Due Date</th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Status</th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredInvoices.map((invoice, index) => {
-                  const paymentMethod = getPaymentMethod(invoice.status);
-                  const PaymentIcon = paymentMethod.icon;
-                  
-                  return (
-                  <TableRow
-                    key={invoice.id}
-                    onClick={() => handleViewInvoice(invoice)}
-                    animationDelay={index * 100}
-                  >
-                    <td className="px-6 py-3" onClick={(e) => e.stopPropagation()}>
+                {filteredInvoices.map((invoice, index) => (
+                  <TableRow key={invoice.id} index={index}>
+                    <td className="px-6 py-4">
                       <input
                         type="checkbox"
                         checked={selectedInvoices.includes(invoice.id)}
@@ -399,149 +278,133 @@ export default function Invoices() {
                             setSelectedInvoices(selectedInvoices.filter(id => id !== invoice.id));
                           }
                         }}
-                        className={`w-4 h-4 rounded cursor-pointer transition-all appearance-none ${
-                          isDark 
-                            ? 'bg-white/10 border-2 border-white/20 hover:border-white/40' 
-                            : 'bg-white border-2 border-gray-300 hover:border-gray-400'
-                        } checked:bg-[#E63946] checked:border-[#E63946] focus:ring-2 focus:ring-offset-0 focus:ring-[#E63946]/50 relative`}
-                        style={{
-                          backgroundImage: selectedInvoices.includes(invoice.id)
-                            ? `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E")`
-                            : 'none',
-                          backgroundSize: '100% 100%',
-                          backgroundPosition: 'center',
-                          backgroundRepeat: 'no-repeat'
-                        }}
+                        className="rounded"
                       />
                     </td>
-                    <td className="px-6 py-3">
-                      <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {invoice.invoiceNumber}
-                      </div>
-                      <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        {new Date(invoice.issueDate).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          isDark ? 'bg-white/10' : 'bg-gray-100'
+                        }`}>
+                          <FileText className={`w-5 h-5 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
+                        </div>
+                        <div>
+                          <div className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {invoice.invoiceNumber}
+                          </div>
+                          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {invoice.issueDate}
+                          </div>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-3">
-                      <div 
-                        className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'} overflow-hidden text-ellipsis whitespace-nowrap`}
-                        title={invoice.campaignName}
-                      >
+                    <td className="px-6 py-4">
+                      <div className={`text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {invoice.campaignName}
                       </div>
                     </td>
-                    <td className="px-6 py-3">
-                      <div className="w-36">
-                        <PaymentTimeline
-                          status={invoice.status as any}
-                          issueDate={invoice.issueDate}
-                          dueDate={invoice.dueDate}
-                          compact={true}
-                        />
-                      </div>
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <td className="px-6 py-4">
+                      <div className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         ${invoice.amount.toLocaleString()}
                       </div>
-                      {invoice.status === 'Pending' && getDaysUntilDue(invoice.dueDate) > 0 && (
-                        <div className="text-xs text-gray-500">
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className={`text-base ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </div>
+                      {invoice.status === 'Pending' && getDaysUntilDue(invoice.dueDate) <= 3 && (
+                        <div className="text-xs text-[#D97706] mt-1">
                           Due in {getDaysUntilDue(invoice.dueDate)} days
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-3">
-                      <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-                        <PaymentIcon className="w-4 h-4" />
-                        <span>{paymentMethod.method}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3">
-                      <motion.div 
-                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium ${
-                          getStatusColor(invoice.status)
-                        }`}
-                        animate={invoice.status === 'Overdue' ? {
-                          boxShadow: [
-                            "0 0 0px rgba(220, 38, 38, 0)",
-                            "0 0 12px rgba(220, 38, 38, 0.4)",
-                            "0 0 0px rgba(220, 38, 38, 0)"
-                          ]
-                        } : {}}
-                        transition={invoice.status === 'Overdue' ? { 
-                          duration: 2, 
-                          repeat: Infinity 
-                        } : {}}
-                      >
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border ${getStatusColor(invoice.status)}`}>
                         {getStatusIcon(invoice.status)}
-                        <span className="text-sm">{invoice.status}</span>
-                      </motion.div>
+                        {invoice.status}
+                      </span>
                     </td>
-                    <td className="px-6 py-3" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleViewInvoice(invoice)}
-                          className={`p-2 rounded-lg transition-colors ${
+                          className={`p-2 rounded-lg transition-all ${
                             isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
                           }`}
-                          title="View Invoice"
                         >
-                          <Eye className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                          <Eye className={`w-5 h-5 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
                         </button>
                         <button
                           onClick={() => toast.success('Downloading invoice...')}
-                          className={`p-2 rounded-lg transition-colors ${
+                          className={`p-2 rounded-lg transition-all ${
                             isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
                           }`}
-                          title="Download"
                         >
-                          <Download className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                          <Download className={`w-5 h-5 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
                         </button>
-                        {(invoice.status === 'Pending' || invoice.status === 'Overdue') && (
+                        {invoice.status !== 'Paid' && (
                           <Link to={`/payment/${invoice.id}`}>
-                            <button 
-                              className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium ${
-                                isDark
-                                  ? 'border-2 border-[#E63946] text-[#E63946] hover:bg-[#E63946] hover:text-white'
-                                  : 'border-2 border-[#BA2027] text-[#BA2027] hover:bg-[#BA2027] hover:text-white'
-                              }`}
+                            <motion.button
+                              className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white text-sm font-medium"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
                             >
-                              <CreditCard className="w-3 h-3" />
-                              Pay
-                            </button>
+                              Pay Now
+                            </motion.button>
                           </Link>
                         )}
                       </div>
                     </td>
                   </TableRow>
-                )})}
+                ))}
               </tbody>
             </table>
           </div>
+        </div>
 
-          {filteredInvoices.length === 0 && (
-            <div className="text-center py-12">
-              <FileText className={`w-12 h-12 mx-auto mb-3 ${
-                isDark ? 'text-gray-600' : 'text-gray-400'
-              }`} />
-              <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                No invoices found matching your criteria
-              </p>
+        {/* Bulk Actions */}
+        {selectedInvoices.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mt-4 p-4 rounded-xl border flex items-center justify-between ${
+              isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+            }`}
+          >
+            <span className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {selectedInvoices.length} invoice{selectedInvoices.length > 1 ? 's' : ''} selected
+            </span>
+            <div className="flex gap-3">
+              <button
+                onClick={handleBulkDownload}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  isDark
+                    ? 'bg-white/10 text-white hover:bg-white/20'
+                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                }`}
+              >
+                <Download className="w-4 h-4 inline mr-2" />
+                Download Selected
+              </button>
             </div>
-          )}
+          </motion.div>
+        )}
+
+        {/* Payment Timeline */}
+        <div className="mt-6">
+          <PaymentTimeline />
         </div>
       </div>
 
       {/* Invoice Preview Modal */}
-      <InvoicePreviewModal
-        isOpen={showPreview}
-        onClose={() => setShowPreview(false)}
-        invoice={previewInvoice}
-      />
+      <AnimatePresence>
+        {showPreview && previewInvoice && (
+          <InvoicePreviewModal
+            invoice={previewInvoice}
+            onClose={() => setShowPreview(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
