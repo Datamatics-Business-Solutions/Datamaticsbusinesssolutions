@@ -340,33 +340,18 @@ export default function Dashboard() {
                   return (
                     <motion.tr
                       key={campaign.id}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05, duration: 0.3 }}
+                      transition={{ delay: index * 0.1, duration: 0.3 }}
                       whileHover={{ 
-                        scale: 1.005,
-                        backgroundColor: isDark ? 'rgba(30, 28, 36, 0.8)' : 'rgba(255, 245, 245, 0.8)',
-                        transition: { duration: 0.2 }
+                        scale: 1.01,
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                        transition: { duration: 0.1 }
                       }}
-                      className={`group relative ${
-                        index % 2 === 1 ? (isDark ? 'bg-white/[0.02]' : 'bg-[#F8FCFD]/50') : ''
-                      } border-t ${isDark ? 'border-white/[0.04]' : 'border-[#F0F0F0]'} cursor-pointer`}
-                      style={{
-                        borderImage: isDark 
-                          ? 'linear-gradient(90deg, rgba(230, 57, 70, 0.05) 0%, rgba(230, 57, 70, 0.15) 50%, rgba(230, 57, 70, 0.05) 100%) 1'
-                          : 'linear-gradient(90deg, rgba(186, 32, 39, 0.03) 0%, rgba(186, 32, 39, 0.08) 50%, rgba(186, 32, 39, 0.03) 100%) 1'
-                      }}
+                      className={`group relative border-t ${isDark ? 'border-white/[0.04]' : 'border-[#F0F0F0]'} cursor-pointer`}
                     >
-                      {/* Left accent border on hover - thicker and smoother */}
+                      {/* Campaign Name */}
                       <td className="px-6 py-3 relative">
-                        <div 
-                          className="absolute left-0 top-0 bottom-0 w-0 group-hover:w-1.5 transition-all duration-300 ease-in-out rounded-r-md"
-                          style={{
-                            background: isDark
-                              ? 'linear-gradient(180deg, #E63946 0%, #FF4D5A 100%)'
-                              : 'linear-gradient(180deg, #BA2027 0%, #D32F2F 100%)'
-                          }}
-                        />
                         <div className={`text-sm font-normal ${isDark ? 'text-[#F1F0F5]' : 'text-[#1E1E1E]'}`}>{campaign.name}</div>
                         <div className={`text-xs ${isDark ? 'text-[#6B6880]' : 'text-[#9E9E9E]'} mt-1 font-normal`}>
                           {campaign.clientCompany} • {new Date(campaign.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {new Date(campaign.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}

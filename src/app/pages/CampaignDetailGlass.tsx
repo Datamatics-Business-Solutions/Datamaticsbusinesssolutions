@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'motion/react';
 import { useParams, useNavigate } from 'react-router';
 import { 
   ChevronRight, 
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { GlassNavigation } from '../components/GlassNavigation';
 import { JobCardModal } from '../components/JobCardModalGlass';
+import { AnimatedDonutChart } from '../components/AnimatedDonutChart';
 import { mockCampaigns, mockActivityUpdates } from '../mockData';
 import { useTheme } from '../context/ThemeContext';
 
@@ -81,41 +83,45 @@ export default function CampaignDetail() {
         </div>
 
         {/* 4 KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
-            <div className="flex items-center gap-3 mb-2">
-              <Target className={`w-5 h-5 ${isDark ? 'text-[#E63946]' : 'text-[#BA2027]'}`} />
-              <span className={`text-sm font-medium ${isDark ? 'text-[#E0E0E0]' : 'text-[#4A4A4A]'}`}>Target</span>
-            </div>
-            <div className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>{campaign.target}</div>
-          </div>
-
-          <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
-            <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="w-5 h-5 text-[#0891B2]" />
-              <span className={`text-sm font-medium ${isDark ? 'text-[#E0E0E0]' : 'text-[#4A4A4A]'}`}>Delivered</span>
-            </div>
-            <div className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>{campaign.delivered}</div>
-          </div>
-
-          <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
-            <div className="flex items-center gap-3 mb-2">
-              <CheckCircle className="w-5 h-5 text-[#10B981]" />
-              <span className={`text-sm font-medium ${isDark ? 'text-[#E0E0E0]' : 'text-[#4A4A4A]'}`}>Accepted</span>
-            </div>
-            <div className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>{accepted}</div>
-          </div>
-
-          <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
-            <div className="flex items-center gap-3 mb-2">
-              <Calendar className="w-5 h-5 text-[#BA2027]" />
-              <span className={`text-sm font-medium ${isDark ? 'text-[#E0E0E0]' : 'text-[#4A4A4A]'}`}>End Date</span>
-            </div>
-            <div className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>
-              {new Date(campaign.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </div>
-          </div>
-        </div>
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.08 }
+            }
+          }}
+        >
+          {[
+            { icon: Target, label: 'Target', value: campaign.target, color: isDark ? 'text-[#E63946]' : 'text-[#BA2027]' },
+            { icon: TrendingUp, label: 'Delivered', value: campaign.delivered, color: 'text-[#0891B2]' },
+            { icon: CheckCircle, label: 'Accepted', value: accepted, color: 'text-[#10B981]' },
+            { icon: Calendar, label: 'End Date', value: new Date(campaign.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), color: 'text-[#BA2027]', isDate: true }
+          ].map((card, index) => (
+            <motion.div
+              key={card.label}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              whileHover={{ scale: 1.03, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              className="rounded-2xl p-6 border transition-all hover:shadow-2xl" 
+              style={cardStyle}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <card.icon className={`w-5 h-5 ${card.color}`} />
+                <span className={`text-sm font-medium ${isDark ? 'text-[#E0E0E0]' : 'text-[#4A4A4A]'}`}>{card.label}</span>
+              </div>
+              <div className={`${card.isDate ? 'text-xl' : 'text-3xl'} font-semibold ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>
+                {card.value}
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Left Column - 60% */}
@@ -124,34 +130,12 @@ export default function CampaignDetail() {
             <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
               <h3 className={`text-lg font-normal mb-6 ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>Campaign Progress</h3>
               <div className="flex items-center justify-center">
-                <div className="relative w-64 h-64">
-                  <svg className="w-64 h-64 transform -rotate-90">
-                    <circle
-                      cx="128"
-                      cy="128"
-                      r="100"
-                      stroke={isDark ? 'rgba(186, 32, 39, 0.2)' : 'rgba(186, 32, 39, 0.1)'}
-                      strokeWidth="24"
-                      fill="none"
-                    />
-                    <circle
-                      cx="128"
-                      cy="128"
-                      r="100"
-                      stroke="#BA2027"
-                      strokeWidth="24"
-                      fill="none"
-                      strokeDasharray={`${2 * Math.PI * 100}`}
-                      strokeDashoffset={`${2 * Math.PI * 100 * (1 - progress / 100)}`}
-                      strokeLinecap="round"
-                      className="transition-all duration-1000"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className={`text-5xl font-light ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>{Math.round(progress)}%</div>
-                    <div className={`text-sm mt-2 font-light ${isDark ? 'text-[#E0E0E0]' : 'text-[#4A4A4A]'}`}>{accepted}/{campaign.target}</div>
-                  </div>
-                </div>
+                <AnimatedDonutChart
+                  progress={progress}
+                  accepted={accepted}
+                  target={campaign.target}
+                  isDark={isDark}
+                />
               </div>
             </div>
 

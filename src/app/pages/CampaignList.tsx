@@ -177,7 +177,7 @@ export default function CampaignList() {
                   <TableRow 
                     key={campaign.id}
                     showHoverEffect={true}
-                    animationDelay={index * 30}
+                    animationDelay={index * 100}
                     className={index % 2 === 1 ? 'bg-[#F8FCFD]/50' : ''}
                   >
                     <td className="px-6 py-4">

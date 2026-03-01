@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { GlassNavigation } from '../components/GlassNavigation';
 import { useTheme } from '../context/ThemeContext';
 import { TableRow } from '../components/TableRow';
@@ -234,21 +235,21 @@ export default function Support() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className={`rounded-xl p-5 border backdrop-blur-md transition-all hover:scale-105 animate-slideInUp ${
+              className={`rounded-xl p-4 border backdrop-blur-md transition-all hover:scale-105 animate-slideInUp ${
                 isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
               }`}
               style={{ animationDelay: `${stat.index * 50}ms` }}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1">
                 <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
                 {typeof stat.value === 'number' && stat.label === 'Resolved' && (
                   <TrendingUp className="w-4 h-4 text-green-500" />
                 )}
               </div>
-              <div className={`text-3xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <div className={`text-4xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {typeof stat.value === 'number' ? <AnimatedCounter end={stat.value} /> : stat.value}
               </div>
-              <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                 {stat.label}
               </div>
             </div>
@@ -378,25 +379,54 @@ export default function Support() {
                     </div>
 
                     {/* Tickets */}
-                    <div className="p-3 space-y-3 max-h-[600px] overflow-y-auto">
+                    <motion.div 
+                      className="p-3 space-y-3 max-h-[600px] overflow-y-auto"
+                      initial="hidden"
+                      animate="visible"
+                      variants={{
+                        hidden: { opacity: 0 },
+                        visible: {
+                          opacity: 1,
+                          transition: { staggerChildren: 0.08 }
+                        }
+                      }}
+                    >
                       {tickets.map((ticket, index) => (
-                        <div
+                        <motion.div
                           key={ticket.id}
+                          variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 }
+                          }}
+                          whileHover={{ scale: 1.03, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => setSelectedTicket(ticket)}
-                          className={`p-4 rounded-lg border cursor-pointer transition-all hover:scale-105 animate-slideInUp ${
+                          className={`p-4 rounded-lg border cursor-pointer transition-all ${
                             isDark
                               ? 'bg-white/5 border-white/10 hover:bg-white/10'
                               : 'bg-white border-gray-200 hover:shadow-lg'
                           }`}
-                          style={{ animationDelay: `${index * 50}ms` }}
                         >
                           <div className="flex items-start justify-between mb-2">
                             <span className={`text-xs font-mono ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                               {ticket.id}
                             </span>
-                            <span className={`px-2 py-0.5 rounded-md border text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
+                            <motion.span 
+                              className={`px-2 py-0.5 rounded-md border text-xs font-medium ${getPriorityColor(ticket.priority)}`}
+                              animate={ticket.priority === 'High' || ticket.priority === 'Urgent' ? {
+                                boxShadow: [
+                                  "0 0 0px rgba(244, 180, 0, 0)",
+                                  "0 0 10px rgba(244, 180, 0, 0.5)",
+                                  "0 0 0px rgba(244, 180, 0, 0)"
+                                ]
+                              } : {}}
+                              transition={ticket.priority === 'High' || ticket.priority === 'Urgent' ? { 
+                                duration: 2, 
+                                repeat: Infinity 
+                              } : {}}
+                            >
                               {ticket.priority}
-                            </span>
+                            </motion.span>
                           </div>
 
                           <h4 className={`font-medium text-sm mb-2 line-clamp-2 ${
@@ -422,9 +452,9 @@ export default function Support() {
                               {new Date(ticket.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
                           </div>
-                        </div>
+                        </motion.div>
                       ))}
-                    </div>
+                    </motion.div>
                   </div>
                 );
               })}
@@ -480,7 +510,7 @@ export default function Support() {
                     key={ticket.id}
                     onClick={() => setSelectedTicket(ticket)}
                     showHoverEffect={true}
-                    animationDelay={index * 30}
+                    animationDelay={index * 100}
                   >
                     <td className="px-6 py-3">
                       <span className={`font-mono text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>

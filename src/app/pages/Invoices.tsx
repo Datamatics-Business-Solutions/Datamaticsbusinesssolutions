@@ -221,9 +221,13 @@ export default function Invoices() {
               <span className="font-semibold">{overdueInvoice.invoiceNumber}</span> — {overdueInvoice.campaignName} is overdue by {getDaysOverdue(overdueInvoice.dueDate)} days. ${overdueInvoice.amount.toLocaleString()} was due {new Date(overdueInvoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}.
             </div>
             <Link to={`/payment/${overdueInvoice.id}`}>
-              <button className="px-4 py-2 rounded-lg border-2 border-[#DC2626] text-[#DC2626] hover:bg-[#DC2626] hover:text-white transition-all text-sm font-medium whitespace-nowrap">
+              <motion.button 
+                className="px-4 py-2 rounded-lg border-2 border-[#DC2626] text-[#DC2626] hover:bg-[#DC2626] hover:text-white transition-all text-sm font-medium whitespace-nowrap"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 Pay Now →
-              </button>
+              </motion.button>
             </Link>
           </div>
         )}
@@ -382,7 +386,7 @@ export default function Invoices() {
                   <TableRow
                     key={invoice.id}
                     onClick={() => handleViewInvoice(invoice)}
-                    animationDelay={index * 30}
+                    animationDelay={index * 100}
                   >
                     <td className="px-6 py-3" onClick={(e) => e.stopPropagation()}>
                       <input
@@ -457,12 +461,25 @@ export default function Invoices() {
                       </div>
                     </td>
                     <td className="px-6 py-3">
-                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium ${
-                        getStatusColor(invoice.status)
-                      }`}>
+                      <motion.div 
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium ${
+                          getStatusColor(invoice.status)
+                        }`}
+                        animate={invoice.status === 'Overdue' ? {
+                          boxShadow: [
+                            "0 0 0px rgba(220, 38, 38, 0)",
+                            "0 0 12px rgba(220, 38, 38, 0.4)",
+                            "0 0 0px rgba(220, 38, 38, 0)"
+                          ]
+                        } : {}}
+                        transition={invoice.status === 'Overdue' ? { 
+                          duration: 2, 
+                          repeat: Infinity 
+                        } : {}}
+                      >
                         {getStatusIcon(invoice.status)}
                         <span className="text-sm">{invoice.status}</span>
-                      </div>
+                      </motion.div>
                     </td>
                     <td className="px-6 py-3" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-2">

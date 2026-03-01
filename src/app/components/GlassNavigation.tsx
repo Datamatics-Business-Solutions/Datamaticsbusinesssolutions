@@ -138,8 +138,10 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
             </button>
 
             {/* Icons - Fixed Spacing and Size */}
-            <button 
+            <motion.button 
               onClick={toggleTheme}
+              whileTap={{ rotate: 180, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
               className={`p-2 rounded-lg transition-all ${
                 isDark 
                   ? 'bg-[#E63946]/20 hover:bg-[#E63946]/30 text-[#E63946]' 
@@ -147,10 +149,30 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
               }`}
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {isDark ? <Sun className="w-5 h-5 stroke-[2.5]" /> : <Moon className="w-5 h-5 stroke-[2.5]" />}
-            </button>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={isDark ? 'dark' : 'light'}
+                  initial={{ rotate: -180, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 180, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {isDark ? <Sun className="w-5 h-5 stroke-[2.5]" /> : <Moon className="w-5 h-5 stroke-[2.5]" />}
+                </motion.div>
+              </AnimatePresence>
+            </motion.button>
 
-            <button 
+            <motion.button 
+              animate={unreadCount > 0 ? {
+                rotate: [0, -10, 10, -10, 10, 0],
+                scale: [1, 1.1, 1.1, 1.1, 1.1, 1]
+              } : {}}
+              transition={{
+                duration: 0.6,
+                ease: "easeInOut",
+                repeat: unreadCount > 0 ? Infinity : 0,
+                repeatDelay: 3
+              }}
               className={`p-2 rounded-lg relative transition-all ${
                 isDark 
                   ? 'hover:bg-[#E63946]/10 text-[#B0AEBB] hover:text-[#E63946]' 
@@ -159,11 +181,16 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
             >
               <Bell className="w-6 h-6 stroke-[2]" />
               {unreadCount > 0 && (
-                <span className={`absolute top-0.5 right-0.5 w-4 h-4 ${isDark ? 'bg-[#E63946]' : 'bg-[#BA2027]'} rounded-full text-[10px] text-white flex items-center justify-center font-normal`}>
+                <motion.span 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                  className={`absolute top-0.5 right-0.5 w-4 h-4 ${isDark ? 'bg-[#E63946]' : 'bg-[#BA2027]'} rounded-full text-[10px] text-white flex items-center justify-center font-normal`}
+                >
                   {unreadCount}
-                </span>
+                </motion.span>
               )}
-            </button>
+            </motion.button>
 
             <div 
               className={`w-9 h-9 ${isDark ? 'bg-[#E63946]' : 'bg-[#BA2027]'} rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all hover:scale-105`}
@@ -176,29 +203,50 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
       </div>
 
       {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div 
-          className={`lg:hidden border-t ${
-            isDark ? 'border-[#E63946]/20' : 'border-[#BA2027]/10'
-          }`}
-        >
-          <div className="max-w-[1440px] mx-auto px-4 py-3 space-y-1">
-            {navLinks.map((link) => (
-              <button
-                key={link.path}
-                onClick={() => handleNavigation(link.path)}
-                className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-normal transition-all ${
-                  isActive(link.path)
-                    ? `${isDark ? 'bg-[#BA2027]/20 text-white' : 'bg-[#BA2027]/10 text-[#BA2027]'} font-medium`
-                    : `${isDark ? 'text-[#E0E0E0] hover:bg-white/5' : 'text-[#4A4A4A] hover:bg-[#F8F9FA]'}`
-                }`}
-              >
-                {link.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ 
+              duration: 0.3,
+              ease: [0.4, 0.0, 0.2, 1]
+            }}
+            className={`lg:hidden border-t overflow-hidden ${
+              isDark ? 'border-[#E63946]/20' : 'border-[#BA2027]/10'
+            }`}
+          >
+            <motion.div 
+              initial={{ y: -20 }}
+              animate={{ y: 0 }}
+              exit={{ y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="max-w-[1440px] mx-auto px-4 py-3 space-y-1"
+            >
+              {navLinks.map((link, index) => (
+                <motion.button
+                  key={link.path}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ 
+                    delay: index * 0.05,
+                    duration: 0.3
+                  }}
+                  onClick={() => handleNavigation(link.path)}
+                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-normal transition-all ${
+                    isActive(link.path)
+                      ? `${isDark ? 'bg-[#BA2027]/20 text-white' : 'bg-[#BA2027]/10 text-[#BA2027]'} font-medium`
+                      : `${isDark ? 'text-[#E0E0E0] hover:bg-white/5' : 'text-[#4A4A4A] hover:bg-[#F8F9FA]'}`
+                  }`}
+                >
+                  {link.label}
+                </motion.button>
+              ))}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* User Menu Dropdown */}
       {showUserMenu && (

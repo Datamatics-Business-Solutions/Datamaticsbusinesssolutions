@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { GlassNavigation } from '../components/GlassNavigation';
 import { useTheme } from '../context/ThemeContext';
 import { 
@@ -333,15 +334,25 @@ export default function Documents() {
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredDocuments.map((doc, index) => (
-              <div
+              <motion.div
                 key={doc.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  delay: index * 0.05,
+                  duration: 0.4,
+                  ease: [0.25, 0.1, 0.25, 1]
+                }}
+                whileHover={{ 
+                  scale: 1.02,
+                  transition: { duration: 0.2 }
+                }}
                 onClick={() => handleViewDocument(doc)}
-                className={`rounded-xl p-6 border backdrop-blur-md transition-all hover:scale-[1.02] cursor-pointer animate-slideInUp ${
+                className={`rounded-xl p-6 border backdrop-blur-md cursor-pointer ${
                   isDark
                     ? 'bg-gradient-to-br from-white/5 to-white/10 border-white/10 hover:shadow-[0_0_30px_rgba(230,57,70,0.2)]'
                     : 'bg-gradient-to-br from-white to-gray-50/50 border-gray-200 hover:shadow-[0_0_30px_rgba(186,32,39,0.15)]'
                 } ${doc.recentlyViewed ? 'ring-2 ring-[#E63946]/30' : ''}`}
-                style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
@@ -451,7 +462,7 @@ export default function Documents() {
                     Sign with DocuSign
                   </button>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
         ) : (
@@ -499,7 +510,7 @@ export default function Documents() {
                   <TableRow
                     key={doc.id}
                     onClick={() => handleViewDocument(doc)}
-                    animationDelay={index * 30}
+                    animationDelay={index * 100}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">

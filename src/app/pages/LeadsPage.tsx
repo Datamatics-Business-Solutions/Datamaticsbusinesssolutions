@@ -437,7 +437,7 @@ export default function LeadsPage() {
                       key={lead.id}
                       onClick={() => handleLeadDetail(lead)}
                       showHoverEffect={true}
-                      animationDelay={index * 30}
+                      animationDelay={index * 100}
                     >
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <input
