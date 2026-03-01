@@ -394,19 +394,20 @@ export default function Login() {
             </a>
           </p>
 
-          {/* Certifications */}
-          <div className="mt-6 pt-6 border-t border-gray-200/20">
-            <p className="text-center text-[11px] uppercase tracking-wider font-semibold mb-4 text-[#9CA3AF]">
-              Certified & Compliant
-            </p>
-            <div className="flex items-center justify-center">
-              <img 
-                src={certifications} 
-                alt="ISO 27001:2022, ISO 9001:2015, SOC 1 & 2 Type II, GDPR Certified" 
-                className="h-12 opacity-80"
-              />
-            </div>
-          </div>
+         {/* Certifications */}
+<div className="mt-6 pt-6 border-t border-gray-200/20">
+  <p className="text-center text-[11px] uppercase tracking-wider font-semibold mb-4 text-[#9CA3AF]">
+    Certified & Compliant
+  </p>
+  <div className="flex items-center justify-center gap-2 flex-wrap">
+    {["ISO 27001", "ISO 9001", "SOC 2", "GDPR"].map((cert) => (
+      <span key={cert} className="text-[10px] font-semibold px-2 py-1 rounded border border-gray-300 text-[#6B7280]">
+        {cert}
+      </span>
+    ))}
+  </div>
+</div>
+
 
           {/* Footer */}
           <p className="text-center text-[11px] mt-4 text-[#9CA3AF]">
