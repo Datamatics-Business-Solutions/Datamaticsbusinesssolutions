@@ -72,6 +72,12 @@ export default function Support() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [priorityFilter, setPriorityFilter] = useState<string>('All');
   const [showNewTicketModal, setShowNewTicketModal] = useState(false);
+  const [newTicket, setNewTicket] = useState({
+    title: '',
+    description: '',
+    category: 'General' as Ticket['category'],
+    priority: 'Medium' as Ticket['priority']
+  });
 
   useEffect(() => {
     setTimeout(() => setPageLoaded(true), 100);
@@ -84,6 +90,21 @@ export default function Support() {
     const matchesPriority = priorityFilter === 'All' || ticket.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
   });
+
+  const handleSubmitTicket = () => {
+    if (!newTicket.title.trim() || !newTicket.description.trim()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    toast.success('Support ticket created successfully!');
+    setShowNewTicketModal(false);
+    setNewTicket({
+      title: '',
+      description: '',
+      category: 'General',
+      priority: 'Medium'
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -297,6 +318,115 @@ export default function Support() {
           )}
         </div>
       </div>
+
+      {/* New Ticket Modal */}
+      {showNewTicketModal && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowNewTicketModal(false)}
+        >
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="glass-card p-6 w-full max-w-[500px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                Create New Ticket
+              </h2>
+              <button
+                onClick={() => setShowNewTicketModal(false)}
+                className="p-1 hover:bg-[#BA2027]/10 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block mb-2" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                  Title <span className="text-[#BA2027]">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Brief description of your issue"
+                  value={newTicket.title}
+                  onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+                  className="input-base w-full px-4 py-3"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                  Description <span className="text-[#BA2027]">*</span>
+                </label>
+                <textarea
+                  placeholder="Please provide detailed information about your issue..."
+                  value={newTicket.description}
+                  onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                  className="input-base w-full px-4 py-3 min-h-[120px] resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-2" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                    Category
+                  </label>
+                  <select
+                    value={newTicket.category}
+                    onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value as Ticket['category'] })}
+                    className="input-base w-full px-4 py-3"
+                  >
+                    <option value="General">General</option>
+                    <option value="Technical">Technical</option>
+                    <option value="Billing">Billing</option>
+                    <option value="Campaign">Campaign</option>
+                    <option value="Lead Quality">Lead Quality</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-2" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                    Priority
+                  </label>
+                  <select
+                    value={newTicket.priority}
+                    onChange={(e) => setNewTicket({ ...newTicket, priority: e.target.value as Ticket['priority'] })}
+                    className="input-base w-full px-4 py-3"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Urgent">Urgent</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowNewTicketModal(false)}
+                className="btn-outline px-4 py-2 flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitTicket}
+                className="btn-primary px-4 py-2 flex-1"
+              >
+                Submit Ticket
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </AppLayout>
   );
 }

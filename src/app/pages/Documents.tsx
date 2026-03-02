@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import {
   Search, Plus, FileText, Filter, Grid3x3, List, Download, Trash2,
   Eye, Star, Calendar, User, Tag, FolderOpen, Upload, X, Check, File,
-  FileSpreadsheet, Image as ImageIcon, Archive, ChevronDown, MoreVertical
+  FileSpreadsheet, Image as ImageIcon, Archive, ChevronDown, MoreVertical,
+  CheckCircle, AlertCircle, Clock, FileCheck, Lock, DollarSign, BarChart3
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { DocumentViewerModal } from '../components/DocumentViewerModal';
+import { UploadZoneModal } from '../components/UploadZoneModal';
+import { TableRow } from '../components/TableRow';
 import { motion } from 'motion/react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { toast } from 'sonner';
 
 interface Document {
   id: string;
