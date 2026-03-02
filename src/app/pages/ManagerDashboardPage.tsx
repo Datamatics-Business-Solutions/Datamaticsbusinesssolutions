@@ -35,11 +35,11 @@ export default function ManagerDashboardPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1440px] mx-auto px-6 py-6">
+      <div className="max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">
+            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2 text-2xl md:text-3xl lg:text-4xl">
               Campaign Manager Dashboard
             </h1>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
@@ -49,7 +49,7 @@ export default function ManagerDashboardPage() {
           {canUploadLeads() && (
             <button
               onClick={() => setShowUploadModal(true)}
-              className="btn-primary px-4 py-2 flex items-center gap-2"
+              className="btn-primary px-4 py-2.5 flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <Upload className="w-4 h-4" />
               Upload Leads
@@ -84,13 +84,13 @@ export default function ManagerDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
-                Primary Contact
+                Campaign Manager
               </div>
               <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                {selectedClient.primaryContact.name}
+                {selectedClient.campaignManager}
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                {selectedClient.primaryContact.email}
+                {selectedClient.campaignManagerEmail}
               </div>
             </div>
 
@@ -108,7 +108,7 @@ export default function ManagerDashboardPage() {
                 Total Leads
               </div>
               <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                {selectedClient.campaigns.reduce((sum, c) => sum + c.delivered, 0)} delivered
+                {selectedClient.campaigns.reduce((sum, c) => sum + c.totalLeads, 0)} total
               </div>
             </div>
           </div>
@@ -132,24 +132,24 @@ export default function ManagerDashboardPage() {
                     {campaign.name}
                   </div>
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }} className="mt-1">
-                    {campaign.startDate} - {campaign.endDate}
+                    {campaign.acceptanceRate}% acceptance rate
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                      {campaign.delivered} / {campaign.target}
+                      {campaign.totalLeads}
                     </div>
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                      Delivered
+                      Total Leads
                     </div>
                   </div>
 
-                  <span className={`badge ${
-                    campaign.status === 'active' ? 'badge-active' :
-                    campaign.status === 'completed' ? 'badge-completed' :
-                    'badge-paused'
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                    campaign.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
                   }`}>
                     {campaign.status}
                   </span>
@@ -168,6 +168,7 @@ export default function ManagerDashboardPage() {
           isOpen={showUploadModal}
           onClose={() => setShowUploadModal(false)}
           clientId={selectedClient.id}
+          clientName={selectedClient.companyName}
         />
       )}
     </AppLayout>

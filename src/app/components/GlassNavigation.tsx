@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bell, Sun, Moon, Menu, X, BarChart3, Users, FileText, CreditCard, UserCircle, FolderOpen, HelpCircle, Home } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { Bell, Menu, X, BarChart3, Users, FileText, CreditCard, UserCircle, FolderOpen, HelpCircle, Home } from 'lucide-react';
 import { mockNotifications } from '../mockData';
 import { Logo } from './Logo';
 
@@ -13,7 +12,6 @@ interface GlassNavigationProps {
 export function GlassNavigation({ showInternalBadge = false }: GlassNavigationProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -45,7 +43,6 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
     return false;
   };
 
-  const isDark = theme === 'dark';
   const unreadCount = mockNotifications.filter(n => !n.read).length;
 
   const handleNavigation = (path: string) => {
@@ -69,20 +66,13 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
     { path: '/account', label: 'Account', icon: UserCircle },
   ];
 
-  // Navigation background with glassmorphism
-  const navStyle: React.CSSProperties = isDark
-    ? {
-        background: 'rgba(22, 21, 26, 0.85)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
-      }
-    : {
-        background: 'rgba(242, 244, 247, 0.85)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.06)'
-      };
+  // Navigation background with glassmorphism (light mode only)
+  const navStyle: React.CSSProperties = {
+    background: 'rgba(242, 244, 247, 0.85)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.06)'
+  };
 
   return (
     <nav className="sticky top-0 z-50" style={navStyle}>
@@ -90,12 +80,7 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavigation('/')}>
-            <Logo 
-              className="h-7 sm:h-8 lg:h-10"
-              style={isDark ? {
-                filter: 'brightness(0) saturate(100%) invert(96%) sepia(3%) saturate(383%) hue-rotate(201deg) brightness(103%) contrast(94%)'
-              } : undefined}
-            />
+            <Logo className="h-7 sm:h-8 lg:h-10" />
           </div>
 
           {/* Right Side Navigation */}
@@ -111,8 +96,8 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
                     onClick={() => handleNavigation(link.path)}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${
                       active
-                        ? `${isDark ? 'bg-[#E63946]/20 text-[#E63946]' : 'bg-[#BA2027]/15 text-[#BA2027]'}`
-                        : `${isDark ? 'text-[#B0AEBB] hover:bg-[#E63946]/10 hover:text-[#E63946]' : 'text-[#4A4A4A] hover:bg-[#BA2027]/8 hover:text-[#BA2027]'}`
+                        ? 'bg-[#BA2027]/15 text-[#BA2027]'
+                        : 'text-[#4A4A4A] hover:bg-[#BA2027]/8 hover:text-[#BA2027]'
                     }`}
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" />
@@ -127,41 +112,13 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
             {/* Mobile Hamburger Menu */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`lg:hidden p-2 rounded-lg transition-all ${
-                isDark
-                  ? 'bg-[#E63946]/20 hover:bg-[#E63946]/30 text-[#E63946]'
-                  : 'bg-[#BA2027]/10 hover:bg-[#BA2027]/20 text-[#BA2027]'
-              }`}
+              className="lg:hidden p-2 rounded-lg transition-all bg-[#BA2027]/10 hover:bg-[#BA2027]/20 text-[#BA2027]"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            {/* Icons - Fixed Spacing and Size */}
-            <motion.button 
-              onClick={toggleTheme}
-              whileTap={{ rotate: 180, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              className={`p-2 rounded-lg transition-all ${
-                isDark 
-                  ? 'bg-[#E63946]/20 hover:bg-[#E63946]/30 text-[#E63946]' 
-                  : 'bg-[#BA2027]/10 hover:bg-[#BA2027]/20 text-[#BA2027]'
-              }`}
-              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={isDark ? 'dark' : 'light'}
-                  initial={{ rotate: -180, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 180, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {isDark ? <Sun className="w-5 h-5 stroke-[2.5]" /> : <Moon className="w-5 h-5 stroke-[2.5]" />}
-                </motion.div>
-              </AnimatePresence>
-            </motion.button>
-
+            {/* Notification Bell */}
             <motion.button 
               animate={unreadCount > 0 ? {
                 rotate: [0, -10, 10, -10, 10, 0],
@@ -173,11 +130,7 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
                 repeat: unreadCount > 0 ? Infinity : 0,
                 repeatDelay: 3
               }}
-              className={`p-2 rounded-lg relative transition-all ${
-                isDark 
-                  ? 'hover:bg-[#E63946]/10 text-[#B0AEBB] hover:text-[#E63946]' 
-                  : 'hover:bg-[#BA2027]/8 text-[#4A4A4A] hover:text-[#BA2027]'
-              }`}
+              className="p-2 rounded-lg relative transition-all hover:bg-[#BA2027]/8 text-[#4A4A4A] hover:text-[#BA2027]"
             >
               <Bell className="w-6 h-6 stroke-[2]" />
               {unreadCount > 0 && (
@@ -185,15 +138,16 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className={`absolute top-0.5 right-0.5 w-4 h-4 ${isDark ? 'bg-[#E63946]' : 'bg-[#BA2027]'} rounded-full text-[10px] text-white flex items-center justify-center font-normal`}
+                  className="absolute top-0.5 right-0.5 w-4 h-4 bg-[#BA2027] rounded-full text-[10px] text-white flex items-center justify-center font-normal"
                 >
                   {unreadCount}
                 </motion.span>
               )}
             </motion.button>
 
+            {/* User Avatar */}
             <div 
-              className={`w-9 h-9 ${isDark ? 'bg-[#E63946]' : 'bg-[#BA2027]'} rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all hover:scale-105`}
+              className="w-9 h-9 bg-[#BA2027] rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all hover:scale-105"
               onClick={() => setShowUserMenu(!showUserMenu)}
             >
               <span className="text-sm font-normal text-white">JS</span>
@@ -213,9 +167,7 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
               duration: 0.3,
               ease: [0.4, 0.0, 0.2, 1]
             }}
-            className={`lg:hidden border-t overflow-hidden ${
-              isDark ? 'border-[#E63946]/20' : 'border-[#BA2027]/10'
-            }`}
+            className="lg:hidden border-t overflow-hidden border-[#BA2027]/10"
           >
             <motion.div 
               initial={{ y: -20 }}
@@ -236,8 +188,8 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
                   onClick={() => handleNavigation(link.path)}
                   className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-normal transition-all ${
                     isActive(link.path)
-                      ? `${isDark ? 'bg-[#BA2027]/20 text-white' : 'bg-[#BA2027]/10 text-[#BA2027]'} font-medium`
-                      : `${isDark ? 'text-[#E0E0E0] hover:bg-white/5' : 'text-[#4A4A4A] hover:bg-[#F8F9FA]'}`
+                      ? 'bg-[#BA2027]/10 text-[#BA2027] font-medium'
+                      : 'text-[#4A4A4A] hover:bg-[#F8F9FA]'
                   }`}
                 >
                   {link.label}
@@ -250,18 +202,18 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
 
       {/* User Menu Dropdown */}
       {showUserMenu && (
-        <div className={`absolute right-4 top-16 ${isDark ? 'bg-[#16151A]' : 'bg-white'} shadow-xl rounded-lg z-50 border ${isDark ? 'border-[#E63946]/20' : 'border-[#BA2027]/10'} min-w-[160px]`}>
+        <div className="absolute right-4 top-16 bg-white shadow-xl rounded-lg z-50 border border-[#BA2027]/10 min-w-[160px]">
           <div className="py-2">
             <button
               onClick={() => handleNavigation('/account')}
-              className={`w-full text-left px-4 py-2.5 text-sm ${isDark ? 'text-[#B0AEBB] hover:bg-[#E63946]/10 hover:text-[#E63946]' : 'text-[#4A4A4A] hover:bg-[#BA2027]/8 hover:text-[#BA2027]'} transition-colors`}
+              className="w-full text-left px-4 py-2.5 text-sm text-[#4A4A4A] hover:bg-[#BA2027]/8 hover:text-[#BA2027] transition-colors"
             >
               Account Settings
             </button>
-            <div className={`border-t ${isDark ? 'border-[#E63946]/10' : 'border-[#BA2027]/5'} my-1`}></div>
+            <div className="border-t border-[#BA2027]/5 my-1"></div>
             <button
               onClick={handleLogout}
-              className={`w-full text-left px-4 py-2.5 text-sm ${isDark ? 'text-[#B0AEBB] hover:bg-[#E63946]/10 hover:text-[#E63946]' : 'text-[#4A4A4A] hover:bg-[#BA2027]/8 hover:text-[#BA2027]'} transition-colors`}
+              className="w-full text-left px-4 py-2.5 text-sm text-[#4A4A4A] hover:bg-[#BA2027]/8 hover:text-[#BA2027] transition-colors"
             >
               Logout
             </button>
@@ -272,11 +224,7 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
       {/* Internal View Badge */}
       {showInternalBadge && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2">
-          <span className={`${
-            isDark 
-              ? 'bg-orange-500/20 text-orange-400 border-orange-500/40' 
-              : 'bg-orange-50 text-orange-600 border-orange-200'
-          } border px-4 py-1 rounded-full text-xs font-normal uppercase shadow-sm`}>
+          <span className="bg-orange-50 text-orange-600 border-orange-200 border px-4 py-1 rounded-full text-xs font-normal uppercase shadow-sm">
             Internal View
           </span>
         </div>

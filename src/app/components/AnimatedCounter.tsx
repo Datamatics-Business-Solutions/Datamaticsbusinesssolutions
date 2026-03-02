@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
 interface AnimatedCounterProps {
-  end: number;
+  end?: number;
+  value?: number; // Allow either 'end' or 'value'
   duration?: number;
   prefix?: string;
   suffix?: string;
@@ -11,12 +12,15 @@ interface AnimatedCounterProps {
 
 export function AnimatedCounter({ 
   end, 
+  value,
   duration = 2000, 
   prefix = '', 
   suffix = '', 
   decimals = 0,
   className = '' 
 }: AnimatedCounterProps) {
+  // Use 'value' if provided, otherwise use 'end', default to 0
+  const targetValue = value ?? end ?? 0;
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -29,19 +33,19 @@ export function AnimatedCounter({
       
       // Easing function for smooth animation
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      const currentCount = startValue + (end - startValue) * easeOutQuart;
+      const currentCount = startValue + (targetValue - startValue) * easeOutQuart;
       
       setCount(currentCount);
 
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        setCount(end);
+        setCount(targetValue);
       }
     };
 
     requestAnimationFrame(animate);
-  }, [end, duration]);
+  }, [targetValue, duration]);
 
   const formattedValue = decimals > 0 
     ? count.toFixed(decimals) 

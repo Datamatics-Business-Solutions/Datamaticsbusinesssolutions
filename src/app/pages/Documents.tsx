@@ -4,7 +4,8 @@ import { AppLayout } from '../components/AppLayout';
 import { 
   Download, Search, Filter, FileText, File, Eye, Share2, Trash2, 
   CheckCircle, Clock, AlertCircle, Star, Upload, User, Calendar, 
-  Paperclip, FolderOpen, Pen, List, Grid3x3 
+  Paperclip, FolderOpen, Pen, List, Grid3x3, FileCheck, Lock, 
+  DollarSign, BarChart3
 } from 'lucide-react';
 import { TableRow } from '../components/TableRow';
 import { DocumentViewerModal } from '../components/DocumentViewerModal';
@@ -141,19 +142,25 @@ export default function Documents() {
   };
 
   const getTypeIcon = (type: string) => {
+    const iconProps = {
+      className: "w-8 h-8",
+      strokeWidth: 2,
+      style: { color: '#6B7280' }
+    };
+
     switch (type) {
       case 'Contract':
-        return '📄';
+        return <FileCheck {...iconProps} />;
       case 'SOW':
-        return '📋';
+        return <FileText {...iconProps} />;
       case 'NDA':
-        return '🔒';
+        return <Lock {...iconProps} />;
       case 'Invoice':
-        return '💰';
+        return <DollarSign {...iconProps} />;
       case 'Report':
-        return '📊';
+        return <BarChart3 {...iconProps} />;
       default:
-        return '📁';
+        return <File {...iconProps} />;
     }
   };
 
@@ -174,7 +181,7 @@ export default function Documents() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto px-6 py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>

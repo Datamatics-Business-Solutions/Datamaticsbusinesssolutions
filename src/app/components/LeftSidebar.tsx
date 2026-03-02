@@ -32,11 +32,11 @@ interface SidebarProps {
 export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, logout } = useAuth();
+  const { currentUser } = useAuth();
   
   // Hover state management
   const [isHovered, setIsHovered] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
+  const [isPinned, setIsPinned] = useState(true); // DEFAULT TO TRUE (expanded)
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
@@ -44,11 +44,15 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
   const tooltipTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Load pinned state from localStorage
+  // Load pinned state from localStorage (defaults to true/expanded if not set)
   useEffect(() => {
     const savedPinned = localStorage.getItem('sidebar-pinned');
-    if (savedPinned === 'true') {
+    if (savedPinned !== null) {
+      setIsPinned(savedPinned === 'true');
+    } else {
+      // First time - default to expanded
       setIsPinned(true);
+      localStorage.setItem('sidebar-pinned', 'true');
     }
   }, []);
 
@@ -97,9 +101,8 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     if (role === 'ops_manager') {
       return [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/ops', section: 'PLATFORM' },
-        { name: 'All Clients', icon: Building2, path: '/dashboard/ops', section: 'PLATFORM' },
         { name: 'All Campaigns', icon: Layers, path: '/internal/campaigns', section: 'PLATFORM' },
-        { name: 'Lead Uploads', icon: Upload, path: '/internal/leads', section: 'PLATFORM' },
+        { name: 'Upload Leads', icon: Upload, path: '/internal/leads', section: 'PLATFORM' },
         { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
       ];
@@ -109,7 +112,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
       return [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/manager', section: 'PLATFORM' },
         { name: 'Campaigns', icon: BarChart2, path: '/internal/campaigns', section: 'PLATFORM' },
-        { name: 'Leads', icon: Users, path: '/internal/leads', section: 'PLATFORM' },
+        { name: 'Upload Leads', icon: Upload, path: '/internal/leads', section: 'PLATFORM' },
         { name: 'Reports', icon: FileBarChart, path: '/internal/reports', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
       ];
@@ -161,30 +164,32 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      {/* Logo Section */}
+      {/* Logo Section - Logo only, no pin */}
       <div 
         className={`px-6 py-6 border-b border-[#EEECEC] flex items-center ${
-          isExpanded ? 'justify-between' : 'justify-center'
+          isExpanded ? 'justify-start' : 'justify-center'
         }`}
       >
-        <div className={isExpanded ? '' : 'flex justify-center'}>
-          <Logo className="h-8" collapsed={!isExpanded} />
-        </div>
-        
-        {/* Pin button - only show when expanded (hover or pinned) */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+        <Logo className="h-10" collapsed={!isExpanded} />
+      </div>
+
+      {/* Pin Button - Floating at top of navigation area */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="px-4 pt-4 flex justify-end"
+          >
+            <button
               onClick={togglePin}
-              className="p-1.5 rounded hover:bg-[#EEECEC] transition-colors"
-              title={isPinned ? 'Unpin sidebar' : 'Pin sidebar'}
+              className="p-2 rounded-lg hover:bg-[#EEECEC] transition-colors group"
+              title={isPinned ? 'Collapse sidebar' : 'Keep sidebar expanded'}
             >
               <Pin 
-                className={`w-4 h-4 transition-colors ${
+                className={`w-4 h-4 transition-all ${ 
                   isPinned ? 'text-[#BA2027]' : 'text-[#9CA3AF]'
                 }`}
                 style={{
@@ -192,13 +197,13 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                   transition: 'transform 0.2s'
                 }}
               />
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-8">
         {Object.entries(groupedNav).map(([section, items]) => (
           <div key={section}>
             {/* Section Header */}
@@ -211,7 +216,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                   transition={{ duration: 0.22 }}
                   className="px-3 mb-3"
                 >
-                  <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">
+                  <span className="text-xs text-[#9CA3AF] uppercase tracking-wider" style={{ fontWeight: 600 }}>
                     {section}
                   </span>
                 </motion.div>
@@ -234,31 +239,37 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                       }}
                       onMouseEnter={() => handleItemMouseEnter(item.name)}
                       onMouseLeave={handleItemMouseLeave}
-                      className={`w-full flex items-center gap-3 rounded-xl text-sm font-semibold transition-all duration-200 relative ${
+                      className={`w-full flex items-center gap-3 rounded-xl text-sm relative group ${
                         isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
                       } ${
                         isActive
-                          ? 'text-white bg-[#BA2027]'
-                          : 'text-[#9CA3AF] hover:text-[#1F2937] hover:bg-[#FFF5F5]'
+                          ? 'text-white bg-[#BA2027] shadow-md'
+                          : 'text-[#374151] bg-transparent hover:bg-[#D32F2F]'
                       }`}
-                      whileHover={{ x: isExpanded ? 4 : 0 }}
+                      style={{
+                        fontWeight: 600,
+                        transition: 'background-color 0.2s ease, color 0.2s ease, transform 0.1s ease'
+                      }}
+                      whileHover={{ x: isExpanded ? 2 : 0 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      {/* Active indicator - left border */}
-                      {isActive && isExpanded && (
-                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#BA2027] rounded-r" />
-                      )}
+                      <Icon 
+                        className={`w-5 h-5 flex-shrink-0 ${
+                          isActive ? '' : 'group-hover:text-white'
+                        }`}
+                        style={{ transition: 'color 0.2s ease' }} 
+                      />
                       
-                      <Icon className="w-5 h-5 flex-shrink-0" />
-                      
-                      <AnimatePresence>
+                      <AnimatePresence mode="wait">
                         {isExpanded && (
                           <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.22 }}
-                            className="flex-1 text-left"
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: 'auto' }}
+                            exit={{ opacity: 0, width: 0 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                            className={`flex-1 text-left overflow-hidden whitespace-nowrap ${
+                              isActive ? '' : 'group-hover:text-white'
+                            }`}
                           >
                             {item.name}
                           </motion.span>
@@ -358,53 +369,10 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
 
       {/* Bottom Section */}
       <div className="border-t border-[#EEECEC] p-4 space-y-2">
-        {/* Settings */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              navigate('/account');
-              setMobileOpen(false);
-            }}
-            onMouseEnter={() => handleItemMouseEnter('Settings')}
-            onMouseLeave={handleItemMouseLeave}
-            className={`w-full flex items-center gap-3 rounded-xl text-sm font-medium text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F0EEEE] transition-all duration-200 ${
-              isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
-            }`}
-          >
-            <Settings className="w-5 h-5" />
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.22 }}
-                >
-                  Settings
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
-
-          {/* Tooltip */}
-          {!isExpanded && showTooltip === 'Settings' && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-[10px] py-[6px] bg-[#1A1A1A] text-white text-xs font-medium rounded-lg whitespace-nowrap z-50 pointer-events-none"
-            >
-              Settings
-            </motion.div>
-          )}
-        </div>
-
         {/* Logout */}
         <div className="relative">
           <button
             onClick={() => {
-              logout();
               navigate('/');
               setMobileOpen(false);
             }}
@@ -527,24 +495,21 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
       </AnimatePresence>
 
       {/* Sidebar - Desktop */}
-      <motion.div
-        animate={{ 
-          width: isPinned ? 240 : (isHovered ? 240 : 64)
-        }}
-        transition={{ 
-          duration: 0.22, 
-          ease: [0.4, 0, 0.2, 1]
-        }}
+      <div
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="hidden md:block fixed left-0 top-0 h-screen bg-[#F8F7F7] border-r border-[#EEECEC] z-50 overflow-hidden"
+        className="hidden md:flex flex-col h-screen bg-[#F8F7F7] border-r border-[#EEECEC] overflow-hidden flex-shrink-0"
         style={{ 
+          width: isPinned ? '240px' : (isHovered ? '240px' : '64px'),
+          minWidth: isPinned ? '240px' : (isHovered ? '240px' : '64px'),
+          transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: isExpanded ? '4px 0 24px rgba(0,0,0,0.12)' : '2px 0 8px rgba(0,0,0,0.04)',
-          transition: 'box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1)'
+          willChange: 'width',
+          transform: 'translateZ(0)' // Force hardware acceleration
         }}
       >
         {sidebarContent}
-      </motion.div>
+      </div>
 
       {/* Sidebar - Mobile */}
       <AnimatePresence>

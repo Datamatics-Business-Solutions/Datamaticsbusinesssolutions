@@ -56,32 +56,32 @@ export default function HomePage() {
     {
       id: 1,
       icon: CheckCircle2,
-      color: 'text-green-500',
-      bg: 'bg-green-500/10',
+      color: 'text-[#6B7280]', // Changed from green - just informational
+      bg: 'bg-[#6B7280]/10',
       text: 'Sarah Chen accepted a lead from Healthcare Content Syndication',
       time: '2 minutes ago',
     },
     {
       id: 2,
       icon: FileText,
-      color: 'text-blue-500',
-      bg: 'bg-blue-500/10',
+      color: 'text-[#6B7280]', // Changed from blue - just informational
+      bg: 'bg-[#6B7280]/10',
       text: 'Invoice INV-2026-001088 generated for $2,400',
       time: '1 hour ago',
     },
     {
       id: 3,
       icon: Target,
-      color: 'text-purple-500',
-      bg: 'bg-purple-500/10',
+      color: 'text-[#6B7280]', // Changed from purple - just informational
+      bg: 'bg-[#6B7280]/10',
       text: 'SaaS Appointment Setting campaign reached 75% completion',
       time: '3 hours ago',
     },
     {
       id: 4,
       icon: Users,
-      color: 'text-orange-500',
-      bg: 'bg-orange-500/10',
+      color: 'text-[#6B7280]', // Changed from orange - just informational
+      bg: 'bg-[#6B7280]/10',
       text: 'New lead delivered: David Kim - Director of IT',
       time: '5 hours ago',
     },
@@ -92,7 +92,7 @@ export default function HomePage() {
       id: 1,
       type: 'error',
       icon: AlertCircle,
-      iconColor: 'text-[#C0392B]',
+      iconColor: 'text-[#C0392B]', // Red for urgent
       text: 'INV-2026-001087 is overdue by 14 days — $3,600 due',
       buttonText: 'Pay Now',
       buttonAction: () => navigate('/payment/INV-2026-001087'),
@@ -101,7 +101,7 @@ export default function HomePage() {
       id: 2,
       type: 'warning',
       icon: Clock,
-      iconColor: 'text-orange-500',
+      iconColor: 'text-[#F59E0B]', // Amber for warning (changed from orange-500)
       text: 'David Kim lead has been pending review for 4 days',
       buttonText: 'Review',
       buttonAction: () => navigate('/leads'),
@@ -110,7 +110,7 @@ export default function HomePage() {
       id: 3,
       type: 'info',
       icon: Pause,
-      iconColor: 'text-blue-500',
+      iconColor: 'text-[#6B7280]', // Grey for info (changed from blue)
       text: 'SaaS Appointment Setting campaign is paused at 30%',
       buttonText: 'View',
       buttonAction: () => navigate('/campaigns/2'),
@@ -119,11 +119,11 @@ export default function HomePage() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1400px] mx-auto p-8 space-y-6">
+      <div className="max-w-[1400px] mx-auto px-4 py-4 md:p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-[#1F2937] mb-2">Welcome back, {currentUser?.name}</h1>
+            <h1 className="text-[#1F2937] mb-2 text-2xl md:text-3xl">Welcome back, {currentUser?.name}</h1>
             <p className="text-sm text-[#6B7280]">
               Here's what's happening with your campaigns today
             </p>
@@ -131,7 +131,7 @@ export default function HomePage() {
         </div>
 
         {/* KPI Cards with Sparklines - Top Row (3 cards) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Total Leads */}
           <motion.div
             className="relative overflow-hidden rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
@@ -390,10 +390,10 @@ export default function HomePage() {
                   key={item.id}
                   className={`flex items-start gap-3 p-3 rounded-lg border-l-2 cursor-pointer ${
                     item.type === 'error'
-                      ? 'border-l-[#C0392B] bg-red-50/50'
+                      ? 'border-l-[#C0392B] bg-red-50/30'
                       : item.type === 'warning'
-                      ? 'border-l-orange-500 bg-orange-50/50'
-                      : 'border-l-blue-500 bg-blue-50/50'
+                      ? 'border-l-[#F59E0B] bg-amber-50/30'
+                      : 'border-l-[#6B7280] bg-gray-50/30'
                   }`}
                   whileHover={{ scale: 1.01 }}
                   onClick={item.buttonAction}

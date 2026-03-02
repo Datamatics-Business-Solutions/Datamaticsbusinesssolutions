@@ -193,10 +193,10 @@ export default function LeadsPage() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto px-6 py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Header with Stats */}
-        <div className="mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
+        <div className="mb-4 md:mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">
             <div>
               <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">
                 Lead Management

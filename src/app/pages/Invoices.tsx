@@ -6,9 +6,9 @@ import { TableRow } from '../components/TableRow';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { mockInvoices } from '../mockInvoices';
-import { PaymentTimeline } from '../components/PaymentTimeline';
 import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
 import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
+import { DollarSign } from 'lucide-react';
 
 export default function Invoices() {
   const [pageLoaded, setPageLoaded] = useState(false);
@@ -95,32 +95,32 @@ export default function Invoices() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto px-6 py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Invoices & Billing</h1>
+            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2 text-2xl md:text-3xl lg:text-4xl">Invoices & Billing</h1>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               Manage your invoices and payment history
             </p>
           </div>
-          <div className="flex gap-2">
-            <Link to="/payment" className="btn-outline px-4 py-2 flex items-center gap-2 no-underline">
+          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+            <Link to="/payment" className="btn-outline px-4 py-2.5 flex items-center justify-center gap-2 no-underline">
               <CreditCard className="w-4 h-4" />
-              Payment Methods
+              <span className="whitespace-nowrap">Payment Methods</span>
             </Link>
             <button
               onClick={handleBulkDownload}
-              className="btn-primary px-4 py-2 flex items-center gap-2"
+              className="btn-primary px-4 py-2.5 flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />
-              Download Selected
+              <span className="whitespace-nowrap">Download Selected</span>
             </button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 stagger-children">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6 stagger-children">
           <div className="kpi-card animate-slideInUp">
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-info-bg)' }}>
@@ -293,15 +293,31 @@ export default function Invoices() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleViewInvoice(invoice)}
-                            className="btn-ghost p-2"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
+                          {/* Pay icon for Pending/Overdue, View for Paid - maintain consistent 2-button layout */}
+                          {(invoice.status === 'Pending' || invoice.status === 'Overdue') ? (
+                            <button
+                              onClick={() => {
+                                toast.success(`Redirecting to payment for ${invoice.invoiceNumber}...`);
+                                // Here you would redirect to payment gateway
+                              }}
+                              className="btn-ghost p-2"
+                              title="Pay Now"
+                            >
+                              <DollarSign className="w-4 h-4 text-[#BA2027]" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleViewInvoice(invoice)}
+                              className="btn-ghost p-2"
+                              title="View Invoice"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}...`)}
                             className="btn-ghost p-2"
+                            title="Download Invoice"
                           >
                             <Download className="w-4 h-4" />
                           </button>
@@ -319,14 +335,6 @@ export default function Invoices() {
               No invoices found
             </div>
           )}
-        </div>
-
-        {/* Payment Timeline */}
-        <div className="mt-6">
-          <h2 style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)' }} className="mb-4">
-            Payment History
-          </h2>
-          <PaymentTimeline />
         </div>
       </div>
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, Target, CheckCircle, Download,
-  Share2, Bookmark, BookmarkCheck, BarChart3, Activity, Zap
+  Share2, Bookmark, BookmarkCheck, BarChart3, Activity, Zap, Filter
 } from 'lucide-react';
 import {
   AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar,
@@ -16,23 +16,23 @@ import { ExportModal } from '../components/ExportModal';
 import { ProgressBar } from '../components/ProgressBar';
 import { toast } from 'sonner';
 
-const CHART_COLORS = ['#BA2027', '#5A555D', '#0891B2', '#0F9D58', '#F4B400', '#8E44AD'];
+const CHART_COLORS = ['#BA2027', '#D32F2F', '#E57373', '#0891B2', '#0F9D58', '#F4B400'];
 
 const TOOLTIP_STYLE = {
   backgroundColor: '#FFFFFF',
   border: '1px solid var(--color-border)',
-  borderRadius: '12px',
-  fontSize: '13px',
+  borderRadius: '8px',
+  fontSize: '12px',
   color: 'var(--color-text-primary)',
   boxShadow: 'var(--shadow-md)',
-  padding: '12px'
+  padding: '8px'
 };
 
-// Chart Card with enhanced styling
+// Compact Chart Card
 function ChartCard({ title, children, actions }: any) {
   return (
-    <div className="glass-card p-6 transition-all hover:shadow-2xl animate-fadeIn">
-      <div className="flex items-center justify-between mb-6">
+    <div className="glass-card p-4 transition-all hover:shadow-lg animate-fadeIn">
+      <div className="flex items-center justify-between mb-3">
         <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
           <BarChart3 className="w-4 h-4" />
           {title}
@@ -50,108 +50,183 @@ export default function ReportsPage() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [savedReports, setSavedReports] = useState<string[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState<'overview' | 'demographics' | 'distribution' | 'campaign-detail'>('overview');
-  const [legendVisibility, setLegendVisibility] = useState<Record<string, boolean>>({
-    leads: true,
-    conversions: true,
-    campaigns: true
-  });
 
   useEffect(() => {
     setTimeout(() => setPageLoaded(true), 100);
   }, []);
 
-  // Monthly performance data with target, delivered, accepted
-  const monthlyData = [
-    { month: 'Jan', target: 400, delivered: 350, accepted: 280, leads: 350, conversions: 65, campaigns: 4, revenue: 18000 },
-    { month: 'Feb', target: 600, delivered: 520, accepted: 425, leads: 520, conversions: 95, campaigns: 6, revenue: 24500 },
-    { month: 'Mar', target: 750, delivered: 680, accepted: 570, leads: 680, conversions: 115, campaigns: 8, revenue: 29000 },
-    { month: 'Apr', target: 900, delivered: 820, accepted: 695, leads: 820, conversions: 142, campaigns: 9, revenue: 36500 },
-    { month: 'May', target: 1100, delivered: 1050, accepted: 920, leads: 1050, conversions: 185, campaigns: 11, revenue: 42000 },
-    { month: 'Jun', target: 1300, delivered: 1280, accepted: 1100, leads: 1280, conversions: 224, campaigns: 13, revenue: 48250 },
-  ];
-
-  // Industry distribution by campaign
-  const campaignIndustryData = {
-    'IT Security': [
-      { industry: 'Information Technology', count: 112, percentage: 35 },
-      { industry: 'Healthcare', count: 96, percentage: 30 },
-      { industry: 'Financial Services', count: 64, percentage: 20 },
-      { industry: 'Manufacturing', count: 48, percentage: 15 }
-    ],
-    'Healthcare Synd.': [
-      { industry: 'Healthcare', count: 595, percentage: 70 },
-      { industry: 'Pharmaceuticals', count: 170, percentage: 20 },
-      { industry: 'Medical Devices', count: 85, percentage: 10 }
-    ],
-    'Financial BANT': [
-      { industry: 'Financial Services', count: 45, percentage: 69 },
-      { industry: 'Insurance', count: 13, percentage: 20 },
-      { industry: 'Banking', count: 7, percentage: 11 }
-    ],
-    'SaaS Appts': [
-      { industry: 'Information Technology', count: 13, percentage: 72 },
-      { industry: 'Software', count: 4, percentage: 22 },
-      { industry: 'Consulting', count: 1, percentage: 6 }
-    ]
+  // Campaign-specific data
+  const campaignMetrics: Record<string, any> = {
+    'all': {
+      totalLeads: 1265,
+      acceptance: 93,
+      conversions: 168,
+      revenue: 198250,
+      activeCampaigns: 3,
+      completedCampaigns: 1,
+      monthlyData: [
+        { month: 'Jan', revenue: 18000, leads: 350, conversions: 65 },
+        { month: 'Feb', revenue: 24500, leads: 520, conversions: 95 },
+        { month: 'Mar', revenue: 29000, leads: 680, conversions: 115 },
+        { month: 'Apr', revenue: 36500, leads: 820, conversions: 142 },
+        { month: 'May', revenue: 42000, leads: 1050, conversions: 185 },
+        { month: 'Jun', revenue: 48250, leads: 1280, conversions: 224 },
+      ],
+      titleDistribution: [
+        { title: 'C-Level', percentage: 18 },
+        { title: 'VP/Director', percentage: 30 },
+        { title: 'Manager', percentage: 24 },
+        { title: 'Senior Specialist', percentage: 18 },
+        { title: 'Other', percentage: 10 }
+      ],
+      companySizeData: [
+        { size: 'Enterprise (10K+)', percentage: 24 },
+        { size: 'Large (1K-10K)', percentage: 30 },
+        { size: 'Mid-Market', percentage: 30 },
+        { size: 'SMB (<100)', percentage: 16 }
+      ]
+    },
+    'IT Security': {
+      totalLeads: 320,
+      acceptance: 88,
+      conversions: 45,
+      revenue: 52000,
+      activeCampaigns: 1,
+      completedCampaigns: 0,
+      monthlyData: [
+        { month: 'Jan', revenue: 5000, leads: 80, conversions: 12 },
+        { month: 'Feb', revenue: 7200, leads: 105, conversions: 18 },
+        { month: 'Mar', revenue: 9500, leads: 135, conversions: 24 },
+        { month: 'Apr', revenue: 10800, leads: 160, conversions: 28 },
+        { month: 'May', revenue: 11500, leads: 185, conversions: 32 },
+        { month: 'Jun', revenue: 8000, leads: 95, conversions: 16 },
+      ],
+      titleDistribution: [
+        { title: 'C-Level', percentage: 35 },
+        { title: 'VP/Director', percentage: 30 },
+        { title: 'Manager', percentage: 20 },
+        { title: 'Senior Specialist', percentage: 10 },
+        { title: 'Other', percentage: 5 }
+      ],
+      companySizeData: [
+        { size: 'Enterprise (10K+)', percentage: 45 },
+        { size: 'Large (1K-10K)', percentage: 35 },
+        { size: 'Mid-Market', percentage: 15 },
+        { size: 'SMB (<100)', percentage: 5 }
+      ]
+    },
+    'Healthcare Synd.': {
+      totalLeads: 850,
+      acceptance: 95,
+      conversions: 95,
+      revenue: 128000,
+      activeCampaigns: 1,
+      completedCampaigns: 0,
+      monthlyData: [
+        { month: 'Jan', revenue: 12000, leads: 240, conversions: 42 },
+        { month: 'Feb', revenue: 15800, leads: 350, conversions: 62 },
+        { month: 'Mar', revenue: 17200, leads: 480, conversions: 78 },
+        { month: 'Apr', revenue: 22500, leads: 580, conversions: 98 },
+        { month: 'May', revenue: 28000, leads: 780, conversions: 135 },
+        { month: 'Jun', revenue: 32500, leads: 1050, conversions: 178 },
+      ],
+      titleDistribution: [
+        { title: 'C-Level', percentage: 12 },
+        { title: 'VP/Director', percentage: 28 },
+        { title: 'Manager', percentage: 35 },
+        { title: 'Senior Specialist', percentage: 20 },
+        { title: 'Other', percentage: 5 }
+      ],
+      companySizeData: [
+        { size: 'Enterprise (10K+)', percentage: 70 },
+        { size: 'Large (1K-10K)', percentage: 20 },
+        { size: 'Mid-Market', percentage: 8 },
+        { size: 'SMB (<100)', percentage: 2 }
+      ]
+    },
+    'Financial BANT': {
+      totalLeads: 65,
+      acceptance: 92,
+      conversions: 18,
+      revenue: 12500,
+      activeCampaigns: 1,
+      completedCampaigns: 0,
+      monthlyData: [
+        { month: 'Jan', revenue: 800, leads: 15, conversions: 5 },
+        { month: 'Feb', revenue: 1200, leads: 28, conversions: 8 },
+        { month: 'Mar', revenue: 2000, leads: 35, conversions: 10 },
+        { month: 'Apr', revenue: 2500, leads: 42, conversions: 12 },
+        { month: 'May', revenue: 3000, leads: 52, conversions: 15 },
+        { month: 'Jun', revenue: 3000, leads: 65, conversions: 18 },
+      ],
+      titleDistribution: [
+        { title: 'C-Level', percentage: 69 },
+        { title: 'VP/Director', percentage: 20 },
+        { title: 'Manager', percentage: 8 },
+        { title: 'Senior Specialist', percentage: 2 },
+        { title: 'Other', percentage: 1 }
+      ],
+      companySizeData: [
+        { size: 'Enterprise (10K+)', percentage: 85 },
+        { size: 'Large (1K-10K)', percentage: 12 },
+        { size: 'Mid-Market', percentage: 3 },
+        { size: 'SMB (<100)', percentage: 0 }
+      ]
+    },
+    'SaaS Appts': {
+      totalLeads: 30,
+      acceptance: 89,
+      conversions: 10,
+      revenue: 5750,
+      activeCampaigns: 0,
+      completedCampaigns: 1,
+      monthlyData: [
+        { month: 'Jan', revenue: 200, leads: 5, conversions: 1 },
+        { month: 'Feb', revenue: 300, leads: 8, conversions: 2 },
+        { month: 'Mar', revenue: 300, leads: 10, conversions: 3 },
+        { month: 'Apr', revenue: 700, leads: 12, conversions: 4 },
+        { month: 'May', revenue: 2500, leads: 18, conversions: 6 },
+        { month: 'Jun', revenue: 1750, leads: 30, conversions: 10 },
+      ],
+      titleDistribution: [
+        { title: 'C-Level', percentage: 72 },
+        { title: 'VP/Director', percentage: 22 },
+        { title: 'Manager', percentage: 6 },
+        { title: 'Senior Specialist', percentage: 0 },
+        { title: 'Other', percentage: 0 }
+      ],
+      companySizeData: [
+        { size: 'Enterprise (10K+)', percentage: 50 },
+        { size: 'Large (1K-10K)', percentage: 30 },
+        { size: 'Mid-Market', percentage: 15 },
+        { size: 'SMB (<100)', percentage: 5 }
+      ]
+    }
   };
 
-  // Title distribution
-  const titleDistribution = [
-    { title: 'C-Level Executive', count: 285, percentage: 18 },
-    { title: 'VP/Director', count: 475, percentage: 30 },
-    { title: 'Manager', count: 380, percentage: 24 },
-    { title: 'Senior Specialist', count: 285, percentage: 18 },
-    { title: 'Other', count: 158, percentage: 10 }
-  ];
-
-  // Company size distribution
-  const companySizeData = [
-    { size: 'Enterprise (10K+)', count: 380, percentage: 24 },
-    { size: 'Large (1K-10K)', count: 475, percentage: 30 },
-    { size: 'Mid-Market (100-1K)', count: 475, percentage: 30 },
-    { size: 'SMB (<100)', count: 253, percentage: 16 }
-  ];
-
-  // Lead source distribution
-  const leadSourceData = [
-    { source: 'Content Syndication', count: 633, percentage: 40 },
-    { source: 'Webinar Registration', count: 475, percentage: 30 },
-    { source: 'Email Campaign', count: 316, percentage: 20 },
-    { source: 'Direct Outreach', count: 158, percentage: 10 }
-  ];
-
-  // Calculate KPI values
-  const totalDelivered = mockCampaigns.reduce((sum, c) => sum + c.delivered, 0);
-  const totalTarget = mockCampaigns.reduce((sum, c) => sum + c.target, 0);
-  const totalAccepted = mockAnalytics.campaignPerformance.reduce((sum, c) => sum + Math.round((c.leads * c.acceptance) / 100), 0);
-  const avgAcceptance = Math.round((totalAccepted / totalDelivered) * 100);
-  const totalRevenue = monthlyData.reduce((sum, m) => sum + m.revenue, 0);
-  const revenueGrowth = Math.round(((monthlyData[monthlyData.length - 1].revenue - monthlyData[0].revenue) / monthlyData[0].revenue) * 100);
-  const activeCampaigns = mockCampaigns.filter(c => c.status === 'In progress').length;
-  const completedCount = mockCampaigns.filter(c => c.status === 'Completed').length;
-  const leadsMax = Math.max(...mockAnalytics.campaignPerformance.map(c => c.leads));
-
+  const currentMetrics = campaignMetrics[selectedCampaign] || campaignMetrics['all'];
   const isSaved = savedReports.includes(dateRange);
 
-  const toggleLegend = (key: string) => {
-    setLegendVisibility(prev => ({ ...prev, [key]: !prev[key] }));
-  };
+  // Get active and completed counts
+  const activeCampaigns = currentMetrics.activeCampaigns;
+  const completedCount = currentMetrics.completedCampaigns;
+  const totalCampaigns = activeCampaigns + completedCount;
+  const pausedCampaigns = 0;
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto px-6 py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
+      <div className={`max-w-[1440px] mx-auto px-6 py-4 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Compact Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">
+            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-1">
               Reports & Analytics
             </h1>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              Performance insights and data visualizations • Updated in real-time
+              Performance insights and data visualizations
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             <button
               onClick={() => {
                 if (isSaved) {
@@ -162,229 +237,333 @@ export default function ReportsPage() {
                   toast.success('Report saved successfully');
                 }
               }}
-              className="btn-outline px-4 py-2 flex items-center gap-2"
+              className="btn-outline px-3 py-2 flex items-center gap-2"
             >
               {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
-              {isSaved ? 'Saved' : 'Save Report'}
+              {isSaved ? 'Saved' : 'Save'}
             </button>
             <button
               onClick={() => setShowExportModal(true)}
-              className="btn-primary px-4 py-2 flex items-center gap-2"
+              className="btn-primary px-3 py-2 flex items-center gap-2"
             >
               <Download className="w-4 h-4" />
-              Export Data
+              Export
             </button>
           </div>
         </div>
 
-        {/* KPI Cards - Only 4 cards as per design requirements */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 stagger-children">
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between">
-              <Target className="kpi-card__icon" />
+        {/* Campaign Filter Section - Prominent */}
+        <div className="glass-card p-4 mb-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-[#BA2027]" />
+              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                Filter by Campaign:
+              </span>
             </div>
-            <div className="kpi-card__number">1,265</div>
-            <div className="kpi-card__label">Total Leads</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between">
-              <CheckCircle className="kpi-card__icon" />
+            <div className="flex-1 max-w-md">
+              <select
+                value={selectedCampaign}
+                onChange={(e) => setSelectedCampaign(e.target.value)}
+                className="input-base w-full px-4 py-2.5"
+                style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)' }}
+              >
+                <option value="all">All Campaigns</option>
+                <option value="IT Security">IT Security</option>
+                <option value="Healthcare Synd.">Healthcare Synd.</option>
+                <option value="Financial BANT">Financial BANT</option>
+                <option value="SaaS Appts">SaaS Appts</option>
+              </select>
             </div>
-            <div className="kpi-card__number">93%</div>
-            <div className="kpi-card__label">Acceptance Rate</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between">
-              <Activity className="kpi-card__icon" />
+            
+            {/* Campaign Status Indicator */}
+            <div className="flex items-center gap-2">
+              {selectedCampaign === 'all' ? (
+                // Show breakdown when all campaigns selected
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#059669' }}>
+                      {activeCampaigns} Active
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200">
+                    <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                    <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#6B7280' }}>
+                      {completedCount} Completed
+                    </span>
+                  </div>
+                  {pausedCampaigns > 0 && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-50 border border-yellow-200">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                      <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#D97706' }}>
+                        {pausedCampaigns} Paused
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Show single status badge for specific campaign
+                <>
+                  {currentMetrics.activeCampaigns > 0 && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#059669' }}>
+                        Active
+                      </span>
+                    </div>
+                  )}
+                  {currentMetrics.completedCampaigns > 0 && currentMetrics.activeCampaigns === 0 && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200">
+                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                      <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#6B7280' }}>
+                        Completed
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-            <div className="kpi-card__number">{activeCampaigns}</div>
-            <div className="kpi-card__label">Active Campaigns</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between">
-              <DollarSign className="kpi-card__icon" />
-            </div>
-            <div className="kpi-card__number">$198.3K</div>
-            <div className="kpi-card__label">Revenue YTD</div>
+            
+            {selectedCampaign !== 'all' && (
+              <button
+                onClick={() => setSelectedCampaign('all')}
+                className="btn-outline px-3 py-2 text-sm whitespace-nowrap"
+              >
+                Clear Filter
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Charts Grid - 60/40 split */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-          {/* Lead Performance Trend - 60% width */}
-          <div className="lg:col-span-3">
-            <ChartCard title="Lead Performance Trend">
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={monthlyData}>
+        {/* Compact KPI Cards - 6 cards in 2 rows on mobile, 6 across on desktop */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-4 stagger-children">
+          <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
+            <div className="flex items-center justify-between mb-1">
+              <Target className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
+            </div>
+            <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{currentMetrics.totalLeads.toLocaleString()}</div>
+            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Total Leads</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
+            <div className="flex items-center justify-between mb-1">
+              <CheckCircle className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
+            </div>
+            <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{currentMetrics.acceptance}%</div>
+            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Acceptance</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
+            <div className="flex items-center justify-between mb-1">
+              <TrendingUp className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
+            </div>
+            <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{currentMetrics.conversions}</div>
+            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Conversions</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
+            <div className="flex items-center justify-between mb-1">
+              <DollarSign className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
+            </div>
+            <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>${(currentMetrics.revenue / 1000).toFixed(0)}K</div>
+            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Revenue</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
+            <div className="flex items-center justify-between mb-1">
+              <Activity className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
+            </div>
+            <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{activeCampaigns}</div>
+            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Active</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
+            <div className="flex items-center justify-between mb-1">
+              <CheckCircle className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
+            </div>
+            <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{completedCount}</div>
+            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Completed</div>
+          </div>
+        </div>
+
+        {/* Lead Performance - Full Width */}
+        <div className="mb-4">
+          <ChartCard title="Lead Performance Trend">
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={currentMetrics.monthlyData}>
+                <defs>
+                  <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="rgba(186,32,39,0.08)" stopOpacity={1} />
+                    <stop offset="95%" stopColor="rgba(186,32,39,0.08)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
+                <XAxis 
+                  dataKey="month" 
+                  style={{ fontSize: 10, fill: '#9CA3AF' }} 
+                  stroke="none"
+                  tickLine={false}
+                />
+                <YAxis 
+                  style={{ fontSize: 10, fill: '#9CA3AF' }} 
+                  stroke="none"
+                  tickLine={false}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Area 
+                  type="monotone" 
+                  dataKey="leads" 
+                  stroke="#BA2027" 
+                  strokeWidth={2}
+                  fillOpacity={1} 
+                  fill="url(#colorLeads)"
+                  dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
+
+        {/* Monthly Revenue Trend - Full Width */}
+        <div className="mb-4">
+          <ChartCard title="Monthly Revenue Trend">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={currentMetrics.monthlyData} barCategoryGap="20%">
+                <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
+                <XAxis 
+                  dataKey="month" 
+                  style={{ fontSize: 10, fill: '#9CA3AF' }} 
+                  stroke="none"
+                  tickLine={false}
+                />
+                <YAxis 
+                  style={{ fontSize: 10, fill: '#9CA3AF' }} 
+                  stroke="none"
+                  tickLine={false}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Bar 
+                  dataKey="revenue" 
+                  fill="rgba(186,32,39,0.85)" 
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
+
+        {/* Demographics Section - 3 columns */}
+        <div>
+          <h2 style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)' }} className="mb-3">
+            Lead Demographics
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Title Distribution */}
+            <div className="glass-card p-4">
+              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
+                Title Distribution
+              </h3>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={currentMetrics.titleDistribution}
+                    dataKey="percentage"
+                    nameKey="title"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    label={({ percentage }) => `${percentage}%`}
+                    labelLine={true}
+                  >
+                    {currentMetrics.titleDistribution.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    align="center" 
+                    layout="horizontal"
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Company Size Distribution */}
+            <div className="glass-card p-4">
+              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
+                Company Size
+              </h3>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={currentMetrics.companySizeData}
+                    dataKey="percentage"
+                    nameKey="size"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    label={({ percentage }) => `${percentage}%`}
+                    labelLine={true}
+                  >
+                    {currentMetrics.companySizeData.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    align="center" 
+                    layout="horizontal"
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Conversion Rate Trend */}
+            <div className="glass-card p-4">
+              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
+                Conversion Trend
+              </h3>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={currentMetrics.monthlyData}>
                   <defs>
-                    <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="rgba(186,32,39,0.06)" stopOpacity={1} />
-                      <stop offset="95%" stopColor="rgba(186,32,39,0.06)" stopOpacity={0} />
+                    <linearGradient id="colorConversions" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="rgba(186,32,39,0.2)" stopOpacity={1} />
+                      <stop offset="95%" stopColor="rgba(186,32,39,0.2)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
                   <XAxis 
                     dataKey="month" 
-                    style={{ fontSize: 11, fill: '#9CA3AF' }} 
+                    style={{ fontSize: 9, fill: '#9CA3AF' }} 
                     stroke="none"
                     tickLine={false}
                   />
                   <YAxis 
-                    style={{ fontSize: 11, fill: '#9CA3AF' }} 
+                    style={{ fontSize: 9, fill: '#9CA3AF' }} 
                     stroke="none"
                     tickLine={false}
                   />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
                   <Area 
                     type="monotone" 
-                    dataKey="delivered" 
+                    dataKey="conversions" 
                     stroke="#BA2027" 
                     strokeWidth={2}
                     fillOpacity={1} 
-                    fill="url(#colorLeads)"
+                    fill="url(#colorConversions)"
                     dot={false}
                   />
                 </AreaChart>
               </ResponsiveContainer>
-            </ChartCard>
-          </div>
-
-          {/* Campaign Status Summary Card - 40% width */}
-          <div className="lg:col-span-2">
-            <div className="glass-card p-6 h-full">
-              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
-                Campaign Status
-              </h3>
-              <div className="space-y-4">
-                {/* Active */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ background: '#059669' }}></div>
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>Active</span>
-                    </div>
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>{activeCampaigns}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#059669] rounded-full" style={{ width: '50%' }}></div>
-                    </div>
-                    <span className="progress-percentage">50%</span>
-                  </div>
-                </div>
-
-                {/* Paused */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ background: '#D97706' }}></div>
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>Paused</span>
-                    </div>
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>2</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#D97706] rounded-full" style={{ width: '33%' }}></div>
-                    </div>
-                    <span className="progress-percentage">33%</span>
-                  </div>
-                </div>
-
-                {/* Completed */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ background: '#6B7280' }}></div>
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>Completed</span>
-                    </div>
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>{completedCount}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#6B7280] rounded-full" style={{ width: '17%' }}></div>
-                    </div>
-                    <span className="progress-percentage">17%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Monthly Revenue Trend */}
-        <ChartCard title="Monthly Revenue Trend" actions={null}>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={monthlyData} barCategoryGap="30%">
-              <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
-              <XAxis 
-                dataKey="month" 
-                style={{ fontSize: 11, fill: '#9CA3AF' }} 
-                stroke="none"
-                tickLine={false}
-              />
-              <YAxis 
-                style={{ fontSize: 11, fill: '#9CA3AF' }} 
-                stroke="none"
-                tickLine={false}
-              />
-              <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Bar 
-                dataKey="revenue" 
-                fill="rgba(186,32,39,0.85)" 
-                radius={[6, 6, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        {/* Demographics Section */}
-        <div className="mt-6">
-          <h2 style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)' }} className="mb-4">
-            Lead Demographics
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Title Distribution */}
-            <div className="glass-card p-6">
-              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
-                Title Distribution
-              </h3>
-              <div className="space-y-3">
-                {titleDistribution.map((item, i) => (
-                  <div key={i}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>{item.title}</span>
-                      <span className="progress-percentage">{item.percentage}%</span>
-                    </div>
-                    <div className="progress-bar">
-                      <div className="progress-bar__fill" style={{ width: `${item.percentage}%` }}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Company Size Distribution */}
-            <div className="glass-card p-6">
-              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
-                Company Size Distribution
-              </h3>
-              <div className="space-y-3">
-                {companySizeData.map((item, i) => (
-                  <div key={i}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>{item.size}</span>
-                      <span className="progress-percentage">{item.percentage}%</span>
-                    </div>
-                    <div className="progress-bar">
-                      <div className="progress-bar__fill" style={{ width: `${item.percentage}%` }}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </div>

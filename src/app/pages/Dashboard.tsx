@@ -98,18 +98,18 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1400px] mx-auto p-8 space-y-8">
+      <div className="max-w-[1400px] mx-auto px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">My Campaigns</h1>
+            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2 text-2xl md:text-3xl lg:text-4xl">My Campaigns</h1>
             <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
               Track and manage all your active campaigns
             </p>
           </div>
           <motion.button
             onClick={() => setIsNewCampaignModalOpen(true)}
-            className="btn-primary flex items-center gap-2 px-6 py-3"
+            className="btn-primary flex items-center gap-2 px-6 py-3 w-full sm:w-auto justify-center"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -119,7 +119,7 @@ export default function Dashboard() {
         </div>
 
         {/* KPI Cards with Sparklines */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 stagger-children">
           {/* Active Campaigns */}
           <motion.div className="kpi-card animate-slideInUp">
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-transparent opacity-50" />

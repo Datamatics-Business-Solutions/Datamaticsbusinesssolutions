@@ -54,12 +54,12 @@ export function LeadDetailDrawer({ lead, isOpen, onClose }: LeadDetailDrawerProp
 
       {/* Drawer */}
       <div 
-        className={`fixed top-0 right-0 h-full w-full max-w-2xl z-50 transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-full w-full sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:max-w-2xl z-50 transform transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         } ${isDark ? 'bg-[#16151A]' : 'bg-white'} shadow-2xl overflow-y-auto`}
       >
         {/* Header */}
-        <div className={`sticky top-0 z-10 px-6 py-4 border-b ${
+        <div className={`sticky top-0 z-10 px-4 py-4 md:px-6 border-b ${
           isDark ? 'bg-[#16151A] border-white/10' : 'bg-white border-gray-200'
         }`}>
           <div className="flex items-start justify-between">

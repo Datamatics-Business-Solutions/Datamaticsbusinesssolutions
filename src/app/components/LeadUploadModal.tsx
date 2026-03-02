@@ -6,12 +6,15 @@ import { mockCsvPreview } from '../mockData';
 interface LeadUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  clientName: string;
+  clientId?: string;
+  clientName?: string;
+  campaignId?: string;
+  campaignName?: string;
 }
 
 type ColumnMapping = 'First Name' | 'Last Name' | 'Email' | 'Phone' | 'Company' | 'Job Title' | 'Source' | 'Ignore';
 
-export function LeadUploadModal({ isOpen, onClose, clientName }: LeadUploadModalProps) {
+export function LeadUploadModal({ isOpen, onClose, clientId, clientName, campaignId, campaignName }: LeadUploadModalProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);

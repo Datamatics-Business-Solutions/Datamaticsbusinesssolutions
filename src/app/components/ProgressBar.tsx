@@ -1,5 +1,3 @@
-import { useTheme } from '../context/ThemeContext';
-
 interface ProgressBarProps {
   label: string;
   value: number | string;
@@ -24,9 +22,6 @@ export function ProgressBar({
   valueColor,
   badgeColorThresholds = { high: 80, medium: 60 }
 }: ProgressBarProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   // Calculate bar width based on maxPercentage scale
   const barWidth = maxPercentage === 100 
     ? percentage 
@@ -45,12 +40,10 @@ export function ProgressBar({
 
   // Standard badge color (red gradient theme)
   const getStandardBadgeColor = () => {
-    return isDark 
-      ? 'bg-[#E63946]/20 text-[#E63946]' 
-      : 'bg-[#BA2027]/10 text-[#BA2027]';
+    return 'bg-[#BA2027]/10 text-[#BA2027]';
   };
 
-  const defaultValueColor = valueColor || (isDark ? 'text-[#0891B2]' : 'text-[#0891B2]');
+  const defaultValueColor = valueColor || 'text-[#0891B2]';
 
   return (
     <div 
@@ -59,9 +52,7 @@ export function ProgressBar({
     >
       {/* Label and Value Row */}
       <div className="flex items-center justify-between mb-2">
-        <span className={`text-sm font-medium ${
-          isDark ? 'text-[#94A3B8]' : 'text-[#64748B]'
-        }`}>
+        <span className="text-sm font-medium text-[#64748B]">
           {label}
         </span>
         <div className="flex items-center gap-2">
@@ -79,16 +70,12 @@ export function ProgressBar({
       </div>
 
       {/* Progress Bar */}
-      <div className={`w-full h-5 rounded-full overflow-hidden ${
-        isDark ? 'bg-white/5' : 'bg-gray-100'
-      }`}>
+      <div className="w-full h-5 rounded-full overflow-hidden bg-gray-100">
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{
             width: `${Math.min(barWidth, 100)}%`,
-            background: isDark 
-              ? 'linear-gradient(90deg, #E63946, #FF4D5A)' 
-              : 'linear-gradient(90deg, #BA2027, #D32F2F)',
+            background: 'linear-gradient(90deg, #BA2027, #D32F2F)',
           }}
         />
       </div>
@@ -108,28 +95,19 @@ export function SimpleProgressBar({
   height = 'h-5',
   showPercentageText = false
 }: SimpleProgressBarProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   return (
     <div className="relative group">
-      <div className={`w-full ${height} rounded-full overflow-hidden transition-all ${
-        isDark ? 'bg-white/5' : 'bg-gray-100'
-      }`}>
+      <div className={`w-full ${height} rounded-full overflow-hidden transition-all bg-gray-100`}>
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{
             width: `${Math.min(percentage, 100)}%`,
-            background: isDark 
-              ? 'linear-gradient(90deg, #E63946, #FF4D5A)' 
-              : 'linear-gradient(90deg, #BA2027, #D32F2F)',
+            background: 'linear-gradient(90deg, #BA2027, #D32F2F)',
           }}
         />
       </div>
       {showPercentageText && (
-        <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold ${
-          isDark ? 'text-white' : 'text-white'
-        }`}>
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-[#1F2937]">
           {percentage}%
         </span>
       )}

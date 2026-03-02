@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { Search, Plus, Filter } from 'lucide-react';
-import { mockCampaigns } from '../mockData';
+import { mockCampaigns, type Campaign, type ServiceType, type CampaignStatus } from '../mockData';
 import { ProgressBar } from '../components/ProgressBar';
 import { TableRow } from '../components/TableRow';
+import { AppLayout } from '../components/AppLayout';
+import { StatusBadge } from '../components/StatusBadge';
+import { NewCampaignModal, type CampaignFormData } from '../components/NewCampaignModal';
 
 export default function CampaignList() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,7 +15,6 @@ export default function CampaignList() {
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
   const [campaigns, setCampaigns] = useState(mockCampaigns);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const isDark = false; // Assuming dark mode is not used in this context
 
   const handleNewCampaignSubmit = (formData: CampaignFormData) => {
     // Create new campaign object
@@ -63,16 +65,14 @@ export default function CampaignList() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <GlassNavigation />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppLayout>
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 md:py-6 lg:px-8 lg:py-8">
         {/* Header with New Campaign Button */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-          <h1 className="text-3xl font-semibold text-gray-900">Your Campaigns</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8 gap-4">
+          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">Your Campaigns</h1>
           <button
             onClick={() => setIsNewCampaignModalOpen(true)}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1E3A5F] to-[#1E3A5F]/80 text-white rounded-lg hover:from-[#1E3A5F]/90 hover:to-[#1E3A5F]/70 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1E3A5F] to-[#1E3A5F]/80 text-white rounded-lg hover:from-[#1E3A5F]/90 hover:to-[#1E3A5F]/70 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
             Start a campaign
@@ -236,9 +236,6 @@ export default function CampaignList() {
         onClose={() => setIsNewCampaignModalOpen(false)}
         onSubmit={handleNewCampaignSubmit}
       />
-
-      {/* Footer */}
-      <Footer />
-    </div>
+    </AppLayout>
   );
 }

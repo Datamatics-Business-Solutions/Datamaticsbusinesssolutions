@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import { GlassNavigation } from './GlassNavigation';
-import { useTheme } from '../context/ThemeContext';
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -8,19 +7,10 @@ interface PageLayoutProps {
 }
 
 export function PageLayout({ children, showInternalBadge = false }: PageLayoutProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
-  // PROBLEM 1 FIX: Gradient backgrounds for glassmorphism visibility
-  const backgroundStyle: React.CSSProperties = isDark
-    ? {
-        background: 'linear-gradient(135deg, #0F1117 0%, #1a1025 100%)',
-        minHeight: '100vh'
-      }
-    : {
-        background: '#F2F4F7',
-        minHeight: '100vh'
-      };
+  const backgroundStyle: React.CSSProperties = {
+    background: '#F2F4F7',
+    minHeight: '100vh'
+  };
 
   return (
     <div style={backgroundStyle}>

@@ -17,9 +17,10 @@
 --color-surface-raised: rgba(255, 255, 255, 0.88);
 --color-surface-overlay: rgba(255, 255, 255, 0.60);
 
---color-text-primary: #1A1A1A;
+/* STANDARDIZED TEXT COLORS - ONLY 2 OPTIONS */
+--color-text-primary: #000000;
 --color-text-secondary: #6B7280;
---color-text-muted: #9CA3AF;
+--color-text-muted: #6B7280;
 
 --color-border: rgba(0, 0, 0, 0.08);
 --color-border-light: rgba(0, 0, 0, 0.04);
@@ -421,4 +422,30 @@ input[type="checkbox"]:focus {
 input[type="checkbox"]:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ============================================
+   GLOBAL TEXT COLOR OVERRIDES
+   Force standardized colors across all text
+   ============================================ */
+
+/* Override all grey text colors to use standard secondary color */
+.text-gray-400, 
+.text-gray-500,
+.text-gray-600,
+[class*="text-[#4A4A4A]"],
+[class*="text-[#374151]"],
+[class*="text-[#64748B]"],
+[class*="text-[#94A3B8]"],
+[class*="text-[#9CA3AF]"],
+[class*="text-[#9E9E9E]"],
+[class*="text-[#757575]"] {
+  color: #6B7280 !important;
+}
+
+/* Ensure black text is truly black */
+[class*="text-[#1E1E1E]"],
+[class*="text-[#1A1A1A]"],
+[class*="text-[#1F2937]"] {
+  color: #000000 !important;
 }

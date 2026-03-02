@@ -240,6 +240,8 @@ export function getAccountTeam(clientId: string) {
 export function getGlobalStats() {
   const totalClients = allClients.length;
   const activeCampaigns = allClients.filter((c) => c.status === 'active').length;
+  const totalCampaigns = allClients.reduce((sum, client) => sum + client.campaigns.length, 0);
+  const totalLeadsDelivered = allClients.reduce((sum, client) => sum + client.totalLeads, 0);
   const totalLeadsThisMonth = allClients.reduce(
     (sum, client) => sum + client.leadsThisMonth,
     0
@@ -249,7 +251,118 @@ export function getGlobalStats() {
   return {
     totalClients,
     activeCampaigns,
+    totalCampaigns,
+    totalLeadsDelivered,
     totalLeadsThisMonth,
     teamMembers,
   };
+}
+
+// Operations-focused lead upload tracking
+export interface LeadUploadBatch {
+  id: string;
+  campaignId: string;
+  campaignName: string;
+  clientId: string;
+  clientName: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  fileName: string;
+  totalRows: number;
+  processedRows: number;
+  successCount: number;
+  errorCount: number;
+  errorDetails?: string[];
+}
+
+// Mock recent upload batches for operations tracking
+export const recentUploadBatches: LeadUploadBatch[] = [
+  {
+    id: 'upload_001',
+    campaignId: 'camp_1',
+    campaignName: 'Q1 2026 Lead Generation',
+    clientId: 'client_1',
+    clientName: 'Acme Corp',
+    uploadedBy: 'John Davies',
+    uploadedAt: '2026-03-02T10:30:00Z',
+    status: 'processing',
+    fileName: 'acme_leads_march_batch1.csv',
+    totalRows: 450,
+    processedRows: 287,
+    successCount: 285,
+    errorCount: 2,
+    errorDetails: ['Row 45: Invalid email format', 'Row 123: Missing required field'],
+  },
+  {
+    id: 'upload_002',
+    campaignId: 'camp_2',
+    campaignName: 'Enterprise Outreach Campaign',
+    clientId: 'client_2',
+    clientName: 'TechCo Ltd',
+    uploadedBy: 'Lisa Park',
+    uploadedAt: '2026-03-02T09:15:00Z',
+    status: 'completed',
+    fileName: 'techco_batch_2.xlsx',
+    totalRows: 823,
+    processedRows: 823,
+    successCount: 820,
+    errorCount: 3,
+  },
+  {
+    id: 'upload_003',
+    campaignId: 'camp_4',
+    campaignName: 'Manufacturing Leads Q1',
+    clientId: 'client_4',
+    clientName: 'Global Innovations Inc',
+    uploadedBy: 'Michael Chen',
+    uploadedAt: '2026-03-02T08:45:00Z',
+    status: 'completed',
+    fileName: 'global_innovations_leads.csv',
+    totalRows: 234,
+    processedRows: 234,
+    successCount: 234,
+    errorCount: 0,
+  },
+  {
+    id: 'upload_004',
+    campaignId: 'camp_6',
+    campaignName: 'B2B Consulting Leads',
+    clientId: 'client_6',
+    clientName: 'Pinnacle Solutions',
+    uploadedBy: 'Emily Rodriguez',
+    uploadedAt: '2026-03-01T16:20:00Z',
+    status: 'failed',
+    fileName: 'pinnacle_january.csv',
+    totalRows: 156,
+    processedRows: 45,
+    successCount: 0,
+    errorCount: 45,
+    errorDetails: ['File format error: Invalid CSV structure', 'Multiple duplicate emails detected'],
+  },
+  {
+    id: 'upload_005',
+    campaignId: 'camp_1',
+    campaignName: 'Q1 2026 Lead Generation',
+    clientId: 'client_1',
+    clientName: 'Acme Corp',
+    uploadedBy: 'John Davies',
+    uploadedAt: '2026-03-01T14:00:00Z',
+    status: 'completed',
+    fileName: 'acme_feb_final.xlsx',
+    totalRows: 567,
+    processedRows: 567,
+    successCount: 565,
+    errorCount: 2,
+  },
+];
+
+// Helper: Get pending uploads (for ops priority view)
+export function getPendingUploads(): LeadUploadBatch[] {
+  return recentUploadBatches.filter(u => u.status === 'pending' || u.status === 'processing');
+}
+
+// Helper: Get failed uploads (for ops to retry)
+export function getFailedUploads(): LeadUploadBatch[] {
+  return recentUploadBatches.filter(u => u.status === 'failed');
 }
