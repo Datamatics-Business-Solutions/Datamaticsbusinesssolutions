@@ -1,9 +1,8 @@
-import { useRouteError, useNavigate } from 'react-router';
+import { useRouteError } from 'react-router';
 import { AlertCircle, Home } from 'lucide-react';
 
 export default function ErrorBoundary() {
   const error = useRouteError() as any;
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #BA2027 0%, #ffffff 100%)' }}>
@@ -20,13 +19,13 @@ export default function ErrorBoundary() {
           {error?.statusText || error?.message || 'An unexpected error occurred'}
         </p>
 
-        <button
-          onClick={() => navigate('/')}
+        <a
+          href="/"
           className="btn-primary w-full flex items-center justify-center gap-2"
         >
           <Home className="w-4 h-4" />
           Return to Home
-        </button>
+        </a>
 
         {error?.status === 404 && (
           <p className="mt-4 text-sm" style={{ color: 'var(--color-text-muted)' }}>

@@ -19,10 +19,14 @@ import {
   UserCircle,
   Building2,
   Layers,
+  ChevronDown,
+  ChevronRight,
+  Plus,
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
-import { getAssignedClients } from '../data/mockClients';
+import { getAssignedClients, recentUploadBatches, allClients } from '../data/mockClients';
+import { LeadUploadModal } from './LeadUploadModal';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -36,25 +40,43 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
   
   // Hover state management
   const [isHovered, setIsHovered] = useState(false);
-  const [isPinned, setIsPinned] = useState(true); // DEFAULT TO TRUE (expanded)
+  const [isPinned, setIsPinned] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
   
+  // Collapsible sections
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    ORGANIZATION: false, // Default expanded
+  });
+
+  // Upload modal
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
   const tooltipTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Load pinned state from localStorage (defaults to true/expanded if not set)
+  // Load pinned state from localStorage
   useEffect(() => {
     const savedPinned = localStorage.getItem('sidebar-pinned');
     if (savedPinned !== null) {
       setIsPinned(savedPinned === 'true');
     } else {
-      // First time - default to expanded
       setIsPinned(true);
       localStorage.setItem('sidebar-pinned', 'true');
     }
+
+    // Load collapsed sections
+    const savedCollapsed = localStorage.getItem('sidebar-collapsed-sections');
+    if (savedCollapsed) {
+      setCollapsedSections(JSON.parse(savedCollapsed));
+    }
   }, []);
+
+  // Save collapsed sections
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed-sections', JSON.stringify(collapsedSections));
+  }, [collapsedSections]);
 
   // Handle hover with delay for collapse
   const handleMouseEnter = () => {
@@ -84,6 +106,14 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     }
   };
 
+  // Toggle section collapse
+  const toggleSection = (section: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   // Determine if sidebar should be expanded
   const isExpanded = isPinned || isHovered;
 
@@ -94,15 +124,53 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     .join('')
     .toUpperCase() || 'U';
 
-  // Role-based navigation
+  // Calculate badges dynamically
+  const getBadgeCounts = () => {
+    const processingUploads = recentUploadBatches.filter(u => u.status === 'processing').length;
+    const failedUploads = recentUploadBatches.filter(u => u.status === 'failed').length;
+    const activeCampaigns = allClients.reduce((sum, c) => sum + c.campaigns.filter(camp => camp.status === 'active').length, 0);
+    const totalLeads = allClients.reduce((sum, c) => sum + c.totalLeads, 0);
+
+    // For clients, count unpaid invoices (mock)
+    const unpaidInvoices = 2;
+
+    return {
+      processingUploads,
+      failedUploads,
+      activeCampaigns,
+      totalLeads,
+      unpaidInvoices,
+    };
+  };
+
+  const badges = getBadgeCounts();
+
+  // Role-based navigation with badges and quick actions
   const getNavigationItems = () => {
     const role = currentUser?.role;
 
     if (role === 'ops_manager') {
       return [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/ops', section: 'PLATFORM' },
-        { name: 'All Campaigns', icon: Layers, path: '/internal/campaigns', section: 'PLATFORM' },
-        { name: 'Upload Leads', icon: Upload, path: '/internal/leads', section: 'PLATFORM' },
+        { 
+          name: 'All Campaigns', 
+          icon: Layers, 
+          path: '/internal/campaigns', 
+          section: 'PLATFORM',
+          badge: badges.activeCampaigns,
+          badgeColor: 'bg-blue-500'
+        },
+        { 
+          name: 'Upload Leads', 
+          icon: Upload, 
+          path: '/internal/leads', 
+          section: 'PLATFORM',
+          badge: badges.processingUploads > 0 ? badges.processingUploads : undefined,
+          badgeColor: badges.failedUploads > 0 ? 'bg-red-500' : 'bg-yellow-500',
+          hasQuickAction: true,
+          quickActionIcon: Plus,
+          quickActionHandler: () => setShowUploadModal(true)
+        },
         { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
       ];
@@ -111,8 +179,25 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     if (role === 'campaign_manager' || role === 'campaign_backup') {
       return [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/manager', section: 'PLATFORM' },
-        { name: 'Campaigns', icon: BarChart2, path: '/internal/campaigns', section: 'PLATFORM' },
-        { name: 'Upload Leads', icon: Upload, path: '/internal/leads', section: 'PLATFORM' },
+        { 
+          name: 'Campaigns', 
+          icon: BarChart2, 
+          path: '/internal/campaigns', 
+          section: 'PLATFORM',
+          badge: badges.activeCampaigns,
+          badgeColor: 'bg-blue-500'
+        },
+        { 
+          name: 'Upload Leads', 
+          icon: Upload, 
+          path: '/internal/leads', 
+          section: 'PLATFORM',
+          badge: badges.processingUploads > 0 ? badges.processingUploads : undefined,
+          badgeColor: badges.failedUploads > 0 ? 'bg-red-500' : 'bg-yellow-500',
+          hasQuickAction: true,
+          quickActionIcon: Plus,
+          quickActionHandler: () => setShowUploadModal(true)
+        },
         { name: 'Reports', icon: FileBarChart, path: '/internal/reports', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
       ];
@@ -121,10 +206,31 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     // Client role
     return [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', section: 'PLATFORM' },
-      { name: 'Campaigns', icon: BarChart2, path: '/campaigns', section: 'PLATFORM' },
-      { name: 'Leads', icon: Users, path: '/leads', section: 'PLATFORM' },
+      { 
+        name: 'Campaigns', 
+        icon: BarChart2, 
+        path: '/campaigns', 
+        section: 'PLATFORM',
+        badge: 3,
+        badgeColor: 'bg-blue-500'
+      },
+      { 
+        name: 'Leads', 
+        icon: Users, 
+        path: '/leads', 
+        section: 'PLATFORM',
+        badge: 1234,
+        badgeColor: 'bg-green-500'
+      },
       { name: 'Reports', icon: FileBarChart, path: '/reports', section: 'PLATFORM' },
-      { name: 'Invoices', icon: Receipt, path: '/invoices', section: 'ORGANIZATION' },
+      { 
+        name: 'Invoices', 
+        icon: Receipt, 
+        path: '/invoices', 
+        section: 'ORGANIZATION',
+        badge: badges.unpaidInvoices,
+        badgeColor: 'bg-red-500'
+      },
       { name: 'Documents', icon: FolderOpen, path: '/documents', section: 'ORGANIZATION' },
       { name: 'Support', icon: MessageCircle, path: '/support', section: 'ORGANIZATION' },
       { name: 'Account', icon: UserCircle, path: '/account', section: 'ORGANIZATION' },
@@ -164,7 +270,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      {/* Logo Section - Logo only, no pin */}
+      {/* Logo Section */}
       <div 
         className={`px-6 py-6 border-b border-[#EEECEC] flex items-center ${
           isExpanded ? 'justify-start' : 'justify-center'
@@ -173,7 +279,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         <Logo className="h-10" collapsed={!isExpanded} />
       </div>
 
-      {/* Pin Button - Floating at top of navigation area */}
+      {/* Pin Button */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -203,98 +309,165 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
       </AnimatePresence>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-8">
-        {Object.entries(groupedNav).map(([section, items]) => (
-          <div key={section}>
-            {/* Section Header */}
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.22 }}
-                  className="px-3 mb-3"
-                >
-                  <span className="text-xs text-[#9CA3AF] uppercase tracking-wider" style={{ fontWeight: 600 }}>
-                    {section}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        {Object.entries(groupedNav).map(([section, items]) => {
+          const isCollapsed = collapsedSections[section];
+          const canCollapse = section === 'ORGANIZATION';
 
-            {/* Section Items */}
-            <div className="space-y-1">
-              {items.map((item) => {
-                const isActive =
-                  location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-                const Icon = item.icon;
-
-                return (
-                  <div key={item.name} className="relative">
-                    <motion.button
-                      onClick={() => {
-                        navigate(item.path);
-                        setMobileOpen(false);
-                      }}
-                      onMouseEnter={() => handleItemMouseEnter(item.name)}
-                      onMouseLeave={handleItemMouseLeave}
-                      className={`w-full flex items-center gap-3 rounded-xl text-sm relative group ${
-                        isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
-                      } ${
-                        isActive
-                          ? 'text-white bg-[#BA2027] shadow-md'
-                          : 'text-[#374151] bg-transparent hover:bg-[#D32F2F]'
-                      }`}
-                      style={{
-                        fontWeight: 600,
-                        transition: 'background-color 0.2s ease, color 0.2s ease, transform 0.1s ease'
-                      }}
-                      whileHover={{ x: isExpanded ? 2 : 0 }}
-                      whileTap={{ scale: 0.98 }}
+          return (
+            <div key={section}>
+              {/* Section Header - Collapsible for ORGANIZATION */}
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.22 }}
+                    className="px-3 mb-3"
+                  >
+                    <button
+                      onClick={() => canCollapse && toggleSection(section)}
+                      className={`flex items-center gap-2 w-full ${canCollapse ? 'cursor-pointer hover:text-[#6B7280]' : 'cursor-default'} transition-colors`}
                     >
-                      <Icon 
-                        className={`w-5 h-5 flex-shrink-0 ${
-                          isActive ? '' : 'group-hover:text-white'
-                        }`}
-                        style={{ transition: 'color 0.2s ease' }} 
-                      />
-                      
-                      <AnimatePresence mode="wait">
-                        {isExpanded && (
-                          <motion.span
-                            initial={{ opacity: 0, width: 0 }}
-                            animate={{ opacity: 1, width: 'auto' }}
-                            exit={{ opacity: 0, width: 0 }}
-                            transition={{ duration: 0.2, ease: 'easeOut' }}
-                            className={`flex-1 text-left overflow-hidden whitespace-nowrap ${
-                              isActive ? '' : 'group-hover:text-white'
-                            }`}
-                          >
-                            {item.name}
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </motion.button>
-
-                    {/* Tooltip for icon rail state */}
-                    {!isExpanded && showTooltip === item.name && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-[10px] py-[6px] bg-[#1A1A1A] text-white text-xs font-medium rounded-lg whitespace-nowrap z-50 pointer-events-none"
+                      <span 
+                        className="text-[11px] text-[#9CA3AF] uppercase tracking-wider flex-1 text-left"
+                        style={{ fontWeight: 600, letterSpacing: '0.08em' }}
                       >
-                        {item.name}
-                      </motion.div>
-                    )}
-                  </div>
-                );
-              })}
+                        {section}
+                      </span>
+                      {canCollapse && (
+                        <motion.div
+                          animate={{ rotate: isCollapsed ? -90 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <ChevronDown className="w-3.5 h-3.5 text-[#9CA3AF]" />
+                        </motion.div>
+                      )}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Section Items */}
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-1"
+                  >
+                    {items.map((item) => {
+                      const isActive =
+                        location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+                      const Icon = item.icon;
+                      const QuickActionIcon = item.quickActionIcon;
+
+                      return (
+                        <div key={item.name} className="relative">
+                          <motion.button
+                            onClick={() => {
+                              navigate(item.path);
+                              setMobileOpen(false);
+                            }}
+                            onMouseEnter={() => handleItemMouseEnter(item.name)}
+                            onMouseLeave={handleItemMouseLeave}
+                            className={`w-full flex items-center gap-3 rounded-xl relative group ${
+                              isExpanded ? 'px-3 py-3' : 'px-0 py-3 justify-center'
+                            } ${
+                              isActive
+                                ? 'bg-[#F5F5F5] text-[#1F2937] border-l-[3px] border-[#BA2027]'
+                                : 'text-[#374151] bg-transparent hover:bg-[#F5F5F5]'
+                            }`}
+                            style={{
+                              fontSize: '15px',
+                              fontWeight: isActive ? 600 : 500,
+                              letterSpacing: '-0.01em',
+                              transition: 'all 0.2s ease'
+                            }}
+                            whileHover={{ x: isExpanded ? 2 : 0 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <Icon 
+                              className="w-6 h-6 flex-shrink-0"
+                              style={{ 
+                                color: isActive ? '#BA2027' : '#6B7280',
+                                transition: 'color 0.2s ease' 
+                              }} 
+                            />
+                            
+                            <AnimatePresence mode="wait">
+                              {isExpanded && (
+                                <motion.span
+                                  initial={{ opacity: 0, width: 0 }}
+                                  animate={{ opacity: 1, width: 'auto' }}
+                                  exit={{ opacity: 0, width: 0 }}
+                                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                                  className="flex-1 text-left overflow-hidden whitespace-nowrap"
+                                >
+                                  {item.name}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+
+                            {/* Badge */}
+                            {isExpanded && item.badge && (
+                              <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className={`${item.badgeColor} text-white text-xs font-semibold px-2 py-0.5 rounded-full min-w-[20px] flex items-center justify-center`}
+                                style={{ fontSize: '12px' }}
+                              >
+                                {item.badge}
+                              </motion.span>
+                            )}
+
+                            {/* Quick Action Button */}
+                            {isExpanded && item.hasQuickAction && QuickActionIcon && (
+                              <motion.button
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  item.quickActionHandler?.();
+                                }}
+                                className="w-6 h-6 rounded-lg bg-[#BA2027] hover:bg-[#9A1A21] text-white flex items-center justify-center transition-colors ml-1"
+                              >
+                                <QuickActionIcon className="w-3.5 h-3.5" />
+                              </motion.button>
+                            )}
+                          </motion.button>
+
+                          {/* Tooltip for icon rail state */}
+                          {!isExpanded && showTooltip === item.name && (
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 bg-[#1A1A1A] text-white text-xs font-medium rounded-lg whitespace-nowrap z-50 pointer-events-none"
+                            >
+                              {item.name}
+                              {item.badge && (
+                                <span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded-full">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </motion.div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* My Clients Section (for Campaign Managers) */}
         {assignedClients.length > 0 && (
@@ -308,7 +481,10 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                   transition={{ duration: 0.22 }}
                   className="px-3 mb-3"
                 >
-                  <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">
+                  <span 
+                    className="text-[11px] text-[#9CA3AF] uppercase tracking-wider"
+                    style={{ fontWeight: 600, letterSpacing: '0.08em' }}
+                  >
                     MY CLIENTS
                   </span>
                 </motion.div>
@@ -325,9 +501,10 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                     }}
                     onMouseEnter={() => handleItemMouseEnter(client.name)}
                     onMouseLeave={handleItemMouseLeave}
-                    className={`w-full flex items-center gap-3 rounded-xl text-sm font-medium text-[#6B7280] hover:text-[#1F2937] hover:bg-[#FFF5F5] transition-all duration-200 ${
-                      isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
+                    className={`w-full flex items-center gap-3 rounded-xl text-[14px] text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F5F5F5] transition-all duration-200 ${
+                      isExpanded ? 'px-3 py-3' : 'px-0 py-3 justify-center'
                     }`}
+                    style={{ fontWeight: 400 }}
                     whileHover={{ x: isExpanded ? 4 : 0 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -355,7 +532,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-[10px] py-[6px] bg-[#1A1A1A] text-white text-xs font-medium rounded-lg whitespace-nowrap z-50 pointer-events-none"
+                      className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 bg-[#1A1A1A] text-white text-xs font-medium rounded-lg whitespace-nowrap z-50 pointer-events-none"
                     >
                       {client.name}
                     </motion.div>
@@ -378,9 +555,10 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
             }}
             onMouseEnter={() => handleItemMouseEnter('Log Out')}
             onMouseLeave={handleItemMouseLeave}
-            className={`w-full flex items-center gap-3 rounded-xl text-sm font-semibold text-[#C0392B] hover:bg-[#C0392B]/10 transition-all duration-200 ${
-              isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
+            className={`w-full flex items-center gap-3 rounded-xl text-[15px] font-semibold text-[#C0392B] hover:bg-[#C0392B]/10 transition-all duration-200 ${
+              isExpanded ? 'px-3 py-3' : 'px-0 py-3 justify-center'
             }`}
+            style={{ fontWeight: 600 }}
           >
             <LogOut className="w-5 h-5" />
             <AnimatePresence>
@@ -404,7 +582,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-[10px] py-[6px] bg-[#1A1A1A] text-white text-xs font-medium rounded-lg whitespace-nowrap z-50 pointer-events-none"
+              className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 bg-[#1A1A1A] text-white text-xs font-medium rounded-lg whitespace-nowrap z-50 pointer-events-none"
             >
               Log Out
             </motion.div>
@@ -420,7 +598,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
             }}
             onMouseEnter={() => handleItemMouseEnter('Account')}
             onMouseLeave={handleItemMouseLeave}
-            className={`w-full flex items-center gap-3 rounded-xl hover:bg-[#F0EEEE] transition-all duration-200 border-t border-[#EEECEC] mt-2 pt-4 ${
+            className={`w-full flex items-center gap-3 rounded-xl hover:bg-[#F5F5F5] transition-all duration-200 border-t border-[#EEECEC] mt-2 pt-4 ${
               isExpanded ? 'px-3 py-3' : 'px-0 py-3 justify-center'
             }`}
           >
@@ -437,10 +615,10 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                   transition={{ duration: 0.22 }}
                   className="flex-1 text-left min-w-0"
                 >
-                  <div className="text-sm font-semibold text-[#1F2937] truncate">
+                  <div className="text-[14px] font-semibold text-[#1F2937] truncate" style={{ fontWeight: 600 }}>
                     {currentUser?.name || 'User'}
                   </div>
-                  <div className="text-xs text-[#6B7280] truncate">
+                  <div className="text-[12px] text-[#6B7280] truncate" style={{ fontWeight: 400 }}>
                     {currentUser?.role === 'client'
                       ? 'Client'
                       : currentUser?.role === 'campaign_manager'
@@ -461,7 +639,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-[10px] py-[6px] bg-[#1A1A1A] text-white text-xs font-medium rounded-lg whitespace-nowrap z-50 pointer-events-none"
+              className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 bg-[#1A1A1A] text-white text-xs font-medium rounded-lg whitespace-nowrap z-50 pointer-events-none"
             >
               {currentUser?.name || 'Account'}
             </motion.div>
@@ -500,12 +678,12 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         onMouseLeave={handleMouseLeave}
         className="hidden md:flex flex-col h-screen bg-[#F8F7F7] border-r border-[#EEECEC] overflow-hidden flex-shrink-0"
         style={{ 
-          width: isPinned ? '240px' : (isHovered ? '240px' : '64px'),
-          minWidth: isPinned ? '240px' : (isHovered ? '240px' : '64px'),
+          width: isPinned ? '260px' : (isHovered ? '260px' : '72px'),
+          minWidth: isPinned ? '260px' : (isHovered ? '260px' : '72px'),
           transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isExpanded ? '4px 0 24px rgba(0,0,0,0.12)' : '2px 0 8px rgba(0,0,0,0.04)',
+          boxShadow: isExpanded ? '4px 0 24px rgba(0,0,0,0.08)' : '2px 0 8px rgba(0,0,0,0.04)',
           willChange: 'width',
-          transform: 'translateZ(0)' // Force hardware acceleration
+          transform: 'translateZ(0)'
         }}
       >
         {sidebarContent}
@@ -515,17 +693,23 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ x: -240 }}
+            initial={{ x: -260 }}
             animate={{ x: 0 }}
-            exit={{ x: -240 }}
+            exit={{ x: -260 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="md:hidden fixed left-0 top-0 h-screen w-[240px] bg-[#F8F7F7] border-r border-[#EEECEC] z-[60] overflow-hidden"
+            className="md:hidden fixed left-0 top-0 h-screen w-[260px] bg-[#F8F7F7] border-r border-[#EEECEC] z-[60] overflow-hidden"
             style={{ boxShadow: '2px 0 8px rgba(0,0,0,0.04)' }}
           >
             {sidebarContent}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Lead Upload Modal */}
+      <LeadUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+      />
     </>
   );
 }

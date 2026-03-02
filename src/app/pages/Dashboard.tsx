@@ -12,8 +12,9 @@ import {
   Clock,
   FolderOpen,
   Plus,
+  BarChart2,
+  ChevronDown,
 } from 'lucide-react';
-import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { mockCampaigns } from '../mockData';
 import { AppLayout } from '../components/AppLayout';
 import { useCountUp } from '../hooks/useCountUp';
@@ -38,12 +39,31 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
+  
+  // Individual time period states for each card
+  const [campaignsPeriod, setCampaignsPeriod] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
+  const [leadsPeriod, setLeadsPeriod] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
+  const [spendPeriod, setSpendPeriod] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
 
   const accountTeam = getAccountTeam('client_1');
 
-  const activeCampaigns = mockCampaigns.filter((c) => c.status === 'In progress').length;
-  const totalLeadsDelivered = mockCampaigns.reduce((sum, c) => sum + c.delivered, 0);
-  const totalSpend = 24500;
+  // Base data
+  const baseCampaigns = mockCampaigns.filter((c) => c.status === 'In progress').length;
+  const baseLeadsMonthly = mockCampaigns.reduce((sum, c) => sum + c.delivered, 0);
+  const baseSpendMonthly = 24500;
+
+  // Calculate metrics based on period
+  const getMultiplier = (period: '1d' | '1w' | '1m' | '1y') => {
+    return period === '1d' ? 0.033 : period === '1w' ? 0.25 : period === '1m' ? 1 : 12;
+  };
+  
+  const getPeriodLabel = (period: '1d' | '1w' | '1m' | '1y') => {
+    return period === '1d' ? 'TODAY' : period === '1w' ? 'THIS WEEK' : period === '1m' ? 'THIS MONTH' : 'THIS YEAR';
+  };
+
+  const activeCampaigns = Math.round(baseCampaigns * getMultiplier(campaignsPeriod));
+  const totalLeadsDelivered = Math.round(baseLeadsMonthly * getMultiplier(leadsPeriod));
+  const totalSpend = Math.round(baseSpendMonthly * getMultiplier(spendPeriod));
 
   // Animated counters
   const animatedCampaigns = useCountUp(activeCampaigns, 1500);
@@ -102,8 +122,8 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2 text-2xl md:text-3xl lg:text-4xl">My Campaigns</h1>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+            <h1 className="mb-2">My Campaigns</h1>
+            <p className="text-sm text-[#6B7280]">
               Track and manage all your active campaigns
             </p>
           </div>
@@ -118,127 +138,147 @@ export default function Dashboard() {
           </motion.button>
         </div>
 
-        {/* KPI Cards with Sparklines */}
+        {/* KPI Cards - REDESIGNED WITH INTERACTIVITY */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 stagger-children">
-          {/* Active Campaigns */}
-          <motion.div className="kpi-card animate-slideInUp">
-            <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-transparent opacity-50" />
-            
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="kpi-card__label">Active Campaigns</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="kpi-card__number">{animatedCampaigns}</span>
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-success)' }}>
-                      +8%
-                    </span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-primary-light)]/10 flex items-center justify-center">
-                  <Target className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
-                </div>
-              </div>
-
-              {/* Sparkline Chart */}
-              <div className="h-12 -mx-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={campaignsData}>
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="var(--color-primary)"
-                      strokeWidth={2}
-                      dot={false}
-                      animationDuration={1500}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+          {/* Active Campaigns Card */}
+          <motion.div 
+            key={`campaigns-${campaignsPeriod}`}
+            initial={{ opacity: 0.8 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-xl border border-[#EEECEC] p-6 shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">ACTIVE CAMPAIGNS</h5>
+              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                <BarChart2 className="w-5 h-5 text-blue-500" />
               </div>
             </div>
+
+            {/* PROMINENT TIME SELECTOR */}
+            <div className="flex items-center gap-1.5 mb-6 p-1.5 bg-[#F3F4F6] rounded-lg">
+              {(['1d', '1w', '1m', '1y'] as const).map((period) => (
+                <button
+                  key={period}
+                  onClick={() => {
+                    setCampaignsPeriod(period);
+                  }}
+                  className={`px-2 py-1 rounded-md text-xs font-bold uppercase transition-all ${ campaignsPeriod === period ? 'bg-[#BA2027] text-white shadow-md' : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white' }`}
+                  style={{
+                    fontSize: '10px',
+                    minWidth: '42px'
+                  }}
+                >
+                  {period === '1d' ? 'Day' : period === '1w' ? 'Week' : period === '1m' ? 'Month' : 'Year'}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none">{animatedCampaigns}</span>
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#059669]">
+                <TrendingUp className="w-4 h-4" />
+                +8%
+              </span>
+            </div>
+            <p className="text-xs text-[#6B7280]">vs previous period</p>
           </motion.div>
 
-          {/* Leads Delivered */}
-          <motion.div className="kpi-card animate-slideInUp">
-            <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-success)]/10 via-transparent to-transparent opacity-50" />
-            
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="kpi-card__label">Leads Delivered</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="kpi-card__number">{animatedLeads.toLocaleString()}</span>
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-success)' }}>
-                      +12%
-                    </span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-success-bg)' }}>
-                  <TrendingUp className="w-6 h-6" style={{ color: 'var(--color-success)' }} />
-                </div>
-              </div>
-
-              {/* Sparkline Chart */}
-              <div className="h-12 -mx-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={leadsData}>
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="var(--color-success)"
-                      strokeWidth={2}
-                      dot={false}
-                      animationDuration={1500}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+          {/* Total Leads Card - WITH INTERACTIVE BUTTONS */}
+          <motion.div 
+            key={`leads-${leadsPeriod}`}
+            initial={{ opacity: 0.8 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-xl border border-[#EEECEC] p-6 shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
+                TOTAL LEADS {getPeriodLabel(leadsPeriod)}
+              </h5>
+              <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-green-500" />
               </div>
             </div>
+
+            {/* PROMINENT TIME SELECTOR */}
+            <div className="flex items-center gap-1.5 mb-6 p-1.5 bg-[#F3F4F6] rounded-lg">
+              {(['1d', '1w', '1m', '1y'] as const).map((period) => (
+                <button
+                  key={period}
+                  onClick={() => {
+                    setLeadsPeriod(period);
+                  }}
+                  className={`px-2 py-1 rounded-md text-xs font-bold uppercase transition-all ${ leadsPeriod === period ? 'bg-[#BA2027] text-white shadow-md' : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white' }`}
+                  style={{
+                    fontSize: '10px',
+                    minWidth: '42px'
+                  }}
+                >
+                  {period === '1d' ? 'Day' : period === '1w' ? 'Week' : period === '1m' ? 'Month' : 'Year'}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none">{animatedLeads.toLocaleString()}</span>
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#059669]">
+                <TrendingUp className="w-4 h-4" />
+                +12%
+              </span>
+            </div>
+            <p className="text-xs text-[#6B7280]">vs previous period</p>
           </motion.div>
 
-          {/* Total Spend */}
-          <motion.div className="kpi-card animate-slideInUp">
-            <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-warning)]/10 via-transparent to-transparent opacity-50" />
-            
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="kpi-card__label">Total Spend</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="kpi-card__number">${animatedSpend.toLocaleString()}</span>
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-primary)' }}>
-                      -3%
-                    </span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-warning-bg)' }}>
-                  <DollarSign className="w-6 h-6" style={{ color: 'var(--color-warning)' }} />
-                </div>
-              </div>
-
-              {/* Sparkline Chart */}
-              <div className="h-12 -mx-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={spendData}>
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="var(--color-warning)"
-                      strokeWidth={2}
-                      dot={false}
-                      animationDuration={1500}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+          {/* Total Spend Card */}
+          <motion.div 
+            key={`spend-${spendPeriod}`}
+            initial={{ opacity: 0.8 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-xl border border-[#EEECEC] p-6 shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">TOTAL SPEND</h5>
+              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-amber-500" />
               </div>
             </div>
+
+            {/* PROMINENT TIME SELECTOR */}
+            <div className="flex items-center gap-1.5 mb-6 p-1.5 bg-[#F3F4F6] rounded-lg">
+              {(['1d', '1w', '1m', '1y'] as const).map((period) => (
+                <button
+                  key={period}
+                  onClick={() => {
+                    setSpendPeriod(period);
+                  }}
+                  className={`px-2 py-1 rounded-md text-xs font-bold uppercase transition-all ${ spendPeriod === period ? 'bg-[#BA2027] text-white shadow-md' : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white' }`}
+                  style={{
+                    fontSize: '10px',
+                    minWidth: '42px'
+                  }}
+                >
+                  {period === '1d' ? 'Day' : period === '1w' ? 'Week' : period === '1m' ? 'Month' : 'Year'}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none">${animatedSpend.toLocaleString()}</span>
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#BA2027]">
+                <TrendingUp className="w-4 h-4 rotate-180" />
+                -3%
+              </span>
+            </div>
+            <p className="text-xs text-[#6B7280]">vs previous period</p>
           </motion.div>
         </div>
 
         {/* Search & Filter */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9CA3AF]" />
             <input
               type="text"
               placeholder="Search campaigns..."
@@ -247,43 +287,46 @@ export default function Dashboard() {
               className="input-base w-full pl-12 pr-4 py-3"
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="input-base px-4 py-3 appearance-none cursor-pointer"
-          >
-            <option value="All">All Status</option>
-            <option value="In progress">In Progress</option>
-            <option value="Completed">Completed</option>
-            <option value="Paused">Paused</option>
-            <option value="Not started">Not Started</option>
-          </select>
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="input-base px-4 py-3 pr-10 appearance-none cursor-pointer w-full sm:w-auto"
+            >
+              <option value="All">All Status</option>
+              <option value="In progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Paused">Paused</option>
+              <option value="Not started">Not Started</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280] pointer-events-none" />
+          </div>
         </div>
 
         {/* Campaign Table */}
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
+              <thead className="bg-[#F9F9F9] border-b border-[#EEECEC]">
                 <tr>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
                     Campaign
                   </th>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
                     Progress
                   </th>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody style={{ borderTop: '1px solid var(--color-border)' }}>
+              <tbody className="border-t border-[#EEECEC]">
                 {filteredCampaigns.map((campaign, index) => {
                   const progress = (campaign.delivered / campaign.target) * 100;
                   return (
@@ -292,21 +335,20 @@ export default function Dashboard() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="hover:bg-white/40 transition-colors cursor-pointer"
-                      style={{ borderBottom: '1px solid var(--color-border-light)' }}
+                      className="hover:bg-white/40 transition-colors cursor-pointer border-b border-[#F5F5F5]"
                     >
                       <td className="px-6 py-4">
                         <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                          <div className="text-sm font-semibold text-[#1F2937]">
                             {campaign.name}
                           </div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }} className="mt-1">
+                          <div className="text-xs text-[#6B7280] mt-1">
                             {campaign.clientCompany}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                        <span className="text-sm text-[#6B7280]">
                           {campaign.serviceType}
                         </span>
                       </td>
@@ -317,14 +359,14 @@ export default function Dashboard() {
                             <div className="progress-bar flex-1">
                               <div
                                 className="progress-bar__fill"
-                                style={{ '--progress-value': `${Math.min(progress, 100)}%` } as React.CSSProperties}
+                                style={{ width: `${Math.min(progress, 100)}%` }}
                               />
                             </div>
-                            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)' }}>
+                            <span className="text-sm font-medium text-[#6B7280]">
                               {Math.round(progress)}%
                             </span>
                           </div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                          <div className="text-xs text-[#9CA3AF]">
                             {campaign.delivered.toLocaleString()} / {campaign.target.toLocaleString()} leads
                           </div>
                         </div>
@@ -332,8 +374,7 @@ export default function Dashboard() {
                       <td className="px-6 py-4">
                         <button
                           onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                          className="btn-outline px-4 py-2"
-                          style={{ fontSize: 'var(--font-size-sm)' }}
+                          className="btn-outline px-4 py-2 text-sm"
                         >
                           View Details
                         </button>
@@ -390,7 +431,6 @@ export default function Dashboard() {
         isOpen={isNewCampaignModalOpen}
         onClose={() => setIsNewCampaignModalOpen(false)}
         onSubmit={(formData: CampaignFormData) => {
-          console.log('New Campaign Form Data:', formData);
           setIsNewCampaignModalOpen(false);
         }}
       />

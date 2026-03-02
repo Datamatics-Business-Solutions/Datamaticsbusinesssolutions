@@ -12,12 +12,8 @@ import {
   AlertCircle,
   Pause,
   FileText,
-  Zap,
   ArrowUpRight,
-  Plus,
-  Eye,
 } from 'lucide-react';
-import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { AppLayout } from '../components/AppLayout';
 import { useCountUp } from '../hooks/useCountUp';
 import { AnimatedNumber } from '../components/AnimatedNumber';
@@ -25,38 +21,41 @@ import { AccountTeam } from '../components/AccountTeam';
 import { getAccountTeam } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
 
-// Mock sparkline data for trend visualization
-const generateSparklineData = (baseValue: number, trend: 'up' | 'down' = 'up') => {
-  return Array.from({ length: 12 }, (_, i) => ({
-    value:
-      trend === 'up'
-        ? baseValue * (0.7 + i * 0.025 + Math.random() * 0.1)
-        : baseValue * (1.3 - i * 0.025 + Math.random() * 0.1),
-  }));
-};
-
 export default function HomePage() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
   const accountTeam = getAccountTeam('client_1');
 
+  // Time period states for interactive cards
+  const [leadsPeriod, setLeadsPeriod] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
+
+  // Define actual realistic numbers for each period
+  const leadsDataByPeriod = {
+    '1d': 42,      // Daily average
+    '1w': 294,     // Weekly total (42 × 7)
+    '1m': 1265,    // Monthly total
+    '1y': 15180    // Yearly total (1265 × 12)
+  };
+
+  const getPeriodLabel = (period: '1d' | '1w' | '1m' | '1y') => {
+    return period === '1d' ? 'TODAY' : period === '1w' ? 'THIS WEEK' : period === '1m' ? 'THIS MONTH' : 'THIS YEAR';
+  };
+
+  // Get value based on selected period
+  const totalLeadsValue = leadsDataByPeriod[leadsPeriod];
+
   // Animated counters for KPIs
-  const totalLeads = useCountUp(1265, 1500);
+  const totalLeads = useCountUp(totalLeadsValue, 1500);
   const activeCampaigns = useCountUp(3, 800);
   const acceptanceRate = useCountUp(93, 1200);
   const pendingInvoices = useCountUp(7800, 1500);
-
-  // Sparkline data
-  const leadsData = generateSparklineData(totalLeads / 12, 'up');
-  const campaignsData = generateSparklineData(activeCampaigns, 'up');
-  const revenueData = generateSparklineData(16500, 'up');
 
   const recentActivity = [
     {
       id: 1,
       icon: CheckCircle2,
-      color: 'text-[#6B7280]', // Changed from green - just informational
+      color: 'text-[#6B7280]',
       bg: 'bg-[#6B7280]/10',
       text: 'Sarah Chen accepted a lead from Healthcare Content Syndication',
       time: '2 minutes ago',
@@ -64,7 +63,7 @@ export default function HomePage() {
     {
       id: 2,
       icon: FileText,
-      color: 'text-[#6B7280]', // Changed from blue - just informational
+      color: 'text-[#6B7280]',
       bg: 'bg-[#6B7280]/10',
       text: 'Invoice INV-2026-001088 generated for $2,400',
       time: '1 hour ago',
@@ -72,7 +71,7 @@ export default function HomePage() {
     {
       id: 3,
       icon: Target,
-      color: 'text-[#6B7280]', // Changed from purple - just informational
+      color: 'text-[#6B7280]',
       bg: 'bg-[#6B7280]/10',
       text: 'SaaS Appointment Setting campaign reached 75% completion',
       time: '3 hours ago',
@@ -80,7 +79,7 @@ export default function HomePage() {
     {
       id: 4,
       icon: Users,
-      color: 'text-[#6B7280]', // Changed from orange - just informational
+      color: 'text-[#6B7280]',
       bg: 'bg-[#6B7280]/10',
       text: 'New lead delivered: David Kim - Director of IT',
       time: '5 hours ago',
@@ -92,7 +91,7 @@ export default function HomePage() {
       id: 1,
       type: 'error',
       icon: AlertCircle,
-      iconColor: 'text-[#C0392B]', // Red for urgent
+      iconColor: 'text-[#C0392B]',
       text: 'INV-2026-001087 is overdue by 14 days — $3,600 due',
       buttonText: 'Pay Now',
       buttonAction: () => navigate('/payment/INV-2026-001087'),
@@ -101,7 +100,7 @@ export default function HomePage() {
       id: 2,
       type: 'warning',
       icon: Clock,
-      iconColor: 'text-[#F59E0B]', // Amber for warning (changed from orange-500)
+      iconColor: 'text-[#F59E0B]',
       text: 'David Kim lead has been pending review for 4 days',
       buttonText: 'Review',
       buttonAction: () => navigate('/leads'),
@@ -110,7 +109,7 @@ export default function HomePage() {
       id: 3,
       type: 'info',
       icon: Pause,
-      iconColor: 'text-[#6B7280]', // Grey for info (changed from blue)
+      iconColor: 'text-[#6B7280]',
       text: 'SaaS Appointment Setting campaign is paused at 30%',
       buttonText: 'View',
       buttonAction: () => navigate('/campaigns/2'),
@@ -130,10 +129,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* KPI Cards with Sparklines - Top Row (3 cards) */}
+        {/* KPI Cards - Top Row (3 cards) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {/* Total Leads */}
+          {/* Total Leads - WITH INTERACTIVE BUTTONS */}
           <motion.div
+            key={`leads-${leadsPeriod}-${totalLeadsValue}`}
             className="relative overflow-hidden rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
             transition={{ duration: 0.2 }}
@@ -141,12 +141,35 @@ export default function HomePage() {
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#10B981]/10 via-transparent to-transparent opacity-50" />
 
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-start justify-between">
+            <div className="relative z-10">
+              <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">
-                    Total Leads This Month
+                  <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-3">
+                    Total Leads {getPeriodLabel(leadsPeriod)}
                   </p>
+
+                  {/* INTERACTIVE TIME PERIOD BUTTONS */}
+                  <div className="flex gap-1 mb-4 bg-white/80 p-1 rounded-lg" style={{ width: 'fit-content' }}>
+                    {(['1d', '1w', '1m', '1y'] as const).map((period) => (
+                      <button
+                        key={period}
+                        onClick={() => {
+                          setLeadsPeriod(period);
+                        }}
+                        className={`px-2 py-1 rounded-md text-xs font-bold uppercase transition-all ${ leadsPeriod === period
+                            ? 'bg-[#BA2027] text-white shadow-md'
+                            : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white'
+                        }`}
+                        style={{
+                          fontSize: '10px',
+                          minWidth: '42px'
+                        }}
+                      >
+                        {period === '1d' ? 'Day' : period === '1w' ? 'Week' : period === '1m' ? 'Month' : 'Year'}
+                      </button>
+                    ))}
+                  </div>
+
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold text-[#1F2937]">
                       <AnimatedNumber value={totalLeads} />
@@ -156,30 +179,14 @@ export default function HomePage() {
                     </span>
                   </div>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#10B981]/20 to-[#34D399]/10 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#10B981]/20 to-[#34D399]/10 flex items-center justify-center flex-shrink-0">
                   <TrendingUp className="w-6 h-6 text-[#10B981]" />
                 </div>
-              </div>
-
-              {/* Sparkline Chart */}
-              <div className="h-12 -mx-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={leadsData}>
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#10B981"
-                      strokeWidth={2}
-                      dot={false}
-                      animationDuration={1500}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
               </div>
             </div>
           </motion.div>
 
-          {/* Active Campaigns */}
+          {/* Active Campaigns - NO SPARKLINE */}
           <motion.div
             className="relative overflow-hidden rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
@@ -188,7 +195,7 @@ export default function HomePage() {
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#3B82F6]/10 via-transparent to-transparent opacity-50" />
 
-            <div className="relative z-10 space-y-4">
+            <div className="relative z-10">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">
@@ -211,26 +218,10 @@ export default function HomePage() {
                   <BarChart3 className="w-6 h-6 text-[#3B82F6]" />
                 </div>
               </div>
-
-              {/* Sparkline Chart */}
-              <div className="h-12 -mx-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={campaignsData}>
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#3B82F6"
-                      strokeWidth={2}
-                      dot={false}
-                      animationDuration={1500}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
             </div>
           </motion.div>
 
-          {/* Acceptance Rate */}
+          {/* Acceptance Rate - NO SPARKLINE */}
           <motion.div
             className="relative overflow-hidden rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
@@ -239,7 +230,7 @@ export default function HomePage() {
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#10B981]/10 via-transparent to-transparent opacity-50" />
 
-            <div className="relative z-10 space-y-4">
+            <div className="relative z-10">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">
@@ -260,22 +251,6 @@ export default function HomePage() {
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#10B981]/20 to-[#34D399]/10 flex items-center justify-center">
                   <Target className="w-6 h-6 text-[#10B981]" />
                 </div>
-              </div>
-
-              {/* Sparkline Chart */}
-              <div className="h-12 -mx-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={revenueData}>
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#10B981"
-                      strokeWidth={2}
-                      dot={false}
-                      animationDuration={1500}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
               </div>
             </div>
           </motion.div>

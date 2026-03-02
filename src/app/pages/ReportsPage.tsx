@@ -387,8 +387,9 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Lead Performance - Full Width */}
-        <div className="mb-4">
+        {/* Lead Performance & Revenue Charts - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* Lead Performance Trend */}
           <ChartCard title="Lead Performance Trend">
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={currentMetrics.monthlyData}>
@@ -423,10 +424,8 @@ export default function ReportsPage() {
               </AreaChart>
             </ResponsiveContainer>
           </ChartCard>
-        </div>
 
-        {/* Monthly Revenue Trend - Full Width */}
-        <div className="mb-4">
+          {/* Monthly Revenue Trend */}
           <ChartCard title="Monthly Revenue Trend">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={currentMetrics.monthlyData} barCategoryGap="20%">

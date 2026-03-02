@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
-import { Search, Filter, Eye } from 'lucide-react';
+import { Search, Filter, Eye, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { mockCampaigns } from '../mockData';
 
@@ -37,7 +37,7 @@ export default function InternalCampaignList() {
             />
           </div>
 
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 relative">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -48,6 +48,7 @@ export default function InternalCampaignList() {
               <option value="Completed">Completed</option>
               <option value="Paused">Paused</option>
             </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280] pointer-events-none" />
           </div>
         </div>
 

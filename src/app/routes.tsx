@@ -25,102 +25,82 @@ export const router = createBrowserRouter([
   {
     path: '/',
     Component: Login,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/dashboard',
     Component: HomePage,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/dashboard/ops',
     Component: OpsOverviewPage,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/dashboard/ops/team',
     Component: TeamManagementPage,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/dashboard/manager',
     Component: ManagerDashboardPage,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/campaigns',
     Component: Dashboard,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/campaigns/:id',
     Component: CampaignDetailGlass,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/leads',
     Component: LeadsPage,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/reports',
     Component: ReportsPage,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/invoices',
     Component: Invoices,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/payment/:invoiceId',
     Component: Payment,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/documents',
     Component: Documents,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/support',
     Component: Support,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/account',
     Component: Account,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/internal/dashboard',
     Component: InternalDashboard,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/internal/campaigns',
     Component: InternalCampaignList,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/internal/campaigns/:id',
     Component: InternalCampaignDetail,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/internal/reports',
     Component: InternalReports,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/internal/leads',
     Component: LeadUploadDashboard,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '/internal/uploads',
     Component: LeadUploadDashboard,
-    ErrorBoundary: ErrorBoundary,
   },
   {
     path: '*',
