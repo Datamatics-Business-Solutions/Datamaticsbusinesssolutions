@@ -15,6 +15,7 @@ const LeadsPage = lazy(() => import('./pages/LeadsPage'));
 const LeadUploadDashboard = lazy(() => import('./pages/LeadUploadDashboard'));
 const Documents = lazy(() => import('./pages/Documents'));
 const Support = lazy(() => import('./pages/Support'));
+const Feedback = lazy(() => import('./pages/Feedback'));
 const InternalDashboard = lazy(() => import('./pages/InternalDashboard'));
 const InternalCampaignList = lazy(() => import('./pages/InternalCampaignList'));
 const InternalCampaignDetail = lazy(() => import('./pages/InternalCampaignDetail'));
@@ -110,6 +111,10 @@ export const router = createBrowserRouter([
   {
     path: '/support',
     Component: withSuspense(Support),
+  },
+  {
+    path: '/feedback',
+    Component: withSuspense(Feedback),
   },
   {
     path: '/account',

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, useLocation } from 'react-router';
 import {
@@ -22,6 +22,7 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  MessageSquare,
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
@@ -160,6 +161,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         },
         { name: 'Client Assignments', icon: Building2, path: '/internal/client-assignment', section: 'PLATFORM' },
         { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
+        { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
       ];
     }
@@ -187,6 +189,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           quickActionHandler: () => setShowUploadModal(true)
         },
         { name: 'Reports', icon: FileBarChart, path: '/internal/reports', section: 'PLATFORM' },
+        { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
       ];
     }
@@ -220,7 +223,8 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         badgeColor: 'bg-red-500'
       },
       { name: 'Documents', icon: FolderOpen, path: '/documents', section: 'ORGANIZATION' },
-      { name: 'Support', icon: MessageCircle, path: '/support', section: 'ORGANIZATION' },
+      { name: 'Support', icon: MessageSquare, path: '/support', section: 'ORGANIZATION' },
+      { name: 'Feedback', icon: MessageCircle, path: '/feedback', section: 'ORGANIZATION' },
       { name: 'Account', icon: UserCircle, path: '/account', section: 'ORGANIZATION' },
     ];
   };
@@ -366,7 +370,11 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                               isExpanded ? 'px-3 py-3' : 'px-0 py-3 justify-center'
                             } ${
                               isActive
-                                ? 'bg-gradient-to-r from-[#BA2027]/10 to-transparent text-[#BA2027] border-l-[3px] border-[#BA2027] shadow-sm'
+                                ? item.name === 'Feedback'
+                                  ? 'bg-gradient-to-r from-green-600/10 to-transparent text-green-700 border-l-[3px] border-green-600 shadow-sm'
+                                  : 'bg-gradient-to-r from-[#BA2027]/10 to-transparent text-[#BA2027] border-l-[3px] border-[#BA2027] shadow-sm'
+                                : item.name === 'Feedback'
+                                ? 'text-green-700 bg-transparent hover:bg-gradient-to-r hover:from-green-600/5 hover:to-transparent hover:text-green-700 hover:border-l-[3px] hover:border-green-600/30'
                                 : 'text-[#374151] bg-transparent hover:bg-gradient-to-r hover:from-[#BA2027]/5 hover:to-transparent hover:text-[#BA2027] hover:border-l-[3px] hover:border-[#BA2027]/30'
                             } transition-all duration-200`}
                             style={{
@@ -390,7 +398,13 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                             >
                               <Icon 
                                 className={`w-6 h-6 flex-shrink-0 transition-colors duration-200 ${
-                                  isActive ? 'text-[#BA2027]' : 'text-[#6B7280] group-hover:text-[#BA2027]'
+                                  isActive 
+                                    ? item.name === 'Feedback' 
+                                      ? 'text-green-700' 
+                                      : 'text-[#BA2027]' 
+                                    : item.name === 'Feedback'
+                                    ? 'text-green-600 group-hover:text-green-700'
+                                    : 'text-[#6B7280] group-hover:text-[#BA2027]'
                                 }`} 
                               />
                             </motion.div>
