@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Calendar, TrendingUp, Clock, CheckCircle2, Package, AlertCircle } from 'lucide-react';
+import { Calendar, TrendingUp, Clock, CheckCircle2, Package } from 'lucide-react';
 import { format, parseISO, isAfter, isBefore, startOfWeek, endOfWeek, isSameDay, addDays, differenceInDays } from 'date-fns';
 import type { Campaign } from '../data/mockClients';
 

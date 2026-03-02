@@ -1,14 +1,10 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
 import { useParams, useNavigate } from 'react-router';
 import { 
   ChevronRight, 
   Target, 
   TrendingUp, 
   CheckCircle, 
-  Calendar,
-  Pause,
-  Headphones,
   FileText,
   Download,
   DollarSign,
