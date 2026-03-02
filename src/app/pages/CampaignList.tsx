@@ -7,8 +7,11 @@ import { TableRow } from '../components/TableRow';
 import { AppLayout } from '../components/AppLayout';
 import { StatusBadge } from '../components/StatusBadge';
 import { NewCampaignModal, type CampaignFormData } from '../components/NewCampaignModal';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function CampaignList() {
+  useDocumentTitle('Campaigns');
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [dateRange, setDateRange] = useState<string>('All time');

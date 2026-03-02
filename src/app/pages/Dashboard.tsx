@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -14,6 +14,8 @@ import {
   Plus,
   BarChart2,
   ChevronDown,
+  X,
+  ChevronUp,
 } from 'lucide-react';
 import { mockCampaigns } from '../mockData';
 import { AppLayout } from '../components/AppLayout';
@@ -23,6 +25,10 @@ import { EmptyState } from '../components/EmptyState';
 import { AccountTeam } from '../components/AccountTeam';
 import { getAccountTeam } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
+import { SimpleEmptyState } from '../components/SimpleEmptyState';
+import { useDebounce } from '../hooks/useDebounce';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { TableSkeleton } from '../components/SkeletonLoader';
 
 // Mock sparkline data for trend visualization
 const generateSparklineData = (baseValue: number, trend: 'up' | 'down' = 'up') => {
@@ -34,9 +40,12 @@ const generateSparklineData = (baseValue: number, trend: 'up' | 'down' = 'up') =
 };
 
 export default function Dashboard() {
+  useDocumentTitle('My Campaigns');
+  
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState('All');
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
   
@@ -76,7 +85,7 @@ export default function Dashboard() {
   const spendData = generateSparklineData(totalSpend / 12, 'down');
 
   const filteredCampaigns = mockCampaigns.filter((campaign) => {
-    const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = campaign.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

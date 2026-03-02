@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'motion/react';
+import { memo } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { AnimatedCounter } from './AnimatedCounter';
 
@@ -15,7 +16,7 @@ interface UnifiedKpiCardProps {
   index?: number;
 }
 
-export function UnifiedKpiCard({
+export const UnifiedKpiCard = memo(function UnifiedKpiCard({
   icon: Icon,
   iconColor,
   iconBg,
@@ -115,4 +116,4 @@ export function UnifiedKpiCard({
       )}
     </motion.div>
   );
-}
+});

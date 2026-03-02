@@ -1,109 +1,141 @@
 import { createBrowserRouter } from 'react-router';
-import Login from './pages/Login';
-import HomePage from './pages/HomePage';
-import Dashboard from './pages/Dashboard';
-import CampaignList from './pages/CampaignList';
-import CampaignDetailGlass from './pages/CampaignDetailGlass';
-import Invoices from './pages/Invoices';
-import Payment from './pages/Payment';
-import Account from './pages/Account';
-import ReportsPage from './pages/ReportsPage';
-import LeadsPage from './pages/LeadsPage';
-import LeadUploadDashboard from './pages/LeadUploadDashboard';
-import Documents from './pages/Documents';
-import Support from './pages/Support';
-import InternalDashboard from './pages/InternalDashboard';
-import InternalCampaignList from './pages/InternalCampaignList';
-import InternalCampaignDetail from './pages/InternalCampaignDetail';
-import InternalReports from './pages/InternalReports';
-import OpsOverviewPage from './pages/OpsOverviewPage';
-import ManagerDashboardPage from './pages/ManagerDashboardPage';
-import TeamManagementPage from './pages/TeamManagementPage';
-import ErrorBoundary from './pages/ErrorBoundary';
+import { lazy, Suspense } from 'react';
+
+// Lazy load all pages
+const Login = lazy(() => import('./pages/Login'));
+const HomePage = lazy(() => import('./pages/HomePage'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const CampaignList = lazy(() => import('./pages/CampaignList'));
+const CampaignDetailGlass = lazy(() => import('./pages/CampaignDetailGlass'));
+const Invoices = lazy(() => import('./pages/Invoices'));
+const Payment = lazy(() => import('./pages/Payment'));
+const Account = lazy(() => import('./pages/Account'));
+const ReportsPage = lazy(() => import('./pages/ReportsPage'));
+const LeadsPage = lazy(() => import('./pages/LeadsPage'));
+const LeadUploadDashboard = lazy(() => import('./pages/LeadUploadDashboard'));
+const Documents = lazy(() => import('./pages/Documents'));
+const Support = lazy(() => import('./pages/Support'));
+const InternalDashboard = lazy(() => import('./pages/InternalDashboard'));
+const InternalCampaignList = lazy(() => import('./pages/InternalCampaignList'));
+const InternalCampaignDetail = lazy(() => import('./pages/InternalCampaignDetail'));
+const InternalReports = lazy(() => import('./pages/InternalReports'));
+const OpsOverviewPage = lazy(() => import('./pages/OpsOverviewPage'));
+const ManagerDashboardPage = lazy(() => import('./pages/ManagerDashboardPage'));
+const TeamManagementPage = lazy(() => import('./pages/TeamManagementPage'));
+const ErrorBoundary = lazy(() => import('./pages/ErrorBoundary'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100vh',
+    width: '100%'
+  }}>
+    <div style={{
+      width: '32px',
+      height: '32px',
+      border: '3px solid #F3F4F6',
+      borderTop: '3px solid #BA2027',
+      borderRadius: '50%',
+      animation: 'spin 600ms linear infinite'
+    }} />
+  </div>
+);
+
+// Wrapper component that adds Suspense to each route
+const withSuspense = (Component: React.LazyExoticComponent<any>) => {
+  return () => (
+    <Suspense fallback={<LoadingFallback />}>
+      <Component />
+    </Suspense>
+  );
+};
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    Component: Login,
+    Component: withSuspense(Login),
   },
   {
     path: '/dashboard',
-    Component: HomePage,
+    Component: withSuspense(HomePage),
   },
   {
     path: '/dashboard/ops',
-    Component: OpsOverviewPage,
+    Component: withSuspense(OpsOverviewPage),
   },
   {
     path: '/dashboard/ops/team',
-    Component: TeamManagementPage,
+    Component: withSuspense(TeamManagementPage),
   },
   {
     path: '/dashboard/manager',
-    Component: ManagerDashboardPage,
+    Component: withSuspense(ManagerDashboardPage),
   },
   {
     path: '/campaigns',
-    Component: Dashboard,
+    Component: withSuspense(Dashboard),
   },
   {
     path: '/campaigns/:id',
-    Component: CampaignDetailGlass,
+    Component: withSuspense(CampaignDetailGlass),
   },
   {
     path: '/leads',
-    Component: LeadsPage,
+    Component: withSuspense(LeadsPage),
   },
   {
     path: '/reports',
-    Component: ReportsPage,
+    Component: withSuspense(ReportsPage),
   },
   {
     path: '/invoices',
-    Component: Invoices,
+    Component: withSuspense(Invoices),
   },
   {
     path: '/payment/:invoiceId',
-    Component: Payment,
+    Component: withSuspense(Payment),
   },
   {
     path: '/documents',
-    Component: Documents,
+    Component: withSuspense(Documents),
   },
   {
     path: '/support',
-    Component: Support,
+    Component: withSuspense(Support),
   },
   {
     path: '/account',
-    Component: Account,
+    Component: withSuspense(Account),
   },
   {
     path: '/internal/dashboard',
-    Component: InternalDashboard,
+    Component: withSuspense(InternalDashboard),
   },
   {
     path: '/internal/campaigns',
-    Component: InternalCampaignList,
+    Component: withSuspense(InternalCampaignList),
   },
   {
     path: '/internal/campaigns/:id',
-    Component: InternalCampaignDetail,
+    Component: withSuspense(InternalCampaignDetail),
   },
   {
     path: '/internal/reports',
-    Component: InternalReports,
+    Component: withSuspense(InternalReports),
   },
   {
     path: '/internal/leads',
-    Component: LeadUploadDashboard,
+    Component: withSuspense(LeadUploadDashboard),
   },
   {
     path: '/internal/uploads',
-    Component: LeadUploadDashboard,
+    Component: withSuspense(LeadUploadDashboard),
   },
   {
     path: '*',
-    Component: ErrorBoundary,
+    Component: withSuspense(ErrorBoundary),
   },
 ]);

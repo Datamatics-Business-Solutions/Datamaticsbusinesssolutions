@@ -15,12 +15,15 @@ import { FloatingActionButton } from '../components/FloatingActionButton';
 import { AdvancedFiltersPanel } from '../components/AdvancedFiltersPanel';
 import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { toast } from 'sonner';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 type SortField = 'leadScore' | 'deliveryDate' | 'company' | 'status';
 type SortDirection = 'asc' | 'desc';
 type ViewMode = 'table' | 'grid';
 
 export default function LeadsPage() {
+  useDocumentTitle('Leads');
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [campaignFilter, setCampaignFilter] = useState<string>('all');

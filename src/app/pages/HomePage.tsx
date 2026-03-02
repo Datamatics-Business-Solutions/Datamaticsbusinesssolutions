@@ -18,10 +18,13 @@ import { AppLayout } from '../components/AppLayout';
 import { useCountUp } from '../hooks/useCountUp';
 import { AnimatedNumber } from '../components/AnimatedNumber';
 import { AccountTeam } from '../components/AccountTeam';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAccountTeam } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
 
 export default function HomePage() {
+  useDocumentTitle('Dashboard');
+  
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 

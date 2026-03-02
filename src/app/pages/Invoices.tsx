@@ -1,4 +1,5 @@
-import { Download, Search, FileText, CheckCircle, Clock, AlertCircle, Eye, CreditCard, PieChart as PieChartIcon, Building2, ArrowRightLeft, Calendar, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, Search, FileText, CheckCircle, Clock, AlertCircle, Eye, CreditCard, PieChart as PieChartIcon, Building2, ArrowRightLeft, Calendar, ChevronDown, X } from 'lucide-react';
 import { TableRow } from '../components/TableRow';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
@@ -6,24 +7,39 @@ import { mockInvoices } from '../mockInvoices';
 import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
 import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { DollarSign } from 'lucide-react';
+import { AppLayout } from '../components/AppLayout';
+import { SimpleEmptyState } from '../components/SimpleEmptyState';
+import { Tooltip } from '../components/Tooltip';
+import { useDebounce } from '../hooks/useDebounce';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { TableSkeleton } from '../components/SkeletonLoader';
 
 export default function Invoices() {
+  useDocumentTitle('Invoices');
+  
   const [pageLoaded, setPageLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
   const [previewInvoice, setPreviewInvoice] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
+  
+  const debouncedSearch = useDebounce(searchTerm, 300);
 
   useEffect(() => {
-    setTimeout(() => setPageLoaded(true), 100);
+    // Simulate loading
+    setTimeout(() => {
+      setIsLoading(false);
+      setPageLoaded(true);
+    }, 800);
   }, []);
 
   const filteredInvoices = mockInvoices.filter(invoice => {
     const matchesStatus = statusFilter === 'All' || invoice.status === statusFilter;
     const matchesSearch = 
-      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.campaignName.toLowerCase().includes(searchTerm.toLowerCase());
+      invoice.invoiceNumber.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      invoice.campaignName.toLowerCase().includes(debouncedSearch.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -226,111 +242,115 @@ export default function Invoices() {
                 </tr>
               </thead>
               <tbody>
-                {filteredInvoices.map((invoice, index) => {
-                  const daysUntil = getDaysUntilDue(invoice.dueDate);
-                  const paymentInfo = getPaymentMethod(invoice.status);
-                  const PaymentIcon = paymentInfo.icon;
+                {isLoading ? (
+                  <TableSkeleton rows={5} columns={7} />
+                ) : (
+                  filteredInvoices.map((invoice, index) => {
+                    const daysUntil = getDaysUntilDue(invoice.dueDate);
+                    const paymentInfo = getPaymentMethod(invoice.status);
+                    const PaymentIcon = paymentInfo.icon;
 
-                  return (
-                    <TableRow
-                      key={invoice.id}
-                      showHoverEffect={true}
-                      animationDelay={index * 50}
-                    >
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={selectedInvoices.includes(invoice.id)}
-                          onChange={() => {
-                            if (selectedInvoices.includes(invoice.id)) {
-                              setSelectedInvoices(selectedInvoices.filter(id => id !== invoice.id));
-                            } else {
-                              setSelectedInvoices([...selectedInvoices, invoice.id]);
-                            }
-                          }}
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                            {invoice.invoiceNumber}
-                          </div>
-                          <div className="flex items-center gap-1 mt-1">
-                            <PaymentIcon className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
-                            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                              {paymentInfo.method}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                          {invoice.campaignName}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                          ${invoice.amount.toLocaleString()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                            {new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </div>
-                          {invoice.status !== 'Paid' && (
-                            <div style={{ fontSize: 'var(--font-size-xs)', color: daysUntil < 0 ? 'var(--color-error)' : 'var(--color-text-muted)' }}>
-                              {daysUntil < 0 ? `${Math.abs(daysUntil)} days overdue` : `Due in ${daysUntil} days`}
+                    return (
+                      <TableRow
+                        key={invoice.id}
+                        showHoverEffect={true}
+                        animationDelay={index * 50}
+                      >
+                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedInvoices.includes(invoice.id)}
+                            onChange={() => {
+                              if (selectedInvoices.includes(invoice.id)) {
+                                setSelectedInvoices(selectedInvoices.filter(id => id !== invoice.id));
+                              } else {
+                                setSelectedInvoices([...selectedInvoices, invoice.id]);
+                              }
+                            }}
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div>
+                            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                              {invoice.invoiceNumber}
                             </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className={getStatusColor(invoice.status)}>
-                          {getStatusIcon(invoice.status)}
-                          <span>{invoice.status}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          {/* Pay icon for Pending/Overdue, View for Paid - maintain consistent 2-button layout */}
-                          {(invoice.status === 'Pending' || invoice.status === 'Overdue') ? (
+                            <div className="flex items-center gap-1 mt-1">
+                              <PaymentIcon className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+                              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                                {paymentInfo.method}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                            {invoice.campaignName}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                            ${invoice.amount.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div>
+                            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                              {new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
+                            {invoice.status !== 'Paid' && (
+                              <div style={{ fontSize: 'var(--font-size-xs)', color: daysUntil < 0 ? 'var(--color-error)' : 'var(--color-text-muted)' }}>
+                                {daysUntil < 0 ? `${Math.abs(daysUntil)} days overdue` : `Due in ${daysUntil} days`}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className={getStatusColor(invoice.status)}>
+                            {getStatusIcon(invoice.status)}
+                            <span>{invoice.status}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            {/* Pay icon for Pending/Overdue, View for Paid - maintain consistent 2-button layout */}
+                            {(invoice.status === 'Pending' || invoice.status === 'Overdue') ? (
+                              <button
+                                onClick={() => {
+                                  toast.success(`Redirecting to payment for ${invoice.invoiceNumber}...`);
+                                  // Here you would redirect to payment gateway
+                                }}
+                                className="btn-ghost p-2"
+                                title="Pay Now"
+                              >
+                                <DollarSign className="w-4 h-4 text-[#BA2027]" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleViewInvoice(invoice)}
+                                className="btn-ghost p-2"
+                                title="View Invoice"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            )}
                             <button
-                              onClick={() => {
-                                toast.success(`Redirecting to payment for ${invoice.invoiceNumber}...`);
-                                // Here you would redirect to payment gateway
-                              }}
+                              onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}...`)}
                               className="btn-ghost p-2"
-                              title="Pay Now"
+                              title="Download Invoice"
                             >
-                              <DollarSign className="w-4 h-4 text-[#BA2027]" />
+                              <Download className="w-4 h-4" />
                             </button>
-                          ) : (
-                            <button
-                              onClick={() => handleViewInvoice(invoice)}
-                              className="btn-ghost p-2"
-                              title="View Invoice"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}...`)}
-                            className="btn-ghost p-2"
-                            title="Download Invoice"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </TableRow>
-                  );
-                })}
+                          </div>
+                        </td>
+                      </TableRow>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
 
-          {filteredInvoices.length === 0 && (
+          {filteredInvoices.length === 0 && !isLoading && (
             <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
               No invoices found
             </div>

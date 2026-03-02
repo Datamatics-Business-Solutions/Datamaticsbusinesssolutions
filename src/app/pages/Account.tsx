@@ -7,8 +7,11 @@ import {
 import { AppLayout } from '../components/AppLayout';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { toast } from 'sonner';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function Account() {
+  useDocumentTitle('Account Settings');
+  
   const [pageLoaded, setPageLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'company' | 'team' | 'security' | 'notifications'>('profile');
   const [showPassword, setShowPassword] = useState(false);

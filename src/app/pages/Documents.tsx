@@ -1,17 +1,13 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { AppLayout } from '../components/AppLayout';
-import { 
-  Download, Search, Filter, FileText, File, Eye, Share2, Trash2, 
-  CheckCircle, Clock, AlertCircle, Star, Upload, User, Calendar, 
-  Paperclip, FolderOpen, Pen, List, Grid3x3, FileCheck, Lock, 
-  DollarSign, BarChart3
+import {
+  Search, Plus, FileText, Filter, Grid3x3, List, Download, Trash2,
+  Eye, Star, Calendar, User, Tag, FolderOpen, Upload, X, Check, File,
+  FileSpreadsheet, Image as ImageIcon, Archive, ChevronDown, MoreVertical
 } from 'lucide-react';
-import { TableRow } from '../components/TableRow';
+import { AppLayout } from '../components/AppLayout';
 import { DocumentViewerModal } from '../components/DocumentViewerModal';
-import { UploadZoneModal } from '../components/UploadZoneModal';
-import { AnimatedCounter } from '../components/AnimatedCounter';
-import { toast } from 'sonner';
+import { motion } from 'motion/react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface Document {
   id: string;
@@ -88,6 +84,8 @@ const mockDocuments: Document[] = [
 ];
 
 export default function Documents() {
+  useDocumentTitle('Documents');
+  
   const [pageLoaded, setPageLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('All');

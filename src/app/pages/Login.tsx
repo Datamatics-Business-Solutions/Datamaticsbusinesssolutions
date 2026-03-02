@@ -4,6 +4,7 @@ import { Mail, Lock, Eye, EyeOff, CheckCircle2, Quote, Check, Loader2, ChevronDo
 import { Logo } from '../components/Logo';
 import { useParallax } from '../hooks/useParallax';
 import { useAuth, mockUsers } from '../context/AuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // Testimonials data with sophisticated red gradients
 const testimonials = [
@@ -40,6 +41,8 @@ const testimonials = [
 ];
 
 export default function Login() {
+  useDocumentTitle('Login');
+  
   const navigate = useNavigate();
   const { setCurrentUser, getDefaultRoute } = useAuth();
   const [selectedUserId, setSelectedUserId] = useState('u1'); // Default to first user

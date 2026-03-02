@@ -165,6 +165,38 @@
 }
 
 /* ============================================
+   BUTTON FEEDBACK ANIMATIONS
+   ============================================ */
+
+.btn-feedback {
+  transition: transform 0.1s ease;
+}
+
+.btn-feedback:active {
+  transform: scale(0.97);
+}
+
+.btn-shake {
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.btn-success {
+  animation: success-pulse 0.4s ease;
+}
+
+@keyframes success-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* ============================================
    INPUTS
    ============================================ */
 

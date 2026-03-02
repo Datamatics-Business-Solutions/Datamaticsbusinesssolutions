@@ -40,14 +40,18 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
   
   // Hover state management
   const [isHovered, setIsHovered] = useState(false);
-  const [isPinned, setIsPinned] = useState(true);
+  const [isPinned, setIsPinned] = useState(() => {
+    const savedPinned = localStorage.getItem('sidebar-pinned');
+    return savedPinned !== null ? savedPinned === 'true' : true;
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
   
   // Collapsible sections
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
-    ORGANIZATION: false, // Default expanded
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
+    const savedCollapsed = localStorage.getItem('sidebar-collapsed-sections');
+    return savedCollapsed ? JSON.parse(savedCollapsed) : { ORGANIZATION: false };
   });
 
   // Upload modal
@@ -56,24 +60,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
   const tooltipTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Load pinned state from localStorage
-  useEffect(() => {
-    const savedPinned = localStorage.getItem('sidebar-pinned');
-    if (savedPinned !== null) {
-      setIsPinned(savedPinned === 'true');
-    } else {
-      setIsPinned(true);
-      localStorage.setItem('sidebar-pinned', 'true');
-    }
-
-    // Load collapsed sections
-    const savedCollapsed = localStorage.getItem('sidebar-collapsed-sections');
-    if (savedCollapsed) {
-      setCollapsedSections(JSON.parse(savedCollapsed));
-    }
-  }, []);
-
-  // Save collapsed sections
+  // Save collapsed sections to localStorage when changed
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed-sections', JSON.stringify(collapsedSections));
   }, [collapsedSections]);
@@ -378,25 +365,34 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                               isExpanded ? 'px-3 py-3' : 'px-0 py-3 justify-center'
                             } ${
                               isActive
-                                ? 'bg-[#F5F5F5] text-[#1F2937] border-l-[3px] border-[#BA2027]'
-                                : 'text-[#374151] bg-transparent hover:bg-[#F5F5F5]'
-                            }`}
+                                ? 'bg-gradient-to-r from-[#BA2027]/10 to-transparent text-[#BA2027] border-l-[3px] border-[#BA2027] shadow-sm'
+                                : 'text-[#374151] bg-transparent hover:bg-gradient-to-r hover:from-[#BA2027]/5 hover:to-transparent hover:text-[#BA2027] hover:border-l-[3px] hover:border-[#BA2027]/30'
+                            } transition-all duration-200`}
                             style={{
                               fontSize: '15px',
                               fontWeight: isActive ? 600 : 500,
                               letterSpacing: '-0.01em',
-                              transition: 'all 0.2s ease'
                             }}
-                            whileHover={{ x: isExpanded ? 2 : 0 }}
+                            whileHover={{ 
+                              x: isExpanded ? 4 : 0,
+                              transition: { duration: 0.2, ease: 'easeOut' }
+                            }}
                             whileTap={{ scale: 0.98 }}
+                            transition={{ duration: 0.2 }}
                           >
-                            <Icon 
-                              className="w-6 h-6 flex-shrink-0"
-                              style={{ 
-                                color: isActive ? '#BA2027' : '#6B7280',
-                                transition: 'color 0.2s ease' 
-                              }} 
-                            />
+                            <motion.div
+                              whileHover={{ 
+                                scale: 1.1,
+                                rotate: isActive ? 0 : 2,
+                                transition: { duration: 0.2, ease: 'easeOut' }
+                              }}
+                            >
+                              <Icon 
+                                className={`w-6 h-6 flex-shrink-0 transition-colors duration-200 ${
+                                  isActive ? 'text-[#BA2027]' : 'text-[#6B7280] group-hover:text-[#BA2027]'
+                                }`} 
+                              />
+                            </motion.div>
                             
                             <AnimatePresence mode="wait">
                               {isExpanded && (
