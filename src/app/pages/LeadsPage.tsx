@@ -11,7 +11,6 @@ import { LeadDetailDrawer } from '../components/LeadDetailDrawer';
 import { LeadScoreRing } from '../components/LeadScoreRing';
 import { LeadAvatar } from '../components/LeadAvatar';
 import { LeadDistributionChart } from '../components/LeadDistributionChart';
-import { FloatingActionButton } from '../components/FloatingActionButton';
 import { AdvancedFiltersPanel } from '../components/AdvancedFiltersPanel';
 import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { toast } from 'sonner';
@@ -628,7 +627,7 @@ export default function LeadsPage() {
       )}
 
       {/* Floating Action Button */}
-      <FloatingActionButton actions={fabActions} />
+      {/* <FloatingActionButton actions={fabActions} /> */}
 
       {/* Advanced Filters Panel */}
       <AdvancedFiltersPanel

@@ -1,6 +1,6 @@
 import { useTheme } from '../context/ThemeContext';
 import { LucideIcon } from 'lucide-react';
-import { EnhancedButton } from './EnhancedButton';
+import { Button } from './ui/button';
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -45,9 +45,9 @@ export function EmptyState({
 
       {/* Action Button */}
       {actionLabel && onAction && (
-        <EnhancedButton onClick={onAction}>
+        <Button onClick={onAction}>
           {actionLabel}
-        </EnhancedButton>
+        </Button>
       )}
 
       {/* Preview hint */}
