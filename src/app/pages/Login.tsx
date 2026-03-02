@@ -4,7 +4,6 @@ import { Mail, Lock, Eye, EyeOff, CheckCircle2, Quote, Check, Loader2, ChevronDo
 import { Logo } from '../components/Logo';
 import { useParallax } from '../hooks/useParallax';
 import { useAuth, mockUsers } from '../context/AuthContext';
-import certifications from 'figma:asset/b24b9bef2212c68559759883c7aca917e374398b.png';
 
 // Testimonials data with sophisticated red gradients
 const testimonials = [
@@ -334,12 +333,22 @@ export default function Login() {
             <p className="text-center text-[11px] uppercase tracking-wider font-semibold mb-4 text-[#9CA3AF]">
               Certified & Compliant
             </p>
-            <div className="flex items-center justify-center">
-              <img 
-                src={certifications} 
-                alt="ISO 27001:2022, ISO 9001:2015, SOC 1 & 2 Type II, GDPR Certified" 
-                className="h-12 opacity-80"
-              />
+            <div className="flex items-center justify-center gap-4 flex-wrap">
+              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">
+                ISO 27001:2022
+              </div>
+              <div className="w-1 h-1 rounded-full bg-[#9CA3AF]"></div>
+              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">
+                ISO 9001:2015
+              </div>
+              <div className="w-1 h-1 rounded-full bg-[#9CA3AF]"></div>
+              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">
+                SOC 1 & 2 Type II
+              </div>
+              <div className="w-1 h-1 rounded-full bg-[#9CA3AF]"></div>
+              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">
+                GDPR
+              </div>
             </div>
           </div>
 
