@@ -1,0 +1,208 @@
+/* ============================================
+   GLASSMORPHISM CARD — use for ALL KPI cards,
+   metric boxes, and data panels
+   ============================================ */
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+  transition: 
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glass-shadow-raised);
+}
+
+.glass-card-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow-raised);
+}
+
+/* ============================================
+   KPI STAT CARD
+   Identical appearance on every page — 
+   no exceptions, no overrides
+   ============================================ */
+
+.kpi-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+  padding: var(--space-6);
+  transition: 
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glass-shadow-raised);
+}
+
+.kpi-card__number {
+  font-size: var(--kpi-number-size);
+  font-weight: var(--kpi-number-weight);
+  color: var(--kpi-number-color);
+  letter-spacing: var(--kpi-number-tracking);
+  font-family: var(--font-family);
+  line-height: 1.1;
+}
+
+.kpi-card__label {
+  font-size: var(--kpi-label-size);
+  font-weight: var(--kpi-label-weight);
+  color: var(--kpi-label-color);
+  letter-spacing: var(--kpi-label-tracking);
+  text-transform: var(--kpi-label-transform);
+  margin-top: var(--space-2);
+}
+
+.kpi-card__sublabel {
+  font-size: var(--kpi-sublabel-size);
+  color: var(--kpi-sublabel-color);
+  margin-top: var(--space-1);
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.badge-active {
+  background: var(--color-badge-active-bg);
+  color: var(--color-badge-active-text);
+}
+
+.badge-paused {
+  background: var(--color-badge-paused-bg);
+  color: var(--color-badge-paused-text);
+}
+
+.badge-completed {
+  background: var(--color-badge-completed-bg);
+  color: var(--color-badge-completed-text);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn-primary {
+  background: linear-gradient(135deg, 
+    var(--color-primary) 0%, 
+    var(--color-primary-light) 100%);
+  color: white;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-lg);
+  border: none;
+  box-shadow: var(--shadow-red);
+  transition: 
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 8px 28px rgba(186,32,39,0.30);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-lg);
+  transition: 
+    background var(--transition-fast),
+    transform var(--transition-fast);
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: var(--color-primary-tint);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: 
+    background var(--transition-fast),
+    color var(--transition-fast);
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+/* ============================================
+   INPUTS
+   ============================================ */
+
+.input-base {
+  background: var(--glass-bg-strong);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  transition: 
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  font-family: var(--font-family);
+}
+
+.input-base:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-tint);
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+
+.progress-bar {
+  height: 6px;
+  background: var(--color-border-light);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, 
+    var(--color-primary) 0%, 
+    var(--color-primary-light) 100%);
+  animation: progressFill 1s 
+    cubic-bezier(0.4,0,0.2,1) forwards;
+}

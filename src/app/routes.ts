@@ -15,6 +15,9 @@ import InternalDashboard from './pages/InternalDashboard';
 import InternalCampaignList from './pages/InternalCampaignList';
 import InternalCampaignDetail from './pages/InternalCampaignDetail';
 import InternalReports from './pages/InternalReports';
+import OpsOverviewPage from './pages/OpsOverviewPage';
+import ManagerDashboardPage from './pages/ManagerDashboardPage';
+import TeamManagementPage from './pages/TeamManagementPage';
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +27,18 @@ export const router = createBrowserRouter([
   {
     path: '/dashboard',
     Component: HomePage,
+  },
+  {
+    path: '/dashboard/ops',
+    Component: OpsOverviewPage,
+  },
+  {
+    path: '/dashboard/ops/team',
+    Component: TeamManagementPage,
+  },
+  {
+    path: '/dashboard/manager',
+    Component: ManagerDashboardPage,
   },
   {
     path: '/campaigns',

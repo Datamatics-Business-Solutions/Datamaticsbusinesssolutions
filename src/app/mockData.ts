@@ -2,6 +2,201 @@ import { Campaign, DailyProgress, ActivityUpdate } from './types';
 
 // Extended Mock Data for all features
 
+// ============ RBAC - CLIENTS & TEAM ============
+export interface ClientData {
+  id: string;
+  name: string;
+  industry: string;
+  campaignManager: string;
+  backupManager: string;
+  campaignStatus: 'Active' | 'Paused' | 'Completed';
+  leadsUploaded: number;
+  lastActivity: string; // relative date
+  activeCampaigns: number;
+}
+
+export const mockClients: ClientData[] = [
+  {
+    id: 'client_1',
+    name: 'TechVentures Agency',
+    industry: 'Information Technology',
+    campaignManager: 'Sarah Mitchell',
+    backupManager: 'David Park',
+    campaignStatus: 'Active',
+    leadsUploaded: 1247,
+    lastActivity: '2 days ago',
+    activeCampaigns: 2,
+  },
+  {
+    id: 'client_2',
+    name: 'MedMarketing Solutions',
+    industry: 'Healthcare',
+    campaignManager: 'Sarah Mitchell',
+    backupManager: 'Emily Rodriguez',
+    campaignStatus: 'Completed',
+    leadsUploaded: 850,
+    lastActivity: '1 week ago',
+    activeCampaigns: 0,
+  },
+  {
+    id: 'client_3',
+    name: 'FinTech Growth Partners',
+    industry: 'Financial Services',
+    campaignManager: 'Michael Chen',
+    backupManager: 'David Park',
+    campaignStatus: 'Active',
+    leadsUploaded: 523,
+    lastActivity: '1 day ago',
+    activeCampaigns: 1,
+  },
+  {
+    id: 'client_4',
+    name: 'CloudScale Ventures',
+    industry: 'Software & Cloud Computing',
+    campaignManager: 'Emily Rodriguez',
+    backupManager: 'Sarah Mitchell',
+    campaignStatus: 'Paused',
+    leadsUploaded: 189,
+    lastActivity: '3 weeks ago',
+    activeCampaigns: 0,
+  },
+  {
+    id: 'client_5',
+    name: 'Industrial Marketing Group',
+    industry: 'Manufacturing',
+    campaignManager: 'Michael Chen',
+    backupManager: 'David Park',
+    campaignStatus: 'Active',
+    leadsUploaded: 0,
+    lastActivity: '5 days ago',
+    activeCampaigns: 1,
+  },
+  {
+    id: 'client_6',
+    name: 'RetailTech Aggregators',
+    industry: 'Retail & E-commerce',
+    campaignManager: 'David Park',
+    backupManager: 'Emily Rodriguez',
+    campaignStatus: 'Active',
+    leadsUploaded: 342,
+    lastActivity: '4 hours ago',
+    activeCampaigns: 1,
+  },
+];
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Campaign Manager' | 'Backup Manager' | 'Ops Manager';
+  assignedClients: string[];
+  activeCampaigns: number;
+  status: 'Active' | 'Away';
+  avatar?: string;
+}
+
+export const mockTeamMembers: TeamMember[] = [
+  {
+    id: 'tm_1',
+    name: 'Sarah Mitchell',
+    email: 'sarah.mitchell@datamatics.com',
+    role: 'Campaign Manager',
+    assignedClients: ['TechVentures Agency', 'MedMarketing Solutions'],
+    activeCampaigns: 2,
+    status: 'Active',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+  },
+  {
+    id: 'tm_2',
+    name: 'Michael Chen',
+    email: 'michael.chen@datamatics.com',
+    role: 'Campaign Manager',
+    assignedClients: ['FinTech Growth Partners', 'Industrial Marketing Group'],
+    activeCampaigns: 2,
+    status: 'Active',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+  },
+  {
+    id: 'tm_3',
+    name: 'Emily Rodriguez',
+    email: 'emily.rodriguez@datamatics.com',
+    role: 'Campaign Manager',
+    assignedClients: ['CloudScale Ventures'],
+    activeCampaigns: 0,
+    status: 'Away',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
+  },
+  {
+    id: 'tm_4',
+    name: 'David Park',
+    email: 'david.park@datamatics.com',
+    role: 'Backup Manager',
+    assignedClients: ['TechVentures Agency', 'FinTech Growth Partners', 'RetailTech Aggregators'],
+    activeCampaigns: 3,
+    status: 'Active',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
+  },
+  {
+    id: 'tm_5',
+    name: 'John Davies',
+    email: 'john.davies@datamatics.com',
+    role: 'Ops Manager',
+    assignedClients: [],
+    activeCampaigns: 6,
+    status: 'Active',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
+  },
+];
+
+// Mock CSV preview data for Lead Upload Modal
+export const mockCsvPreview = [
+  {
+    'First Name': 'Robert',
+    'Last Name': 'Chen',
+    'Email': 'robert.chen@acmetech.com',
+    'Phone': '+1 415-555-1234',
+    'Company': 'Acme Technologies Inc.',
+    'Job Title': 'Chief Information Security Officer',
+    'Source': 'LinkedIn',
+  },
+  {
+    'First Name': 'Jennifer',
+    'Last Name': 'Martinez',
+    'Email': 'j.martinez@globalfinance.com',
+    'Phone': '+1 212-555-5678',
+    'Company': 'Global Finance Corp',
+    'Job Title': 'IT Director',
+    'Source': 'Conference',
+  },
+  {
+    'First Name': 'David',
+    'Last Name': 'Kim',
+    'Email': 'd.kim@healthcaresolutions.com',
+    'Phone': '+1 617-555-9012',
+    'Company': 'Healthcare Solutions Ltd',
+    'Job Title': 'Security Manager',
+    'Source': 'Webinar',
+  },
+  {
+    'First Name': 'Emma',
+    'Last Name': 'Thompson',
+    'Email': 'e.thompson@londonbanking.co.uk',
+    'Phone': '+44 20 7123 4567',
+    'Company': 'London Banking Group',
+    'Job Title': 'CFO',
+    'Source': 'Partner Referral',
+  },
+  {
+    'First Name': 'Michael',
+    'Last Name': 'Anderson',
+    'Email': 'm.anderson@techsolutions.com',
+    'Phone': '+1 555-123-4567',
+    'Company': 'Tech Solutions LLC',
+    'Job Title': 'VP of Technology',
+    'Source': 'Email Campaign',
+  },
+];
+
 // ============ CAMPAIGNS ============
 export const mockCampaigns: Campaign[] = [
   {
@@ -1304,57 +1499,6 @@ export const mockNotifications: Notification[] = [
     timestamp: '2026-02-28T16:00:00',
     read: true,
     actionUrl: '/campaigns/2',
-  },
-];
-
-// ============ TEAM MEMBERS ============
-export interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: 'Admin' | 'Manager' | 'Viewer';
-  avatar?: string;
-  status: 'Active' | 'Invited';
-  joinedDate: string;
-  lastActive: string;
-}
-
-export const mockTeamMembers: TeamMember[] = [
-  {
-    id: 'U001',
-    name: 'John Smith',
-    email: 'john.smith@techventures.com',
-    role: 'Admin',
-    status: 'Active',
-    joinedDate: '2025-11-01',
-    lastActive: '2026-02-27T10:45:00',
-  },
-  {
-    id: 'U002',
-    name: 'Emily Chen',
-    email: 'emily.chen@techventures.com',
-    role: 'Manager',
-    status: 'Active',
-    joinedDate: '2025-12-15',
-    lastActive: '2026-02-27T09:20:00',
-  },
-  {
-    id: 'U003',
-    name: 'Michael Brown',
-    email: 'michael.brown@techventures.com',
-    role: 'Viewer',
-    status: 'Active',
-    joinedDate: '2026-01-10',
-    lastActive: '2026-02-26T16:30:00',
-  },
-  {
-    id: 'U004',
-    name: 'Sarah Williams',
-    email: 'sarah.williams@techventures.com',
-    role: 'Viewer',
-    status: 'Invited',
-    joinedDate: '2026-02-25',
-    lastActive: '',
   },
 ];
 

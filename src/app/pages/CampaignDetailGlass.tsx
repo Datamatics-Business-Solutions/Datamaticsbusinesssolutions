@@ -11,337 +11,248 @@ import {
   Headphones,
   FileText,
   Download,
-  DollarSign
+  DollarSign,
+  ArrowLeft
 } from 'lucide-react';
-import { GlassNavigation } from '../components/GlassNavigation';
+import { AppLayout } from '../components/AppLayout';
 import { JobCardModal } from '../components/JobCardModalGlass';
 import { AnimatedDonutChart } from '../components/AnimatedDonutChart';
 import { mockCampaigns, mockActivityUpdates } from '../mockData';
-import { useTheme } from '../context/ThemeContext';
 
 export default function CampaignDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { theme } = useTheme();
   const campaign = mockCampaigns.find(c => c.id === id);
   const [showJobCard, setShowJobCard] = useState(false);
 
-  const isDark = theme === 'dark';
-  
-  // Professional BPM gradient background
-  const backgroundStyle = isDark
-    ? { background: 'linear-gradient(135deg, #0F1117 0%, #1a1025 100%)', minHeight: '100vh' }
-    : { background: '#F2F4F7', minHeight: '100vh' };
-
-  // iOS-style card styling
-  const cardStyle = isDark
-    ? { 
-        background: '#1C1F2E', 
-        border: '1px solid rgba(255, 255, 255, 0.08)'
-      }
-    : { 
-        background: '#FFFFFF', 
-        border: '1px solid rgba(186, 32, 39, 0.08)',
-        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)'
-      };
-
   if (!campaign) {
     return (
-      <div style={backgroundStyle}>
-        <GlassNavigation />
-        <div className="max-w-[1440px] mx-auto px-8 py-12 text-center">
-          <p className={isDark ? 'text-[#A0A0A0]' : 'text-[#6B6B6B]'}>Campaign not found</p>
-          <button 
-            onClick={() => navigate('/campaigns')}
-            className={`${isDark ? 'text-[#E63946] hover:text-[#FF4D5A]' : 'text-[#BA2027] hover:text-[#A01C22]'} mt-4 font-medium transition-colors`}
-          >
-            Back to campaigns
-          </button>
+      <AppLayout>
+        <div className="max-w-[1440px] mx-auto px-6 py-6">
+          <div className="text-center py-12">
+            <h2 style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-xl)' }}>Campaign not found</h2>
+            <button onClick={() => navigate('/dashboard')} className="btn-primary mt-4 px-6 py-3">
+              Back to Dashboard
+            </button>
+          </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
-  const progress = (campaign.delivered / campaign.target) * 100;
-  const accepted = Math.floor(campaign.delivered * 0.89); // Mock 89% acceptance rate
+  const acceptanceRate = Math.round((campaign.delivered / campaign.target) * 100);
+  const progressPercentage = Math.round((campaign.delivered / campaign.target) * 100);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'In progress':
+        return 'badge badge-active';
+      case 'Completed':
+        return 'badge badge-completed';
+      case 'Paused':
+        return 'badge badge-paused';
+      default:
+        return 'badge badge-completed';
+    }
+  };
 
   return (
-    <div style={backgroundStyle}>
-      <GlassNavigation />
-      
-      <div className="max-w-[1440px] mx-auto px-8 py-12">
+    <AppLayout>
+      <div className="max-w-[1440px] mx-auto px-6 py-6">
         {/* Breadcrumb */}
-        <div className={`flex items-center text-sm mb-8 ${isDark ? 'text-[#A0A0A0]' : 'text-[#6B6B6B]'}`}>
-          <button 
-            onClick={() => navigate('/campaigns')}
-            className={`${isDark ? 'hover:text-white' : 'hover:text-[#BA2027]'} transition-colors font-medium`}
-          >
-            Campaigns
+        <div className="flex items-center gap-2 mb-6" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+          <button onClick={() => navigate('/dashboard')} className="hover:text-[var(--color-primary)] transition-colors">
+            Dashboard
           </button>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <span className={isDark ? 'text-white' : 'text-[#1E1E1E]'}>{campaign.name}</span>
+          <ChevronRight className="w-4 h-4" />
+          <span style={{ color: 'var(--color-text-primary)' }}>{campaign.name}</span>
         </div>
 
-        {/* 4 KPI Cards */}
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: { staggerChildren: 0.08 }
-            }
-          }}
-        >
-          {[
-            { icon: Target, label: 'Target', value: campaign.target, color: isDark ? 'text-[#E63946]' : 'text-[#BA2027]' },
-            { icon: TrendingUp, label: 'Delivered', value: campaign.delivered, color: 'text-[#0891B2]' },
-            { icon: CheckCircle, label: 'Accepted', value: accepted, color: 'text-[#10B981]' },
-            { icon: Calendar, label: 'End Date', value: new Date(campaign.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), color: 'text-[#BA2027]', isDate: true }
-          ].map((card, index) => (
-            <motion.div
-              key={card.label}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0 }
-              }}
-              whileHover={{ scale: 1.03, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              className="rounded-2xl p-6 border transition-all hover:shadow-2xl" 
-              style={cardStyle}
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="btn-ghost p-2"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 style={{ color: 'var(--color-text-primary)' }}>{campaign.name}</h1>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className={getStatusColor(campaign.status)}>{campaign.status}</span>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                {campaign.startDate} - {campaign.endDate}
+              </span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowJobCard(true)}
+              className="btn-outline px-4 py-2 flex items-center gap-2"
             >
-              <div className="flex items-center gap-3 mb-2">
-                <card.icon className={`w-5 h-5 ${card.color}`} />
-                <span className={`text-sm font-medium ${isDark ? 'text-[#E0E0E0]' : 'text-[#4A4A4A]'}`}>{card.label}</span>
-              </div>
-              <div className={`${card.isDate ? 'text-xl' : 'text-3xl'} font-semibold ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>
-                {card.value}
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+              <FileText className="w-4 h-4" />
+              View Job Card
+            </button>
+            <button className="btn-primary px-4 py-2 flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              Export Report
+            </button>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Left Column - 60% */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Donut Chart */}
-            <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
-              <h3 className={`text-lg font-normal mb-6 ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>Campaign Progress</h3>
-              <div className="flex items-center justify-center">
-                <AnimatedDonutChart
-                  progress={progress}
-                  accepted={accepted}
-                  target={campaign.target}
-                  isDark={isDark}
-                />
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 stagger-children">
+          <div className="kpi-card animate-slideInUp">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-primary-tint)' }}>
+                <Target className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
               </div>
             </div>
+            <div className="kpi-card__number">{campaign.target}</div>
+            <div className="kpi-card__label">Target</div>
+          </div>
 
-            {/* Campaign Details */}
-            <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
-              <h3 className={`text-lg font-normal mb-6 ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>Campaign Details</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className={`text-sm mb-1 font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Geography</div>
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>{campaign.targeting?.geography || 'United States'}</div>
+          <div className="kpi-card animate-slideInUp">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-info-bg)' }}>
+                <TrendingUp className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
+              </div>
+            </div>
+            <div className="kpi-card__number">{campaign.delivered}</div>
+            <div className="kpi-card__label">Delivered</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-success-bg)' }}>
+                <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+              </div>
+            </div>
+            <div className="kpi-card__number">{acceptanceRate}%</div>
+            <div className="kpi-card__label">Acceptance</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-success-bg)' }}>
+                <DollarSign className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+              </div>
+            </div>
+            <div className="kpi-card__number">${(campaign.budget / 1000).toFixed(0)}K</div>
+            <div className="kpi-card__label">Budget</div>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Progress Chart */}
+          <div className="lg:col-span-2 glass-card p-6">
+            <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-6">
+              Campaign Progress
+            </h2>
+            <div className="flex items-center justify-center">
+              <AnimatedDonutChart
+                percentage={progressPercentage}
+                size={200}
+                strokeWidth={20}
+                color="var(--color-primary)"
+              />
+            </div>
+            <div className="mt-6 grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                  {campaign.target}
                 </div>
-                <div>
-                  <div className={`text-sm mb-1 font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Industry</div>
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>{campaign.targeting?.industry || 'Technology'}</div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>Target</div>
+              </div>
+              <div className="text-center">
+                <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-primary)' }}>
+                  {campaign.delivered}
                 </div>
-                <div>
-                  <div className={`text-sm mb-1 font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Revenue Range</div>
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>{campaign.targeting?.revenue || '$10M - $50M'}</div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>Delivered</div>
+              </div>
+              <div className="text-center">
+                <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                  {campaign.target - campaign.delivered}
                 </div>
-                <div>
-                  <div className={`text-sm mb-1 font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Employee Count</div>
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>{campaign.targeting?.employees || '50-200'}</div>
-                </div>
-                <div>
-                  <div className={`text-sm mb-1 font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Job Titles</div>
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>{campaign.targeting?.jobTitles || 'VP, Director'}</div>
-                </div>
-                <div>
-                  <div className={`text-sm mb-1 font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Pricing</div>
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>${campaign.pricing?.cpl || 45}/lead</div>
-                </div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>Remaining</div>
               </div>
             </div>
           </div>
 
-          {/* Right Column - 40% */}
-          <div className="space-y-6">
-            {/* Actions Card */}
-            <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
-              <h3 className={`text-lg font-normal mb-4 ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>Actions</h3>
-              <div className="space-y-3">
-                <button className={`w-full px-4 py-3 rounded-xl text-sm font-normal transition-all flex items-center justify-center gap-2 ${
-                  isDark 
-                    ? 'bg-[#EF4444]/20 hover:bg-[#EF4444]/30 border border-[#EF4444]/30 text-[#FF6B6B]'
-                    : 'bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/20 text-[#EF4444]'
-                }`}>
-                  <Pause className="w-4 h-4" />
-                  Request Pause
-                </button>
-                <button className={`w-full px-4 py-3 rounded-xl text-sm font-normal transition-all flex items-center justify-center gap-2 ${
-                  isDark 
-                    ? 'bg-[#0891B2]/20 hover:bg-[#0891B2]/30 border border-[#0891B2]/30 text-[#0891B2]'
-                    : 'bg-[#0891B2]/10 hover:bg-[#0891B2]/20 border border-[#0891B2]/20 text-[#0891B2]'
-                }`}>
-                  <Headphones className="w-4 h-4" />
-                  Contact Support
-                </button>
+          {/* Campaign Details */}
+          <div className="glass-card p-6">
+            <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-4">
+              Campaign Details
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
+                  Status
+                </div>
+                <span className={getStatusColor(campaign.status)}>{campaign.status}</span>
               </div>
-            </div>
-
-            {/* Documents Card */}
-            <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
-              <h3 className={`text-lg font-normal mb-4 ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>Documents</h3>
-              <div className="space-y-3">
-                <button 
-                  onClick={() => setShowJobCard(true)}
-                  className={`w-full px-4 py-3 rounded-xl text-sm font-normal transition-all flex items-center justify-between ${
-                    isDark 
-                      ? 'bg-[#BA2027]/20 hover:bg-[#BA2027]/30 border border-[#BA2027]/30 text-[#FF6B6B]'
-                      : 'bg-[#BA2027]/10 hover:bg-[#BA2027]/20 border border-[#BA2027]/20 text-[#BA2027]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Job Card
-                  </div>
-                  <Download className="w-4 h-4" />
-                </button>
-                <button className={`w-full px-4 py-3 rounded-xl text-sm font-normal transition-all flex items-center justify-between ${
-                  isDark 
-                    ? 'bg-[#BA2027]/20 hover:bg-[#BA2027]/30 border border-[#BA2027]/30 text-[#FF6B6B]'
-                    : 'bg-[#BA2027]/10 hover:bg-[#BA2027]/20 border border-[#BA2027]/20 text-[#BA2027]'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Lead File
-                  </div>
-                  <Download className="w-4 h-4" />
-                </button>
-                <button className={`w-full px-4 py-3 rounded-xl text-sm font-normal transition-all flex items-center justify-between ${
-                  isDark 
-                    ? 'bg-[#BA2027]/20 hover:bg-[#BA2027]/30 border border-[#BA2027]/30 text-[#FF6B6B]'
-                    : 'bg-[#BA2027]/10 hover:bg-[#BA2027]/20 border border-[#BA2027]/20 text-[#BA2027]'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
-                    Invoice
-                  </div>
-                  <Download className="w-4 h-4" />
-                </button>
+              <div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
+                  Duration
+                </div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                  {campaign.startDate} - {campaign.endDate}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
+                  Budget
+                </div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                  ${campaign.budget.toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
+                  Account Manager
+                </div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                  Sarah Johnson
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Activity Timeline */}
-        <div className="rounded-2xl p-6 border transition-all hover:shadow-2xl" style={cardStyle}>
-          <h3 className={`text-lg font-normal mb-6 ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>Activity Timeline</h3>
-          <div className="relative">
-            {/* Timeline Line */}
-            <div className={`absolute left-6 top-8 bottom-8 w-0.5 ${isDark ? 'bg-[#BA2027]/30' : 'bg-[#BA2027]/20'}`}></div>
-            
-            {/* Timeline Items */}
-            <div className="space-y-6">
-              <div className="relative flex gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  isDark 
-                    ? 'bg-[#10B981]/20 border border-[#10B981]/30'
-                    : 'bg-[#10B981]/10 border border-[#10B981]/20'
-                }`}>
-                  <CheckCircle className="w-5 h-5 text-[#10B981]" />
+        {/* Recent Activity */}
+        <div className="glass-card p-6 mt-6">
+          <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-4">
+            Recent Activity
+          </h2>
+          <div className="space-y-4">
+            {mockActivityUpdates.slice(0, 5).map((activity, index) => (
+              <div key={index} className="flex items-start gap-3 pb-4" style={{ borderBottom: index < 4 ? '1px solid var(--color-border)' : 'none' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--color-primary-tint)' }}>
+                  <Activity className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
                 </div>
                 <div className="flex-1">
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>RFP Received</div>
-                  <div className={`text-sm font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Campaign requirements received and reviewed</div>
-                  <div className={`text-xs mt-1 font-light ${isDark ? 'text-[#808080]' : 'text-[#9E9E9E]'}`}>
-                    {new Date(campaign.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                    {activity.message}
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }} className="mt-1">
+                    {activity.timestamp}
                   </div>
                 </div>
               </div>
-
-              <div className="relative flex gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  isDark 
-                    ? 'bg-[#10B981]/20 border border-[#10B981]/30'
-                    : 'bg-[#10B981]/10 border border-[#10B981]/20'
-                }`}>
-                  <CheckCircle className="w-5 h-5 text-[#10B981]" />
-                </div>
-                <div className="flex-1">
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>Job Card Signed</div>
-                  <div className={`text-sm font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Agreement signed by both parties</div>
-                  <div className={`text-xs mt-1 font-light ${isDark ? 'text-[#808080]' : 'text-[#9E9E9E]'}`}>
-                    {new Date(new Date(campaign.startDate).getTime() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative flex gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  isDark 
-                    ? 'bg-[#10B981]/20 border border-[#10B981]/30'
-                    : 'bg-[#10B981]/10 border border-[#10B981]/20'
-                }`}>
-                  <CheckCircle className="w-5 h-5 text-[#10B981]" />
-                </div>
-                <div className="flex-1">
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>Campaign Started</div>
-                  <div className={`text-sm font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Lead generation campaign initiated</div>
-                  <div className={`text-xs mt-1 font-light ${isDark ? 'text-[#808080]' : 'text-[#9E9E9E]'}`}>
-                    {new Date(new Date(campaign.startDate).getTime() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative flex gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  isDark 
-                    ? 'bg-[#BA2027]/20 border border-[#BA2027]/30'
-                    : 'bg-[#BA2027]/10 border border-[#BA2027]/20'
-                }`}>
-                  <TrendingUp className="w-5 h-5 text-[#BA2027]" />
-                </div>
-                <div className="flex-1">
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>Batches Delivered</div>
-                  <div className={`text-sm font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>{campaign.delivered} leads delivered in multiple batches</div>
-                  <div className={`text-xs mt-1 font-light ${isDark ? 'text-[#808080]' : 'text-[#9E9E9E]'}`}>Ongoing</div>
-                </div>
-              </div>
-
-              <div className="relative flex gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  isDark 
-                    ? 'bg-[#F59E0B]/20 border border-[#F59E0B]/30'
-                    : 'bg-[#F59E0B]/10 border border-[#F59E0B]/20'
-                }`}>
-                  <Target className="w-5 h-5 text-[#F59E0B]" />
-                </div>
-                <div className="flex-1">
-                  <div className={`font-normal ${isDark ? 'text-white' : 'text-[#1E1E1E]'}`}>In Progress</div>
-                  <div className={`text-sm font-light ${isDark ? 'text-[#B0B0B0]' : 'text-[#757575]'}`}>Campaign currently active and delivering leads</div>
-                  <div className={`text-xs mt-1 font-light ${isDark ? 'text-[#808080]' : 'text-[#9E9E9E]'}`}>Current Status</div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Job Card Modal */}
-      {showJobCard && (
-        <JobCardModal 
-          campaign={campaign}
-          onClose={() => setShowJobCard(false)}
-        />
-      )}
-    </div>
+      <JobCardModal
+        isOpen={showJobCard}
+        onClose={() => setShowJobCard(false)}
+        campaign={campaign}
+      />
+    </AppLayout>
   );
 }

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GlassNavigation } from '../components/GlassNavigation';
-import { useTheme } from '../context/ThemeContext';
+import { AppLayout } from '../components/AppLayout';
 import { Download, Search, FileText, CheckCircle, Clock, AlertCircle, Eye, CreditCard, PieChart as PieChartIcon, Building2, ArrowRightLeft, Calendar } from 'lucide-react';
 import { TableRow } from '../components/TableRow';
 import { Link } from 'react-router';
@@ -12,8 +11,6 @@ import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
 import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 
 export default function Invoices() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const [pageLoaded, setPageLoaded] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,10 +21,6 @@ export default function Invoices() {
   useEffect(() => {
     setTimeout(() => setPageLoaded(true), 100);
   }, []);
-
-  const backgroundStyle = isDark
-    ? { background: 'linear-gradient(135deg, #0F1117 0%, #1a1025 100%)', minHeight: '100vh' }
-    : { background: '#F2F4F7', minHeight: '100vh' };
 
   const filteredInvoices = mockInvoices.filter(invoice => {
     const matchesStatus = statusFilter === 'All' || invoice.status === statusFilter;
@@ -49,13 +42,13 @@ export default function Invoices() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Paid':
-        return 'text-[#059669] bg-[#ECFDF5] border-[rgba(5,150,105,0.2)]';
+        return 'badge badge-active';
       case 'Pending':
-        return 'text-[#D97706] bg-[#FFFBEB] border-[rgba(217,119,6,0.2)]';
+        return 'badge badge-paused';
       case 'Overdue':
-        return 'text-[#DC2626] bg-[#FEF2F2] border-[rgba(220,38,38,0.2)]';
+        return 'badge badge-paused';
       default:
-        return 'text-gray-500 bg-gray-100 border-gray-200';
+        return 'badge badge-completed';
     }
   };
 
@@ -100,149 +93,106 @@ export default function Invoices() {
     return { method: 'N/A', icon: FileText };
   };
 
-  // Find overdue invoice for banner
-  const overdueInvoice = mockInvoices.find(inv => inv.status === 'Overdue');
-  const getDaysOverdue = (dueDate: string) => {
-    const today = new Date();
-    const due = new Date(dueDate);
-    const diffTime = today.getTime() - due.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
   return (
-    <div style={backgroundStyle} className={`transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-      <GlassNavigation />
-      
-      <div className="max-w-[1440px] mx-auto px-6 py-6">
+    <AppLayout>
+      <div className={`max-w-[1440px] mx-auto px-6 py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>
-            <h1 className={`${isDark ? 'text-white' : 'text-[#1E1E1E]'} mb-2`}>
-              Invoices & Billing
-            </h1>
-            <p className={`text-sm ${isDark ? 'text-[#B0AEBB]' : 'text-[#6B6B6B]'}`}>
-              {filteredInvoices.length} invoices • ${totalAmount.toLocaleString()} total
+            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Invoices & Billing</h1>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+              Manage your invoices and payment history
             </p>
           </div>
-        </div>
-
-        {/* Payment Distribution with UnifiedKpiCard */}
-        <div className={`rounded-xl p-6 pb-6 pt-8 mb-5 border backdrop-blur-md animate-fadeIn ${
-          isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
-        }`}>
-          <h3 className={`text-sm font-semibold mb-6 flex items-center gap-2 ${
-            isDark ? 'text-white' : 'text-gray-900'
-          }`}>
-            <PieChartIcon className="w-4 h-4" />
-            Payment Distribution
-          </h3>
-          
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <UnifiedKpiCard
-              index={0}
-              icon={PieChartIcon}
-              iconColor={isDark ? 'text-gray-400' : 'text-[#5A555D]'}
-              iconBg={isDark ? 'bg-gradient-to-br from-[#5A555D]/20 to-[#5A555D]/10' : 'bg-gradient-to-br from-[#5A555D]/10 to-[#5A555D]/5'}
-              value={`$${(totalAmount / 1000).toFixed(1)}K`}
-              label="Total Amount"
-              footer={`${filteredInvoices.length} total invoices`}
-            />
-            <UnifiedKpiCard
-              index={1}
-              icon={CheckCircle}
-              iconColor="text-[#0F9D58]"
-              iconBg={isDark ? 'bg-gradient-to-br from-[#0F9D58]/20 to-[#0F9D58]/10' : 'bg-gradient-to-br from-[#0F9D58]/10 to-[#0F9D58]/5'}
-              value={`$${(totalPaid / 1000).toFixed(1)}K`}
-              label="Total Paid"
-              footer={`${paidCount} invoices • ${((totalPaid / totalAmount) * 100).toFixed(1)}%`}
-            />
-            <UnifiedKpiCard
-              index={2}
-              icon={Clock}
-              iconColor="text-[#F4B400]"
-              iconBg={isDark ? 'bg-gradient-to-br from-[#F4B400]/20 to-[#F4B400]/10' : 'bg-gradient-to-br from-[#F4B400]/10 to-[#F4B400]/5'}
-              value={`$${(totalPending / 1000).toFixed(1)}K`}
-              label="Pending"
-              footer={`${pendingCount} invoices • ${((totalPending / totalAmount) * 100).toFixed(1)}%`}
-            />
-            <UnifiedKpiCard
-              index={3}
-              icon={AlertCircle}
-              iconColor="text-[#EA4335]"
-              iconBg={isDark ? 'bg-gradient-to-br from-[#EA4335]/20 to-[#EA4335]/10' : 'bg-gradient-to-br from-[#EA4335]/10 to-[#EA4335]/5'}
-              value={`$${(totalOverdue / 1000).toFixed(1)}K`}
-              label="Overdue"
-              footer={`${overdueCount} invoices • ${((totalOverdue / totalAmount) * 100).toFixed(1)}%`}
-            />
-          </div>
-        </div>
-
-        {/* Overdue Alert Banner */}
-        {overdueInvoice && (
-          <div className="bg-[#FEF2F2] border border-[rgba(220,38,38,0.15)] rounded-[10px] px-4 py-3 mb-5 flex items-center gap-3 animate-fadeIn">
-            <AlertCircle className="w-5 h-5 text-[#DC2626] flex-shrink-0" />
-            <div className="flex-1 text-sm text-[#1E1E1E]">
-              <span className="font-semibold">{overdueInvoice.invoiceNumber}</span> — {overdueInvoice.campaignName} is overdue by {getDaysOverdue(overdueInvoice.dueDate)} days. ${overdueInvoice.amount.toLocaleString()} was due {new Date(overdueInvoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}.
-            </div>
-            <Link to={`/payment/${overdueInvoice.id}`}>
-              <motion.button 
-                className="px-4 py-2 rounded-lg border-2 border-[#DC2626] text-[#DC2626] hover:bg-[#DC2626] hover:text-white transition-all text-sm font-medium whitespace-nowrap"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Pay Now →
-              </motion.button>
+          <div className="flex gap-2">
+            <Link to="/payment" className="btn-outline px-4 py-2 flex items-center gap-2 no-underline">
+              <CreditCard className="w-4 h-4" />
+              Payment Methods
             </Link>
+            <button
+              onClick={handleBulkDownload}
+              className="btn-primary px-4 py-2 flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Download Selected
+            </button>
           </div>
-        )}
+        </div>
 
-        {/* Search and Filter Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 stagger-children">
+          <div className="kpi-card animate-slideInUp">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-info-bg)' }}>
+                <FileText className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
+              </div>
+            </div>
+            <div className="kpi-card__number">${totalAmount.toLocaleString()}</div>
+            <div className="kpi-card__label">Total Amount</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-success-bg)' }}>
+                <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+              </div>
+            </div>
+            <div className="kpi-card__number">${totalPaid.toLocaleString()}</div>
+            <div className="kpi-card__label">Paid ({paidCount})</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-warning-bg)' }}>
+                <Clock className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
+              </div>
+            </div>
+            <div className="kpi-card__number">${totalPending.toLocaleString()}</div>
+            <div className="kpi-card__label">Pending ({pendingCount})</div>
+          </div>
+
+          <div className="kpi-card animate-slideInUp">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-error-bg)' }}>
+                <AlertCircle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />
+              </div>
+            </div>
+            <div className="kpi-card__number">${totalOverdue.toLocaleString()}</div>
+            <div className="kpi-card__label">Overdue ({overdueCount})</div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
             <input
               type="text"
-              placeholder="Search invoices by number or campaign..."
+              placeholder="Search by invoice number or campaign..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-12 pr-4 py-3 rounded-xl border text-base ${
-                isDark
-                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
-                  : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
-              } focus:outline-none focus:ring-2 focus:ring-[#BA2027]/20`}
+              className="input-base w-full pl-10 pr-4 py-3"
             />
           </div>
-          <div className="flex gap-3">
-            {['All', 'Paid', 'Pending', 'Overdue'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-5 py-3 rounded-xl text-sm font-semibold transition-all ${
-                  statusFilter === status
-                    ? isDark
-                      ? 'bg-gradient-to-r from-[#E63946] to-[#BA2027] text-white shadow-lg'
-                      : 'bg-gradient-to-r from-[#BA2027] to-[#8E1C22] text-white shadow-lg'
-                    : isDark
-                      ? 'bg-white/5 text-gray-300 hover:bg-white/10'
-                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="input-base px-4 py-3"
+          >
+            <option value="All">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Overdue">Overdue</option>
+          </select>
         </div>
 
         {/* Invoices Table */}
-        <div className={`rounded-xl border backdrop-blur-md overflow-hidden ${
-          isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
-        }`}>
+        <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className={`${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+            <table className="w-full min-w-[900px]">
+              <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
                 <tr>
-                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     <input
                       type="checkbox"
                       checked={selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
@@ -253,158 +203,139 @@ export default function Invoices() {
                           setSelectedInvoices([]);
                         }
                       }}
-                      className="rounded"
                     />
                   </th>
-                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Invoice</th>
-                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Campaign</th>
-                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Amount</th>
-                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Due Date</th>
-                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Status</th>
-                  <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Actions</th>
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                    Invoice
+                  </th>
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                    Campaign
+                  </th>
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                    Amount
+                  </th>
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                    Due Date
+                  </th>
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                    Status
+                  </th>
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredInvoices.map((invoice, index) => (
-                  <TableRow key={invoice.id} index={index}>
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedInvoices.includes(invoice.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedInvoices([...selectedInvoices, invoice.id]);
-                          } else {
-                            setSelectedInvoices(selectedInvoices.filter(id => id !== invoice.id));
-                          }
-                        }}
-                        className="rounded"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          isDark ? 'bg-white/10' : 'bg-gray-100'
-                        }`}>
-                          <FileText className={`w-5 h-5 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
-                        </div>
+                {filteredInvoices.map((invoice, index) => {
+                  const daysUntil = getDaysUntilDue(invoice.dueDate);
+                  const paymentInfo = getPaymentMethod(invoice.status);
+                  const PaymentIcon = paymentInfo.icon;
+
+                  return (
+                    <TableRow
+                      key={invoice.id}
+                      showHoverEffect={true}
+                      animationDelay={index * 50}
+                    >
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedInvoices.includes(invoice.id)}
+                          onChange={() => {
+                            if (selectedInvoices.includes(invoice.id)) {
+                              setSelectedInvoices(selectedInvoices.filter(id => id !== invoice.id));
+                            } else {
+                              setSelectedInvoices([...selectedInvoices, invoice.id]);
+                            }
+                          }}
+                        />
+                      </td>
+                      <td className="px-6 py-4">
                         <div>
-                          <div className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
                             {invoice.invoiceNumber}
                           </div>
-                          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {invoice.issueDate}
+                          <div className="flex items-center gap-1 mt-1">
+                            <PaymentIcon className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+                            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                              {paymentInfo.method}
+                            </span>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className={`text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {invoice.campaignName}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        ${invoice.amount.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className={`text-base ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </div>
-                      {invoice.status === 'Pending' && getDaysUntilDue(invoice.dueDate) <= 3 && (
-                        <div className="text-xs text-[#D97706] mt-1">
-                          Due in {getDaysUntilDue(invoice.dueDate)} days
+                      </td>
+                      <td className="px-6 py-4">
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                          {invoice.campaignName}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                          ${invoice.amount.toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div>
+                          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                            {new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </div>
+                          {invoice.status !== 'Paid' && (
+                            <div style={{ fontSize: 'var(--font-size-xs)', color: daysUntil < 0 ? 'var(--color-error)' : 'var(--color-text-muted)' }}>
+                              {daysUntil < 0 ? `${Math.abs(daysUntil)} days overdue` : `Due in ${daysUntil} days`}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border ${getStatusColor(invoice.status)}`}>
-                        {getStatusIcon(invoice.status)}
-                        {invoice.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleViewInvoice(invoice)}
-                          className={`p-2 rounded-lg transition-all ${
-                            isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-                          }`}
-                        >
-                          <Eye className={`w-5 h-5 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
-                        </button>
-                        <button
-                          onClick={() => toast.success('Downloading invoice...')}
-                          className={`p-2 rounded-lg transition-all ${
-                            isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-                          }`}
-                        >
-                          <Download className={`w-5 h-5 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
-                        </button>
-                        {invoice.status !== 'Paid' && (
-                          <Link to={`/payment/${invoice.id}`}>
-                            <motion.button
-                              className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white text-sm font-medium"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                            >
-                              Pay Now
-                            </motion.button>
-                          </Link>
-                        )}
-                      </div>
-                    </td>
-                  </TableRow>
-                ))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className={getStatusColor(invoice.status)}>
+                          {getStatusIcon(invoice.status)}
+                          <span>{invoice.status}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleViewInvoice(invoice)}
+                            className="btn-ghost p-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}...`)}
+                            className="btn-ghost p-2"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </TableRow>
+                  );
+                })}
               </tbody>
             </table>
           </div>
-        </div>
 
-        {/* Bulk Actions */}
-        {selectedInvoices.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`mt-4 p-4 rounded-xl border flex items-center justify-between ${
-              isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
-            }`}
-          >
-            <span className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {selectedInvoices.length} invoice{selectedInvoices.length > 1 ? 's' : ''} selected
-            </span>
-            <div className="flex gap-3">
-              <button
-                onClick={handleBulkDownload}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isDark
-                    ? 'bg-white/10 text-white hover:bg-white/20'
-                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                }`}
-              >
-                <Download className="w-4 h-4 inline mr-2" />
-                Download Selected
-              </button>
+          {filteredInvoices.length === 0 && (
+            <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
+              No invoices found
             </div>
-          </motion.div>
-        )}
+          )}
+        </div>
 
         {/* Payment Timeline */}
         <div className="mt-6">
+          <h2 style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)' }} className="mb-4">
+            Payment History
+          </h2>
           <PaymentTimeline />
         </div>
       </div>
 
       {/* Invoice Preview Modal */}
-      <AnimatePresence>
-        {showPreview && previewInvoice && (
-          <InvoicePreviewModal
-            invoice={previewInvoice}
-            onClose={() => setShowPreview(false)}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+      <InvoicePreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        invoice={previewInvoice}
+      />
+    </AppLayout>
   );
 }

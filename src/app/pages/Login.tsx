@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
-import { Mail, Lock, Eye, EyeOff, CheckCircle2, Quote, Check, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, CheckCircle2, Quote, Check, Loader2, ChevronDown } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useParallax } from '../hooks/useParallax';
+import { useAuth, mockUsers } from '../context/AuthContext';
+import certifications from 'figma:asset/b24b9bef2212c68559759883c7aca917e374398b.png';
 
 // Testimonials data with sophisticated red gradients
 const testimonials = [
@@ -40,16 +42,13 @@ const testimonials = [
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('demo@acmesales.com');
-  const [password, setPassword] = useState('demo123');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const { setCurrentUser, getDefaultRoute } = useAuth();
+  const [selectedUserId, setSelectedUserId] = useState('u1'); // Default to first user
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [userSelectorFocused, setUserSelectorFocused] = useState(false);
   const [pageLoaded, setPageLoaded] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   
@@ -85,11 +84,11 @@ export default function Login() {
     setError('');
     setIsLoading(true);
 
-    // Simulate login with validation
+    // Simulate login
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    if (!email || !password) {
-      setError('Please enter both email and password');
+    if (!selectedUserId) {
+      setError('Please select a user');
       setIsLoading(false);
       // Shake animation
       formRef.current?.classList.add('animate-shake');
@@ -97,13 +96,24 @@ export default function Login() {
       return;
     }
 
-    setIsLoading(false);
-    setShowSuccess(true);
-    
-    // Success animation then navigate
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 1200);
+    // Find and set the selected user
+    const selectedUser = mockUsers.find(u => u.id === selectedUserId);
+    if (selectedUser) {
+      setCurrentUser(selectedUser);
+      
+      setIsLoading(false);
+      setShowSuccess(true);
+      
+      // Success animation then navigate based on role
+      const route = selectedUser.role === 'ops_manager' ? '/dashboard/ops' :
+                    selectedUser.role === 'campaign_manager' ? '/dashboard/manager' :
+                    selectedUser.role === 'campaign_backup' ? '/dashboard/manager' :
+                    '/dashboard';
+      
+      setTimeout(() => {
+        navigate(route);
+      }, 1200);
+    }
   };
 
   const activeTesti = testimonials[currentTestimonial];
@@ -195,116 +205,50 @@ export default function Login() {
 
           {/* Login Form */}
           <form ref={formRef} onSubmit={handleLogin} className="space-y-4">
-            {/* Email Field with Floating Label */}
-            <div className="relative">
-              <div className="relative">
-                <Mail 
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] transition-all duration-300 ${
-                    emailFocused ? 'text-[#BA2027] scale-110' : 'text-[#9CA3AF]'
-                  }`} 
-                />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onFocus={() => setEmailFocused(true)}
-                  onBlur={() => setEmailFocused(false)}
-                  placeholder="Enter your email"
-                  className={`w-full pl-11 pr-4 py-3.5 rounded-xl border-2 transition-all duration-300 text-[15px] bg-white border-[#E5E7EB] text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none ${
-                    emailFocused ? 'border-[#BA2027] shadow-[0_0_20px_rgba(186,32,39,0.1)] scale-[1.02]' : ''
-                  } shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]`}
-                />
-                <label 
-                  className={`absolute left-11 transition-all duration-300 pointer-events-none ${
-                    emailFocused || email
-                      ? 'top-[-10px] left-3 text-xs bg-gradient-to-b px-2 rounded-md from-white to-white'
-                      : 'top-3.5 text-[15px]'
-                  } ${
-                    emailFocused ? 'text-[#BA2027]' : 'text-[#9CA3AF]'
-                  }`}
-                >
-                  Email Address
-                </label>
-              </div>
-            </div>
-
-            {/* Password Field with Floating Label */}
-            <div className="relative">
-              <div className="relative">
-                <Lock 
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] transition-all duration-300 ${
-                    passwordFocused ? 'text-[#BA2027] scale-110' : 'text-[#9CA3AF]'
-                  }`} 
-                />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setPasswordFocused(true)}
-                  onBlur={() => setPasswordFocused(false)}
-                  placeholder="Enter your password"
-                  className={`w-full pl-11 pr-11 py-3.5 rounded-xl border-2 transition-all duration-300 text-[15px] bg-white border-[#E5E7EB] text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none ${
-                    passwordFocused ? 'border-[#BA2027] shadow-[0_0_20px_rgba(186,32,39,0.1)] scale-[1.02]' : ''
-                  } shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]`}
-                />
-                <label 
-                  className={`absolute left-11 transition-all duration-300 pointer-events-none ${
-                    passwordFocused || password
-                      ? 'top-[-10px] left-3 text-xs bg-gradient-to-b px-2 rounded-md from-white to-white'
-                      : 'top-3.5 text-[15px]'
-                  } ${
-                    passwordFocused ? 'text-[#BA2027]' : 'text-[#9CA3AF]'
-                  }`}
-                >
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-all duration-300 hover:scale-110 text-[#9CA3AF] hover:text-[#BA2027]"
-                >
-                  {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <div 
-                    className={`w-5 h-5 rounded border-2 transition-all duration-300 flex items-center justify-center ${
-                      rememberMe
-                        ? 'bg-[#BA2027] border-[#BA2027] shadow-[0_0_10px_rgba(186,32,39,0.2)]'
-                        : 'border-[#E5E7EB]'
-                    } group-hover:scale-110`}
-                  >
-                    {rememberMe && <Check className="w-3 h-3 text-white animate-checkmark" strokeWidth={3} />}
-                  </div>
-                </div>
-                <span className="text-[13px] text-[#374151]">
-                  Remember me
-                </span>
+            {/* User Selector Label */}
+            <div className="mb-2">
+              <label className="text-sm font-semibold text-[#374151] block mb-3">
+                Select your account to continue
               </label>
-              <a 
-                href="#" 
-                className="text-[13px] font-medium transition-colors text-[#BA2027] hover:text-[#A01C22]"
+            </div>
+
+            {/* User Selector Dropdown */}
+            <div className="relative">
+              <select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                onFocus={() => setUserSelectorFocused(true)}
+                onBlur={() => setUserSelectorFocused(false)}
+                className={`w-full pl-4 pr-10 py-3.5 rounded-xl border-2 transition-all duration-300 text-sm bg-white border-[#E5E7EB] text-[#1F2937] focus:outline-none appearance-none cursor-pointer ${
+                  userSelectorFocused ? 'border-[#BA2027] shadow-[0_0_20px_rgba(186,32,39,0.1)] scale-[1.02]' : ''
+                } shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]`}
               >
-                Forgot Password?
-              </a>
+                {mockUsers.map(user => {
+                  const roleLabel = 
+                    user.role === 'client' ? `Client (${user.company})` :
+                    user.role === 'campaign_manager' ? 'Campaign Manager' :
+                    user.role === 'campaign_backup' ? 'Campaign Backup' :
+                    'Ops Manager';
+                  
+                  return (
+                    <option key={user.id} value={user.id}>
+                      {user.name} – {roleLabel}
+                    </option>
+                  );
+                })}
+              </select>
+              <ChevronDown 
+                className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-all duration-300 ${
+                  userSelectorFocused ? 'text-[#BA2027]' : 'text-[#9CA3AF]'
+                }`}
+              />
             </div>
 
             {/* Sign In Button with Pulse */}
             <button
               type="submit"
               disabled={isLoading || showSuccess}
-              className={`w-full py-3.5 rounded-xl text-white font-semibold text-[15px] transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`w-full py-3.5 rounded-xl text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 mt-6 ${
                 isLoading || showSuccess
                   ? 'opacity-70 cursor-not-allowed'
                   : 'hover:scale-[1.02] hover:shadow-2xl'
@@ -325,18 +269,9 @@ export default function Login() {
               )}
             </button>
 
-            {/* Create Account Button */}
-            <button
-              type="button"
-              onClick={() => navigate('/signup')}
-              className="w-full py-3.5 rounded-xl font-semibold text-[15px] transition-all duration-300 flex items-center justify-center gap-2 border-2 hover:scale-[1.02] bg-transparent border-[#C0392B] text-[#C0392B] hover:bg-[#C0392B]/5"
-            >
-              <span>Create my account</span>
-            </button>
-
             {/* Keyboard Shortcut Hint */}
             {!isLoading && !showSuccess && (
-              <div className="flex items-center justify-center gap-2 text-xs text-[#9CA3AF] animate-fadeIn">
+              <div className="flex items-center justify-center gap-2 text-xs text-[#9CA3AF] animate-fadeIn mt-3">
                 <span>Press</span>
                 <kbd className="px-2 py-1 rounded bg-[#F3F4F6] font-mono">
                   Enter ↵
@@ -351,7 +286,7 @@ export default function Login() {
                 <div className="w-full border-t border-[#E5E7EB]"></div>
               </div>
               <div className="relative flex justify-center">
-                <span className="px-4 text-[13px] bg-white/60 text-[#9CA3AF]">
+                <span className="px-4 text-xs bg-white/60 text-[#9CA3AF]">
                   Or sign in with
                 </span>
               </div>
@@ -369,7 +304,7 @@ export default function Login() {
                   <path fill="#4A90E2" d="M19.834192,20.9995801 C22.0291676,18.9520994 23.4545455,15.903663 23.4545455,12 C23.4545455,11.2909091 23.3454545,10.5818182 23.1818182,9.90909091 L12,9.90909091 L12,14.4545455 L18.4363636,14.4545455 C18.1187732,16.013626 17.2662994,17.2212117 16.0407269,18.0125889 L19.834192,20.9995801 Z"/>
                   <path fill="#FBBC05" d="M5.27698177,14.2678769 C5.03832634,13.556323 4.90909091,12.7937589 4.90909091,12 C4.90909091,11.2182781 5.03443647,10.4668121 5.26620003,9.76452941 L1.23999023,6.65002441 C0.43658717,8.26043162 0,10.0753848 0,12 C0,13.9195484 0.444780743,15.7301709 1.23746264,17.3349879 L5.27698177,14.2678769 Z"/>
                 </svg>
-                <span className="text-[14px] font-medium">Google</span>
+                <span className="text-sm font-medium">Google</span>
               </button>
               <button
                 type="button"
@@ -378,7 +313,7 @@ export default function Login() {
                 <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
                 </svg>
-                <span className="text-[14px] font-medium">Apple</span>
+                <span className="text-sm font-medium">Apple</span>
               </button>
             </div>
           </form>
@@ -394,20 +329,19 @@ export default function Login() {
             </a>
           </p>
 
-         {/* Certifications */}
-<div className="mt-6 pt-6 border-t border-gray-200/20">
-  <p className="text-center text-[11px] uppercase tracking-wider font-semibold mb-4 text-[#9CA3AF]">
-    Certified & Compliant
-  </p>
-  <div className="flex items-center justify-center gap-2 flex-wrap">
-    {["ISO 27001", "ISO 9001", "SOC 2", "GDPR"].map((cert) => (
-      <span key={cert} className="text-[10px] font-semibold px-2 py-1 rounded border border-gray-300 text-[#6B7280]">
-        {cert}
-      </span>
-    ))}
-  </div>
-</div>
-
+          {/* Certifications */}
+          <div className="mt-6 pt-6 border-t border-gray-200/20">
+            <p className="text-center text-[11px] uppercase tracking-wider font-semibold mb-4 text-[#9CA3AF]">
+              Certified & Compliant
+            </p>
+            <div className="flex items-center justify-center">
+              <img 
+                src={certifications} 
+                alt="ISO 27001:2022, ISO 9001:2015, SOC 1 & 2 Type II, GDPR Certified" 
+                className="h-12 opacity-80"
+              />
+            </div>
+          </div>
 
           {/* Footer */}
           <p className="text-center text-[11px] mt-4 text-[#9CA3AF]">

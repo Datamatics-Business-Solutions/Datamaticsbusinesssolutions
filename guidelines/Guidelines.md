@@ -1,61 +1,32 @@
-**Add your own guidelines here**
-<!--
+# General Guidelines
 
-System Guidelines
+* Never use figma:asset imports for images or files under any circumstances.
+* All images must use external URLs (e.g. Unsplash, or a placeholder like https://placehold.co).
+* Do not import any local or Figma-hosted assets into code.
+* If an image asset cannot be replaced with a URL, remove the image entirely and use text or an icon instead.
+* Never reference local file paths for images, fonts, or any media.
 
-Use this file to provide the AI with rules and guidelines you want it to follow.
-This template outlines a few examples of things you can add. You can add your own sections and format it to suit your needs
+# Code Quality
 
-TIP: More context isn't always better. It can confuse the LLM. Try and add the most important rules you need
+* Keep code clean and readable — refactor as you go.
+* Avoid inline styles unless absolutely necessary. Use Tailwind classes instead.
+* Keep files small — move reusable components and helper functions into their own files.
+* Use flexbox and grid for layouts. Only use absolute positioning when truly necessary.
+* Never hardcode colors outside of the existing Tailwind config or design tokens.
 
-# General guidelines
+# Design System Guidelines
 
-Any general rules you want the AI to follow.
-For example:
+* Primary brand color is #BA2027. Use this consistently for buttons, highlights, and accents.
+* Always use dark mode and light mode compatible classes.
+* Font sizes should be consistent — use the existing scale, do not introduce new arbitrary sizes.
+* Buttons should always have hover and active states.
+* Forms must always have focus states using the brand color.
 
-* Only use absolute positioning when necessary. Opt for responsive and well structured layouts that use flexbox and grid by default
-* Refactor code as you go to keep code clean
-* Keep file sizes small and put helper functions and components in their own files.
+# Platform-Specific Rules
 
---------------
-
-# Design system guidelines
-Rules for how the AI should make generations look like your company's design system
-
-Additionally, if you select a design system to use in the prompt box, you can reference
-your design system's components, tokens, variables and components.
-For example:
-
-* Use a base font-size of 14px
-* Date formats should always be in the format “Jun 10”
-* The bottom toolbar should only ever have a maximum of 4 items
-* Never use the floating action button with the bottom toolbar
-* Chips should always come in sets of 3 or more
-* Don't use a dropdown if there are 2 or fewer options
-
-You can also create sub sections and add more specific details
-For example:
-
-
-## Button
-The Button component is a fundamental interactive element in our design system, designed to trigger actions or navigate
-users through the application. It provides visual feedback and clear affordances to enhance user experience.
-
-### Usage
-Buttons should be used for important actions that users need to take, such as form submissions, confirming choices,
-or initiating processes. They communicate interactivity and should have clear, action-oriented labels.
-
-### Variants
-* Primary Button
-  * Purpose : Used for the main action in a section or page
-  * Visual Style : Bold, filled with the primary brand color
-  * Usage : One primary button per section to guide users toward the most important action
-* Secondary Button
-  * Purpose : Used for alternative or supporting actions
-  * Visual Style : Outlined with the primary color, transparent background
-  * Usage : Can appear alongside a primary button for less important actions
-* Tertiary Button
-  * Purpose : Used for the least important actions
-  * Visual Style : Text-only with no border, using primary color
-  * Usage : For actions that should be available but not emphasized
--->
+* This is a B2B client portal — keep the UI professional, clean, and data-focused.
+* Do not add decorative elements that slow down the page or distract from content.
+* All data tables must be sortable and have clear column headers.
+* Empty states must always show a helpful message, not a blank screen.
+* All currency values should be formatted with $ and commas (e.g. $12,500).
+* Dates should always display in the format: "Jan 15, 2026".

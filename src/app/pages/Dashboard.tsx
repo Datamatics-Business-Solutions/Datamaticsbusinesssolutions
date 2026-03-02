@@ -1,32 +1,47 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { motion, AnimatePresence } from 'motion/react';
-import { TrendingUp, Target, DollarSign, Search, ArrowUpRight, ArrowDownRight, Circle, CheckCircle2, Pause, Clock, MoreVertical, FileText, Download, FolderOpen } from 'lucide-react';
+import { motion } from 'motion/react';
+import {
+  TrendingUp,
+  Target,
+  DollarSign,
+  Search,
+  Circle,
+  CheckCircle2,
+  Pause,
+  Clock,
+  FolderOpen,
+  Plus,
+} from 'lucide-react';
+import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { mockCampaigns } from '../mockData';
-import { GlassNavigation } from '../components/GlassNavigation';
-import { Footer } from '../components/Footer';
-import { useTheme } from '../context/ThemeContext';
+import { AppLayout } from '../components/AppLayout';
 import { useCountUp } from '../hooks/useCountUp';
 import { NewCampaignModal, CampaignFormData } from '../components/NewCampaignModal';
 import { EmptyState } from '../components/EmptyState';
-import { EnhancedButton } from '../components/EnhancedButton';
-import { AnimatedNumber } from '../components/AnimatedNumber';
+import { AccountTeam } from '../components/AccountTeam';
+import { getAccountTeam } from '../data/mockClients';
+import { useAuth } from '../context/AuthContext';
+
+// Mock sparkline data for trend visualization
+const generateSparklineData = (baseValue: number, trend: 'up' | 'down' = 'up') => {
+  return Array.from({ length: 12 }, (_, i) => ({
+    value: trend === 'up' 
+      ? baseValue * (0.7 + (i * 0.025) + Math.random() * 0.1)
+      : baseValue * (1.3 - (i * 0.025) + Math.random() * 0.1)
+  }));
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
 
-  const isDark = theme === 'dark';
-  
-  // iOS-inspired background
-  const backgroundStyle = isDark
-    ? { background: 'linear-gradient(135deg, #0F1117 0%, #1a1025 100%)', minHeight: '100vh' }
-    : { background: '#F2F4F7', minHeight: '100vh' };
-  
-  const activeCampaigns = mockCampaigns.filter(c => c.status === 'In progress').length;
+  const accountTeam = getAccountTeam('client_1');
+
+  const activeCampaigns = mockCampaigns.filter((c) => c.status === 'In progress').length;
   const totalLeadsDelivered = mockCampaigns.reduce((sum, c) => sum + c.delivered, 0);
   const totalSpend = 24500;
 
@@ -35,7 +50,12 @@ export default function Dashboard() {
   const animatedLeads = useCountUp(totalLeadsDelivered, 2000);
   const animatedSpend = useCountUp(totalSpend, 1800);
 
-  const filteredCampaigns = mockCampaigns.filter(campaign => {
+  // Sparkline data
+  const campaignsData = generateSparklineData(activeCampaigns, 'up');
+  const leadsData = generateSparklineData(totalLeadsDelivered / 12, 'up');
+  const spendData = generateSparklineData(totalSpend / 12, 'down');
+
+  const filteredCampaigns = mockCampaigns.filter((campaign) => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -43,379 +63,280 @@ export default function Dashboard() {
 
   const getStatusPill = (status: string) => {
     const config = {
-      'In progress': { 
-        bg: 'bg-[#EFF6FF]', 
-        text: 'text-[#2563EB]', 
-        border: 'border-[rgba(37,99,235,0.2)]',
+      'In progress': {
+        classes: 'badge badge-active',
         icon: Circle,
-        hasPulse: true
+        hasPulse: true,
       },
-      'Completed': { 
-        bg: 'bg-[#ECFDF5]', 
-        text: 'text-[#059669]', 
-        border: 'border-[rgba(5,150,105,0.2)]',
+      Completed: {
+        classes: 'badge badge-completed',
         icon: CheckCircle2,
-        hasPulse: false
+        hasPulse: false,
       },
-      'Paused': { 
-        bg: 'bg-[#F5F3FF]', 
-        text: 'text-[#7C3AED]', 
-        border: 'border-[rgba(124,58,237,0.2)]',
+      Paused: {
+        classes: 'badge badge-paused',
         icon: Pause,
-        hasPulse: false
+        hasPulse: false,
       },
-      'Not started': { 
-        bg: isDark ? 'bg-white/5' : 'bg-[#FFFBEB]', 
-        text: isDark ? 'text-[#8B9CB0]' : 'text-[#D97706]', 
-        border: isDark ? 'border-white/10' : 'border-[rgba(217,119,6,0.2)]',
+      'Not started': {
+        classes: 'badge badge-paused',
         icon: Clock,
-        hasPulse: false
-      }
+        hasPulse: false,
+      },
     };
-    
+
     const statusConfig = config[status as keyof typeof config] || config['Not started'];
     const Icon = statusConfig.icon;
-    
+
     return (
-      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.text} border ${statusConfig.border} transition-all duration-200 hover:scale-105 group/badge`}>
-        <Icon className={`w-3 h-3 transition-transform duration-200 group-hover/badge:scale-110 ${statusConfig.hasPulse ? 'animate-pulse-dot' : ''}`} />
+      <span className={statusConfig.classes}>
+        <Icon className={`w-3.5 h-3.5 ${statusConfig.hasPulse ? 'animate-pulse' : ''}`} />
         {status}
       </span>
     );
   };
 
-  // PROBLEM 2 FIX: Glassmorphism styling for KPI cards
-  const glassCardStyle = isDark
-    ? { 
-        background: 'rgba(255, 255, 255, 0.05)', 
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.10)',
-        borderRadius: '16px',
-        boxShadow: '0 4px 32px rgba(0, 0, 0, 0.4)'
-      }
-    : { 
-        background: 'rgba(255, 255, 255, 0.6)', 
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.8)',
-        borderRadius: '16px',
-        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.06)'
-      };
-
-  // PROBLEM 5 FIX: Card backgrounds with proper contrast and iOS shadows
-  const cardStyle = isDark
-    ? { 
-        background: '#1C1F2E', 
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 4px 32px rgba(0, 0, 0, 0.4)'
-      }
-    : { 
-        background: '#FFFFFF', 
-        border: '1px solid rgba(0, 0, 0, 0.06)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)'
-      };
-
   return (
-    <div style={backgroundStyle}>
-      <GlassNavigation />
-
-      <div className="max-w-[1440px] mx-auto px-6 py-6">
-        <div className="mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <AppLayout>
+      <div className="max-w-[1400px] mx-auto p-8 space-y-8">
+        {/* Header */}
+        <div className="flex items-start justify-between">
           <div>
-            <h1 className={isDark ? 'text-[#F1F0F5]' : 'text-[#1E1E1E]'}>
-              Acme Sales Inc.
-            </h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-[#6B6880]' : 'text-[#6B6B6B]'}`}>
-              Campaign Overview & Performance Dashboard
+            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">My Campaigns</h1>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+              Track and manage all your active campaigns
             </p>
           </div>
-          <button
-            style={{
-              background: '#1E3A5F'
-            }}
-            className="px-6 py-3.5 text-white rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
+          <motion.button
             onClick={() => setIsNewCampaignModalOpen(true)}
+            className="btn-primary flex items-center gap-2 px-6 py-3"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <span className="text-lg">+</span>
-            Start a campaign
-          </button>
+            <Plus className="w-4 h-4" />
+            Start a Campaign
+          </motion.button>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        {/* KPI Cards with Sparklines */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-children">
           {/* Active Campaigns */}
-          <div 
-            className="p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] overflow-hidden relative group" 
-            style={glassCardStyle}
-          >
-            {/* Animated gradient background overlay */}
-            <div 
-              className="absolute inset-0 opacity-30 animate-gradient-shift pointer-events-none"
-              style={{
-                backgroundImage: isDark
-                  ? 'radial-gradient(circle at 20% 50%, rgba(230, 57, 70, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(255, 77, 90, 0.2) 0%, transparent 50%)'
-                  : 'radial-gradient(circle at 20% 50%, rgba(186, 32, 39, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(211, 47, 47, 0.1) 0%, transparent 50%)',
-                backgroundSize: '200% 200%'
-              }}
-            />
+          <motion.div className="kpi-card animate-slideInUp">
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-transparent opacity-50" />
             
-            <div className="relative z-10">
-              <div className="flex items-start justify-between mb-4">
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className={`${isDark ? 'text-[#8B9CB0]' : 'text-[#6B6B6B]'} text-sm mb-3 font-medium`}>Active Campaigns</div>
-                  <div className={`text-5xl font-semibold ${isDark ? 'text-[#F0F4F8]' : 'text-[#1E1E1E]'} mb-2`} style={{ fontVariantNumeric: 'tabular-nums' }}>{animatedCampaigns}</div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 text-[#0F9D58] text-sm font-medium">
-                      <ArrowUpRight className="w-4 h-4" />
-                      <span>8%</span>
-                    </div>
-                    <span className={`text-xs ${isDark ? 'text-[#8B9CB0]' : 'text-[#9E9E9E]'}`}>vs last quarter</span>
+                  <p className="kpi-card__label">Active Campaigns</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="kpi-card__number">{animatedCampaigns}</span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-success)' }}>
+                      +8%
+                    </span>
                   </div>
                 </div>
-                <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center"
-                  style={{
-                    background: isDark 
-                      ? 'linear-gradient(135deg, rgba(230, 57, 70, 0.25) 0%, rgba(255, 77, 90, 0.15) 100%)'
-                      : 'linear-gradient(135deg, rgba(186, 32, 39, 0.15) 0%, rgba(211, 47, 47, 0.08) 100%)'
-                  }}
-                >
-                  <Target className={`w-8 h-8 ${isDark ? 'text-[#E63946]' : 'text-[#BA2027]'}`} />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-primary-light)]/10 flex items-center justify-center">
+                  <Target className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
                 </div>
               </div>
+
+              {/* Sparkline Chart */}
+              <div className="h-12 -mx-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={campaignsData}>
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="var(--color-primary)"
+                      strokeWidth={2}
+                      dot={false}
+                      animationDuration={1500}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            
-            {isDark && <div className="absolute inset-0 rounded-2xl animate-glow-pulse pointer-events-none opacity-50" />}
-          </div>
+          </motion.div>
 
           {/* Leads Delivered */}
-          <div 
-            className="p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] overflow-hidden relative group" 
-            style={glassCardStyle}
-          >
-            {/* Animated gradient background overlay */}
-            <div 
-              className="absolute inset-0 opacity-30 animate-gradient-shift pointer-events-none"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(15, 157, 88, 0.25) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(52, 168, 83, 0.15) 0%, transparent 50%)',
-                backgroundSize: '200% 200%'
-              }}
-            />
+          <motion.div className="kpi-card animate-slideInUp">
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-success)]/10 via-transparent to-transparent opacity-50" />
             
-            <div className="relative z-10">
-              <div className="flex items-start justify-between mb-4">
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className={`${isDark ? 'text-[#8B9CB0]' : 'text-[#6B6B6B]'} text-sm mb-3 font-medium`}>Leads Delivered</div>
-                  <div className={`text-5xl font-semibold ${isDark ? 'text-[#F0F4F8]' : 'text-[#1E1E1E]'} mb-2`} style={{ fontVariantNumeric: 'tabular-nums' }}>{animatedLeads.toLocaleString()}</div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 text-[#0F9D58] text-sm font-medium">
-                      <ArrowUpRight className="w-4 h-4" />
-                      <span>12%</span>
-                    </div>
-                    <span className={`text-xs ${isDark ? 'text-[#8B9CB0]' : 'text-[#9E9E9E]'}`}>vs last month</span>
+                  <p className="kpi-card__label">Leads Delivered</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="kpi-card__number">{animatedLeads.toLocaleString()}</span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-success)' }}>
+                      +12%
+                    </span>
                   </div>
                 </div>
-                <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(15, 157, 88, 0.15) 0%, rgba(52, 168, 83, 0.08) 100%)'
-                  }}
-                >
-                  <TrendingUp className="w-8 h-8 text-[#0F9D58]" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-success-bg)' }}>
+                  <TrendingUp className="w-6 h-6" style={{ color: 'var(--color-success)' }} />
                 </div>
               </div>
+
+              {/* Sparkline Chart */}
+              <div className="h-12 -mx-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={leadsData}>
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="var(--color-success)"
+                      strokeWidth={2}
+                      dot={false}
+                      animationDuration={1500}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            
-            {isDark && <div className="absolute inset-0 rounded-2xl animate-glow-pulse pointer-events-none opacity-30" style={{ boxShadow: '0 0 20px rgba(15, 157, 88, 0.3), 0 0 40px rgba(15, 157, 88, 0.1)' }} />}
-          </div>
+          </motion.div>
 
           {/* Total Spend */}
-          <div 
-            className="p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] overflow-hidden relative group" 
-            style={glassCardStyle}
-          >
-            {/* Animated gradient background overlay */}
-            <div 
-              className="absolute inset-0 opacity-30 animate-gradient-shift pointer-events-none"
-              style={{
-                backgroundImage: isDark
-                  ? 'radial-gradient(circle at 20% 50%, rgba(230, 57, 70, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(255, 77, 90, 0.2) 0%, transparent 50%)'
-                  : 'radial-gradient(circle at 20% 50%, rgba(186, 32, 39, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(211, 47, 47, 0.1) 0%, transparent 50%)',
-                backgroundSize: '200% 200%'
-              }}
-            />
+          <motion.div className="kpi-card animate-slideInUp">
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-warning)]/10 via-transparent to-transparent opacity-50" />
             
-            <div className="relative z-10">
-              <div className="flex items-start justify-between mb-4">
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className={`${isDark ? 'text-[#8B9CB0]' : 'text-[#6B6B6B]'} text-sm mb-3 font-medium`}>Total Spend</div>
-                  <div className={`text-5xl font-semibold ${isDark ? 'text-[#F0F4F8]' : 'text-[#1E1E1E]'} mb-2`} style={{ fontVariantNumeric: 'tabular-nums' }}>${animatedSpend.toLocaleString()}</div>
-                  <div className="flex items-center gap-2">
-                    <div className={`flex items-center gap-1 text-sm font-medium ${isDark ? 'text-[#E63946]' : 'text-[#BA2027]'}`}>
-                      <ArrowDownRight className="w-4 h-4" />
-                      <span>3%</span>
-                    </div>
-                    <span className={`text-xs ${isDark ? 'text-[#8B9CB0]' : 'text-[#9E9E9E]'}`}>vs last quarter</span>
+                  <p className="kpi-card__label">Total Spend</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="kpi-card__number">${animatedSpend.toLocaleString()}</span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-primary)' }}>
+                      -3%
+                    </span>
                   </div>
                 </div>
-                <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center"
-                  style={{
-                    background: isDark 
-                      ? 'linear-gradient(135deg, rgba(230, 57, 70, 0.25) 0%, rgba(255, 77, 90, 0.15) 100%)'
-                      : 'linear-gradient(135deg, rgba(186, 32, 39, 0.15) 0%, rgba(211, 47, 47, 0.08) 100%)'
-                  }}
-                >
-                  <DollarSign className={`w-8 h-8 ${isDark ? 'text-[#E63946]' : 'text-[#BA2027]'}`} />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-warning-bg)' }}>
+                  <DollarSign className="w-6 h-6" style={{ color: 'var(--color-warning)' }} />
                 </div>
               </div>
+
+              {/* Sparkline Chart */}
+              <div className="h-12 -mx-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={spendData}>
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="var(--color-warning)"
+                      strokeWidth={2}
+                      dot={false}
+                      animationDuration={1500}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            
-            {isDark && <div className="absolute inset-0 rounded-2xl animate-glow-pulse pointer-events-none opacity-50" />}
-          </div>
+          </motion.div>
         </div>
 
         {/* Search & Filter */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-5">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-[#8B9CB0]' : 'text-[#64748B]'}`} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
             <input
               type="text"
               placeholder="Search campaigns..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full ${isDark ? 'bg-[#1C1F2E]' : 'bg-[#F8F8F8]'} border ${isDark ? 'border-white/[0.08]' : 'border-[#1E293B]/8'} ${!isDark && 'shadow-lg shadow-black/5'} rounded-xl px-12 py-3 ${isDark ? 'text-[#F1F0F5]' : 'text-[#1E293B]'} ${isDark ? 'placeholder-[#8B9CB0]' : 'placeholder-[#64748B]'} focus:outline-none focus:ring-2 focus:ring-[#E63946]/50 focus:border-[#E63946]/50 font-normal`}
+              className="input-base w-full pl-12 pr-4 py-3"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className={`${isDark ? 'bg-[#1C1F2E]' : 'bg-white'} border ${isDark ? 'border-white/[0.08]' : 'border-[#1E293B]/8'} ${!isDark && 'shadow-lg shadow-black/5'} rounded-xl px-6 py-3 ${isDark ? 'text-[#F1F0F5]' : 'text-[#1E293B]'} focus:outline-none focus:ring-2 focus:ring-[#E63946]/50 focus:border-[#E63946]/50 font-normal w-full sm:w-auto`}
+            className="input-base px-4 py-3 appearance-none cursor-pointer"
           >
-            <option value="All" className={`${isDark ? 'bg-[#0F1117] text-[#F1F0F5]' : 'bg-white text-[#1E293B]'}`}>All Status</option>
-            <option value="In progress" className={`${isDark ? 'bg-[#0F1117] text-[#F1F0F5]' : 'bg-white text-[#1E293B]'}`}>In Progress</option>
-            <option value="Completed" className={`${isDark ? 'bg-[#0F1117] text-[#F1F0F5]' : 'bg-white text-[#1E293B]'}`}>Completed</option>
-            <option value="Paused" className={`${isDark ? 'bg-[#0F1117] text-[#F1F0F5]' : 'bg-white text-[#1E293B]'}`}>Paused</option>
-            <option value="Not started" className={`${isDark ? 'bg-[#0F1117] text-[#F1F0F5]' : 'bg-white text-[#1E293B]'}`}>Not Started</option>
+            <option value="All">All Status</option>
+            <option value="In progress">In Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="Paused">Paused</option>
+            <option value="Not started">Not Started</option>
           </select>
         </div>
 
         {/* Campaign Table */}
-        <div 
-          className={`${isDark ? 'bg-[#1C1F2E]' : 'bg-white'} rounded-2xl overflow-hidden`}
-          style={isDark ? {
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            boxShadow: '0 4px 32px rgba(0, 0, 0, 0.4)'
-          } : {
-            border: '1px solid rgba(0, 0, 0, 0.06)',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)'
-          }}
-        >
+        <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px]">
-              <thead className={`${isDark ? 'bg-[#161926]' : 'bg-[#F8F9FA]'}`}>
+            <table className="w-full">
+              <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
                 <tr>
-                  <th className={`px-6 py-4 text-left text-xs font-normal ${isDark ? 'text-[#8B9CB0]' : 'text-[#64748B]'} uppercase tracking-wider`}>
-                    Campaign Name
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                    Campaign
                   </th>
-                  <th className={`px-6 py-4 text-left text-xs font-normal ${isDark ? 'text-[#8B9CB0]' : 'text-[#64748B]'} uppercase tracking-wider`}>
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Type
                   </th>
-                  <th className={`px-6 py-4 text-left text-xs font-normal ${isDark ? 'text-[#8B9CB0]' : 'text-[#64748B]'} uppercase tracking-wider`}>
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Status
                   </th>
-                  <th className={`px-6 py-4 text-left text-xs font-normal ${isDark ? 'text-[#8B9CB0]' : 'text-[#64748B]'} uppercase tracking-wider`}>
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Progress
                   </th>
-                  <th className={`px-6 py-4 text-left text-xs font-normal ${isDark ? 'text-[#8B9CB0]' : 'text-[#64748B]'} uppercase tracking-wider`}>
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style={{ borderTop: '1px solid var(--color-border)' }}>
                 {filteredCampaigns.map((campaign, index) => {
                   const progress = (campaign.delivered / campaign.target) * 100;
-                  const isInProgress = campaign.status === 'In progress';
                   return (
                     <motion.tr
                       key={campaign.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1, duration: 0.3 }}
-                      whileHover={{ 
-                        scale: 1.01,
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                        transition: { duration: 0.1 }
-                      }}
-                      className={`group relative border-t ${isDark ? 'border-white/[0.04]' : 'border-[#F0F0F0]'} cursor-pointer`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="hover:bg-white/40 transition-colors cursor-pointer"
+                      style={{ borderBottom: '1px solid var(--color-border-light)' }}
                     >
-                      {/* Campaign Name */}
-                      <td className="px-6 py-3 relative">
-                        <div className={`text-sm font-normal ${isDark ? 'text-[#F1F0F5]' : 'text-[#1E1E1E]'}`}>{campaign.name}</div>
-                        <div className={`text-xs ${isDark ? 'text-[#6B6880]' : 'text-[#9E9E9E]'} mt-1 font-normal`}>
-                          {campaign.clientCompany} • {new Date(campaign.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {new Date(campaign.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      <td className="px-6 py-4">
+                        <div>
+                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                            {campaign.name}
+                          </div>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }} className="mt-1">
+                            {campaign.clientCompany}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-3">
-                        <div className={`text-sm font-normal ${isDark ? 'text-[#B0AEBB]' : 'text-[#4A4A4A]'}`}>{campaign.serviceType}</div>
+                      <td className="px-6 py-4">
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                          {campaign.serviceType}
+                        </span>
                       </td>
-                      <td className="px-6 py-3">
-                        {getStatusPill(campaign.status)}
-                      </td>
-                      <td className="px-6 py-3">
-                        <div className="space-y-1">
+                      <td className="px-6 py-4">{getStatusPill(campaign.status)}</td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-3">
-                            <div className="flex-1 relative group/progress">
-                              <div className={`h-3 ${isDark ? 'bg-white/5' : 'bg-[#1E293B]/5'} rounded-full overflow-hidden`}>
-                                <div
-                                  className={`h-full rounded-full transition-all duration-500 relative ${isInProgress ? 'animate-progress-stripe' : ''}`}
-                                  style={{ 
-                                    width: `${Math.min(progress, 100)}%`,
-                                    backgroundImage: isInProgress
-                                      ? (isDark 
-                                          ? 'repeating-linear-gradient(45deg, #E63946, #E63946 10px, #FF4D5A 10px, #FF4D5A 20px)'
-                                          : 'repeating-linear-gradient(45deg, #BA2027, #BA2027 10px, #D32F2F 10px, #D32F2F 20px)')
-                                      : (isDark 
-                                          ? 'linear-gradient(90deg, #E63946 0%, #FF4D5A 100%)'
-                                          : 'linear-gradient(90deg, #BA2027 0%, #D32F2F 100%)'),
-                                    backgroundSize: isInProgress ? '40px 100%' : 'auto',
-                                    boxShadow: isInProgress 
-                                      ? (isDark ? '0 0 12px rgba(230, 57, 70, 0.5)' : '0 0 12px rgba(186, 32, 39, 0.4)')
-                                      : 'none'
-                                  }}
-                                />
-                              </div>
-                              {/* Tooltip on hover */}
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black/90 text-white text-xs rounded-lg opacity-0 group-hover/progress:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                                {campaign.delivered.toLocaleString()} / {campaign.target.toLocaleString()} leads
-                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-black/90" />
-                              </div>
+                            <div className="progress-bar flex-1">
+                              <div
+                                className="progress-bar__fill"
+                                style={{ '--progress-value': `${Math.min(progress, 100)}%` } as React.CSSProperties}
+                              />
                             </div>
-                            <div className={`text-sm ${isDark ? 'text-[#B0AEBB]' : 'text-[#4A4A4A]'} min-w-[90px] text-right font-medium`} style={{ fontVariantNumeric: 'tabular-nums' }}>
-                              {campaign.delivered.toLocaleString()}/{campaign.target.toLocaleString()}
-                            </div>
+                            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)' }}>
+                              {Math.round(progress)}%
+                            </span>
                           </div>
-                          <div className={`text-xs ${isDark ? 'text-[#6B6880]' : 'text-[#9E9E9E]'} font-normal`}>
-                            {Math.round(progress)}% Complete
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                            {campaign.delivered.toLocaleString()} / {campaign.target.toLocaleString()} leads
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                            style={{
-                              background: isDark 
-                                ? 'linear-gradient(135deg, #E63946 0%, #FF4D5A 100%)'
-                                : 'linear-gradient(135deg, #BA2027 0%, #D32F2F 100%)'
-                            }}
-                            className="px-4 py-2 text-white rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 hover:shadow-xl opacity-0 group-hover:opacity-100 animate-slide-in-right relative overflow-hidden"
-                          >
-                            {/* Ripple effect container */}
-                            <span className="relative z-10">View Details</span>
-                          </button>
-                        </div>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                          className="btn-outline px-4 py-2"
+                          style={{ fontSize: 'var(--font-size-sm)' }}
+                        >
+                          View Details
+                        </button>
                       </td>
                     </motion.tr>
                   );
@@ -425,28 +346,54 @@ export default function Dashboard() {
           </div>
 
           {filteredCampaigns.length === 0 && (
-            <EmptyState
-              icon={FolderOpen}
-              title="No campaigns found"
-              description="We couldn't find any campaigns matching your search criteria. Try adjusting your filters or create a new campaign to get started."
-              actionLabel="Create Campaign"
-              onAction={() => setIsNewCampaignModalOpen(true)}
-            />
+            <div className="py-16">
+              <EmptyState
+                icon={FolderOpen}
+                title="No campaigns found"
+                description="We couldn't find any campaigns matching your search criteria"
+                actionLabel="Create Campaign"
+                onAction={() => setIsNewCampaignModalOpen(true)}
+              />
+            </div>
           )}
         </div>
+
+        {/* Account Team */}
+        {accountTeam && (
+          <div className="mt-8">
+            <AccountTeam
+              manager={{
+                name: accountTeam.manager.name,
+                role: accountTeam.manager.role,
+                email: accountTeam.manager.email,
+                initials: accountTeam.manager.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join(''),
+              }}
+              backup={{
+                name: accountTeam.backup.name,
+                role: accountTeam.backup.role,
+                email: accountTeam.backup.email,
+                initials: accountTeam.backup.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join(''),
+              }}
+            />
+          </div>
+        )}
       </div>
 
-      <Footer />
-
+      {/* Modal */}
       <NewCampaignModal
         isOpen={isNewCampaignModalOpen}
         onClose={() => setIsNewCampaignModalOpen(false)}
         onSubmit={(formData: CampaignFormData) => {
-          // Handle form submission
           console.log('New Campaign Form Data:', formData);
           setIsNewCampaignModalOpen(false);
         }}
       />
-    </div>
+    </AppLayout>
   );
 }

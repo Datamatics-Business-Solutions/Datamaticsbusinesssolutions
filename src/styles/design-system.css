@@ -1,0 +1,424 @@
+:root {
+
+/* ============================================
+   COLORS
+   ============================================ */
+
+--color-primary: #BA2027;
+--color-primary-dark: #A01C22;
+--color-primary-light: #D32F2F;
+--color-primary-tint: rgba(186, 32, 39, 0.06);
+--color-primary-glow: rgba(186, 32, 39, 0.20);
+
+--color-sidebar-bg: #F8F7F7;
+--color-sidebar-border: rgba(0,0,0,0.06);
+--color-main-bg: #F5F5F7;
+--color-surface: rgba(255, 255, 255, 0.72);
+--color-surface-raised: rgba(255, 255, 255, 0.88);
+--color-surface-overlay: rgba(255, 255, 255, 0.60);
+
+--color-text-primary: #1A1A1A;
+--color-text-secondary: #6B7280;
+--color-text-muted: #9CA3AF;
+
+--color-border: rgba(0, 0, 0, 0.08);
+--color-border-light: rgba(0, 0, 0, 0.04);
+
+--color-success: #059669;
+--color-success-bg: rgba(5, 150, 105, 0.10);
+--color-warning: #D97706;
+--color-warning-bg: rgba(217, 119, 6, 0.10);
+--color-error: #DC2626;
+--color-error-bg: rgba(220, 38, 38, 0.10);
+--color-info: #2563EB;
+--color-info-bg: rgba(37, 99, 235, 0.10);
+
+--color-badge-active-bg: rgba(5, 150, 105, 0.12);
+--color-badge-active-text: #065F46;
+--color-badge-paused-bg: rgba(217, 119, 6, 0.12);
+--color-badge-paused-text: #78350F;
+--color-badge-completed-bg: rgba(107, 114, 128, 0.12);
+--color-badge-completed-text: #374151;
+
+/* ============================================
+   GLASSMORPHISM SURFACES
+   ============================================ */
+
+--glass-bg: rgba(255, 255, 255, 0.65);
+--glass-bg-strong: rgba(255, 255, 255, 0.80);
+--glass-bg-subtle: rgba(255, 255, 255, 0.45);
+--glass-border: rgba(255, 255, 255, 0.90);
+--glass-border-subtle: rgba(255, 255, 255, 0.60);
+--glass-blur: blur(20px);
+--glass-blur-strong: blur(32px);
+--glass-blur-subtle: blur(12px);
+--glass-shadow: 
+  0 8px 32px rgba(0, 0, 0, 0.08),
+  0 2px 8px rgba(0, 0, 0, 0.04),
+  inset 0 1px 0 rgba(255, 255, 255, 0.90);
+--glass-shadow-raised:
+  0 16px 48px rgba(0, 0, 0, 0.12),
+  0 4px 16px rgba(0, 0, 0, 0.06),
+  inset 0 1px 0 rgba(255, 255, 255, 0.95);
+--glass-shadow-red:
+  0 8px 32px rgba(186, 32, 39, 0.18),
+  0 2px 8px rgba(186, 32, 39, 0.10),
+  inset 0 1px 0 rgba(255, 255, 255, 0.30);
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+--font-family: 'Inter', -apple-system, 
+  BlinkMacSystemFont, 'SF Pro Display', 
+  sans-serif;
+
+--font-size-xs: 11px;
+--font-size-sm: 13px;
+--font-size-base: 15px;
+--font-size-md: 16px;
+--font-size-lg: 18px;
+--font-size-xl: 20px;
+--font-size-2xl: 24px;
+--font-size-3xl: 30px;
+--font-size-4xl: 36px;
+
+--font-weight-normal: 400;
+--font-weight-medium: 500;
+--font-weight-semibold: 600;
+--font-weight-bold: 700;
+
+--line-height-tight: 1.20;
+--line-height-normal: 1.50;
+--line-height-relaxed: 1.70;
+
+--letter-spacing-tight: -0.03em;
+--letter-spacing-normal: -0.01em;
+--letter-spacing-wide: 0.04em;
+--letter-spacing-caps: 0.08em;
+
+/* ============================================
+   KPI CARD NUMBERS
+   These must be identical on every card 
+   across the entire site — no exceptions
+   ============================================ */
+
+--kpi-number-size: 32px;
+--kpi-number-weight: 700;
+--kpi-number-color: #1A1A1A;
+--kpi-number-tracking: -0.03em;
+--kpi-label-size: 12px;
+--kpi-label-weight: 500;
+--kpi-label-color: #6B7280;
+--kpi-label-tracking: 0.04em;
+--kpi-label-transform: uppercase;
+--kpi-sublabel-size: 11px;
+--kpi-sublabel-color: #9CA3AF;
+
+/* ============================================
+   SPACING
+   ============================================ */
+
+--space-1: 4px;
+--space-2: 8px;
+--space-3: 12px;
+--space-4: 16px;
+--space-5: 20px;
+--space-6: 24px;
+--space-8: 32px;
+--space-10: 40px;
+--space-12: 48px;
+
+/* ============================================
+   BORDER RADIUS
+   iOS uses very generous rounding
+   ============================================ */
+
+--radius-sm: 8px;
+--radius-md: 12px;
+--radius-lg: 16px;
+--radius-xl: 20px;
+--radius-2xl: 28px;
+--radius-full: 9999px;
+
+/* ============================================
+   SHADOWS
+   ============================================ */
+
+--shadow-sm: 
+  0 1px 3px rgba(0,0,0,0.05),
+  0 1px 2px rgba(0,0,0,0.04);
+--shadow-md: 
+  0 4px 16px rgba(0,0,0,0.07),
+  0 2px 6px rgba(0,0,0,0.04);
+--shadow-lg: 
+  0 12px 40px rgba(0,0,0,0.10),
+  0 4px 12px rgba(0,0,0,0.05);
+--shadow-red: 
+  0 4px 20px rgba(186,32,39,0.22);
+--shadow-sidebar: 
+  2px 0 12px rgba(0,0,0,0.05);
+
+/* ============================================
+   TRANSITIONS
+   ============================================ */
+
+--transition-instant: 100ms ease;
+--transition-fast: 180ms cubic-bezier(0.4,0,0.2,1);
+--transition-base: 280ms cubic-bezier(0.4,0,0.2,1);
+--transition-slow: 420ms cubic-bezier(0.4,0,0.2,1);
+--transition-spring: 380ms cubic-bezier(0.34,1.56,0.64,1);
+--transition-sidebar: width 260ms cubic-bezier(0.4,0,0.2,1);
+
+/* ============================================
+   SIDEBAR DIMENSIONS
+   ============================================ */
+
+--sidebar-expanded-width: 240px;
+--sidebar-collapsed-width: 64px;
+
+/* ============================================
+   Z-INDEX LAYERS
+   ============================================ */
+
+--z-sidebar: 100;
+--z-overlay: 200;
+--z-modal: 300;
+--z-tooltip: 400;
+--z-toast: 500;
+
+}
+
+/* KPI Cards - Strict standardized design */
+.kpi-card {
+  background: #FFFFFF;
+  border: 1px solid #F0EEEE;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.kpi-card__icon {
+  width: 20px;
+  height: 20px;
+  color: #9CA3AF;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.kpi-card__number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1A1A1A;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.kpi-card__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.kpi-card__sublabel {
+  font-size: 12px;
+  color: #6B7280;
+  margin-top: 4px;
+}
+
+/* Glass Cards */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Status Badges - semantic colors only */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge-active {
+  background: var(--color-badge-active-bg);
+  color: var(--color-badge-active-text);
+}
+
+.badge-paused {
+  background: var(--color-badge-paused-bg);
+  color: var(--color-badge-paused-text);
+}
+
+.badge-completed {
+  background: var(--color-badge-completed-bg);
+  color: var(--color-badge-completed-text);
+}
+
+.badge-high-priority {
+  background: var(--color-error-bg);
+  color: #991B1B;
+}
+
+.badge-info {
+  background: var(--color-info-bg);
+  color: #1E40AF;
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  padding: 10px 16px;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  box-shadow: var(--shadow-red);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  padding: 10px 16px;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-outline:hover {
+  background: var(--color-border-light);
+  border-color: var(--color-text-secondary);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-ghost:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+/* Input Fields */
+.input-base {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.input-base:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-tint);
+}
+
+/* Progress Bars */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #F3F4F6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width var(--transition-base);
+}
+
+.progress-percentage {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 600;
+}
+
+/* Checkboxes - Clean white style with proper borders */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: #FFFFFF;
+  border: 2px solid #D1D5DB;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+input[type="checkbox"]:hover {
+  border-color: #9CA3AF;
+}
+
+input[type="checkbox"]:checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-tint);
+}
+
+input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

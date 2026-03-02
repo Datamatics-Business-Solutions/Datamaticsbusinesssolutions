@@ -1,0 +1,110 @@
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes glassReveal {
+  from { 
+    opacity: 0; 
+    transform: translateY(12px) scale(0.97);
+    backdrop-filter: blur(0px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1);
+    backdrop-filter: blur(20px);
+  }
+}
+
+@keyframes numberCountUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to { background-position: 400px 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes progressFill {
+  from { width: 0%; }
+  to { width: var(--progress-value); }
+}
+
+/* Utility classes */
+.animate-fadeIn { 
+  animation: fadeIn var(--transition-base) forwards; 
+}
+.animate-slideInUp { 
+  animation: slideInUp var(--transition-base) 
+  cubic-bezier(0.34,1.2,0.64,1) forwards; 
+}
+.animate-slideInLeft { 
+  animation: slideInLeft var(--transition-base) forwards; 
+}
+.animate-scaleIn { 
+  animation: scaleIn var(--transition-spring) forwards; 
+}
+.animate-glassReveal { 
+  animation: glassReveal var(--transition-slow) forwards; 
+}
+.animate-numberCountUp { 
+  animation: numberCountUp var(--transition-base) forwards; 
+}
+.animate-spin { 
+  animation: spin 800ms linear infinite; 
+}
+.animate-pulse { 
+  animation: pulse 2s ease infinite; 
+}
+.animate-float { 
+  animation: float 3s ease-in-out infinite; 
+}
+.animate-shake { 
+  animation: shake 400ms ease; 
+}
+
+/* Staggered children — add to parent */
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }

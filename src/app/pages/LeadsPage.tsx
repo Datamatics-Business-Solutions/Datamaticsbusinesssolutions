@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GlassNavigation } from '../components/GlassNavigation';
-import { useTheme } from '../context/ThemeContext';
+import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
 import { 
   Search, Filter, Download, Mail, Phone, Building2, CheckCircle, XCircle, 
@@ -22,13 +21,6 @@ type SortDirection = 'asc' | 'desc';
 type ViewMode = 'table' | 'grid';
 
 export default function LeadsPage() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-  
-  const backgroundStyle = isDark
-    ? { background: 'linear-gradient(135deg, #0F1117 0%, #1a1025 100%)', minHeight: '100vh' }
-    : { background: '#F2F4F7', minHeight: '100vh' };
-  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [campaignFilter, setCampaignFilter] = useState<string>('all');
@@ -111,14 +103,6 @@ export default function LeadsPage() {
     hotLeads: filteredLeads.filter(l => l.leadScore >= 90).length
   };
 
-  // Distribution data for chart
-  const distributionData = [
-    { name: 'Pending', value: stats.pending, color: '#F4B400' },
-    { name: 'Accepted', value: stats.accepted, color: '#0F9D58' },
-    { name: 'Contacted', value: stats.contacted, color: '#4285F4' },
-    { name: 'Rejected', value: filteredLeads.filter(l => l.status === 'Rejected').length, color: '#EA4335' }
-  ];
-
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -144,13 +128,13 @@ export default function LeadsPage() {
   const getStatusColor = (status: Lead['status']) => {
     switch (status) {
       case 'Accepted':
-        return 'text-[#0F9D58] bg-[#0F9D58]/10 border-[#0F9D58]/20';
+        return 'badge badge-active';
       case 'Rejected':
-        return 'text-[#EA4335] bg-[#EA4335]/10 border-[#EA4335]/20';
+        return 'badge badge-paused';
       case 'Contacted':
-        return 'text-[#4285F4] bg-[#4285F4]/10 border-[#4285F4]/20';
+        return 'badge badge-active';
       default:
-        return 'text-[#F4B400] bg-[#F4B400]/10 border-[#F4B400]/20';
+        return 'badge badge-paused';
     }
   };
 
@@ -185,13 +169,13 @@ export default function LeadsPage() {
       icon: <Plus className="w-5 h-5 text-white" />,
       label: 'New Lead',
       onClick: () => toast.info('New Lead form coming soon'),
-      color: isDark ? 'bg-[#E63946]' : 'bg-[#BA2027]'
+      color: 'var(--color-primary)'
     },
     {
       icon: <FileText className="w-5 h-5 text-white" />,
       label: 'Import CSV',
       onClick: () => toast.info('CSV import coming soon'),
-      color: isDark ? 'bg-[#4285F4]' : 'bg-[#4285F4]'
+      color: '#4285F4'
     },
     {
       icon: <Download className="w-5 h-5 text-white" />,
@@ -208,65 +192,72 @@ export default function LeadsPage() {
   ];
 
   return (
-    <div style={backgroundStyle} className={`transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-      <GlassNavigation />
-      
-      <div className="max-w-[1440px] mx-auto px-6 py-6">
+    <AppLayout>
+      <div className={`max-w-[1440px] mx-auto px-6 py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Header with Stats */}
         <div className="mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
             <div>
-              <h1 className={`${isDark ? 'text-white' : 'text-[#1E293B]'} mb-2`}>
+              <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">
                 Lead Management
               </h1>
-              <p className={`text-sm ${isDark ? 'text-[#B0AEBB]' : 'text-[#6B6B6B]'}`}>
+              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                 {stats.total} leads • {stats.pending} pending review • {stats.hotLeads} hot leads
               </p>
             </div>
           </div>
 
           {/* Quick Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            <UnifiedKpiCard
-              index={0}
-              icon={Users}
-              iconColor="text-[#4285F4]"
-              iconBg={isDark ? 'bg-gradient-to-br from-[#4285F4]/20 to-[#4285F4]/10' : 'bg-gradient-to-br from-[#4285F4]/10 to-[#4285F4]/5'}
-              value={stats.total}
-              label="Total Leads"
-            />
-            <UnifiedKpiCard
-              index={1}
-              icon={Clock}
-              iconColor="text-[#F4B400]"
-              iconBg={isDark ? 'bg-gradient-to-br from-[#F4B400]/20 to-[#F4B400]/10' : 'bg-gradient-to-br from-[#F4B400]/10 to-[#F4B400]/5'}
-              value={stats.pending}
-              label="Pending"
-            />
-            <UnifiedKpiCard
-              index={2}
-              icon={TrendingUp}
-              iconColor={isDark ? 'text-[#E63946]' : 'text-[#BA2027]'}
-              iconBg={isDark ? 'bg-gradient-to-br from-[#E63946]/20 to-[#E63946]/10' : 'bg-gradient-to-br from-[#BA2027]/10 to-[#BA2027]/5'}
-              value={stats.hotLeads}
-              label="Hot Leads"
-            />
-            <UnifiedKpiCard
-              index={3}
-              icon={CheckCircle}
-              iconColor="text-[#0F9D58]"
-              iconBg={isDark ? 'bg-gradient-to-br from-[#0F9D58]/20 to-[#0F9D58]/10' : 'bg-gradient-to-br from-[#0F9D58]/10 to-[#0F9D58]/5'}
-              value={stats.accepted}
-              label="Accepted"
-            />
-            <UnifiedKpiCard
-              index={4}
-              icon={Award}
-              iconColor="text-[#8E44AD]"
-              iconBg={isDark ? 'bg-gradient-to-br from-[#8E44AD]/20 to-[#8E44AD]/10' : 'bg-gradient-to-br from-[#8E44AD]/10 to-[#8E44AD]/5'}
-              value={stats.avgScore}
-              label="Avg Score"
-            />
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6 stagger-children">
+            <div className="kpi-card animate-slideInUp">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-info-bg)' }}>
+                  <Users className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
+                </div>
+              </div>
+              <div className="kpi-card__number">{stats.total}</div>
+              <div className="kpi-card__label">Total Leads</div>
+            </div>
+
+            <div className="kpi-card animate-slideInUp">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-warning-bg)' }}>
+                  <Clock className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
+                </div>
+              </div>
+              <div className="kpi-card__number">{stats.pending}</div>
+              <div className="kpi-card__label">Pending</div>
+            </div>
+
+            <div className="kpi-card animate-slideInUp">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-primary-tint)' }}>
+                  <TrendingUp className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                </div>
+              </div>
+              <div className="kpi-card__number">{stats.hotLeads}</div>
+              <div className="kpi-card__label">Hot Leads</div>
+            </div>
+
+            <div className="kpi-card animate-slideInUp">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-success-bg)' }}>
+                  <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+                </div>
+              </div>
+              <div className="kpi-card__number">{stats.accepted}</div>
+              <div className="kpi-card__label">Accepted</div>
+            </div>
+
+            <div className="kpi-card animate-slideInUp">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(142, 68, 173, 0.1)' }}>
+                  <Award className="w-5 h-5 text-purple-600" />
+                </div>
+              </div>
+              <div className="kpi-card__number">{stats.avgScore}</div>
+              <div className="kpi-card__label">Avg Score</div>
+            </div>
           </div>
         </div>
 
@@ -290,13 +281,13 @@ export default function LeadsPage() {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => setStatusFilter('Pending Review')}
-                className="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-[#1E3A5F] to-[#162D47] text-white transition-all hover:scale-105 hover:shadow-lg active:scale-95"
+                className="btn-primary px-4 py-2 text-sm"
               >
                 View Leads
               </button>
               <button
                 onClick={() => setShowAlert(false)}
-                className="p-2 rounded-lg hover:bg-black/5 transition-colors flex-shrink-0"
+                className="btn-ghost p-2"
               >
                 <X className="w-4 h-4 text-orange-600" />
               </button>
@@ -307,17 +298,13 @@ export default function LeadsPage() {
         {/* Filter Row */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-5">
           <div className="lg:col-span-4 relative">
-            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-[#94A3B8]' : 'text-[#64748B]'}`} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
             <input
               type="text"
               placeholder="Search leads by name, email, company..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full h-[42px] pl-10 pr-4 rounded-lg border transition-all ${
-                isDark 
-                  ? 'bg-white/5 border-white/10 text-white placeholder-[#94A3B8] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20' 
-                  : 'bg-white border-gray-300 text-[#1E293B] placeholder-[#64748B] focus:border-[#BA2027] focus:ring-2 focus:ring-[#BA2027]/20'
-              } outline-none`}
+              className="input-base w-full h-[42px] pl-10 pr-4"
             />
           </div>
 
@@ -325,11 +312,7 @@ export default function LeadsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className={`w-full h-[42px] px-4 rounded-lg border transition-all ${
-                isDark 
-                  ? 'bg-white/5 border-white/10 text-white focus:border-[#E63946]' 
-                  : 'bg-white border-gray-300 text-[#1E293B] focus:border-[#BA2027]'
-              } outline-none`}
+              className="input-base w-full h-[42px] px-4"
             >
               <option value="all">All Status</option>
               <option value="Pending Review">Pending Review</option>
@@ -343,11 +326,7 @@ export default function LeadsPage() {
             <select
               value={campaignFilter}
               onChange={(e) => setCampaignFilter(e.target.value)}
-              className={`w-full h-[42px] px-4 rounded-lg border transition-all ${
-                isDark 
-                  ? 'bg-white/5 border-white/10 text-white focus:border-[#E63946]' 
-                  : 'bg-white border-gray-300 text-[#1E293B] focus:border-[#BA2027]'
-              } outline-none`}
+              className="input-base w-full h-[42px] px-4"
             >
               <option value="all">All Campaigns</option>
               {uniqueCampaigns.map(campaignId => {
@@ -364,22 +343,14 @@ export default function LeadsPage() {
           <div className="lg:col-span-3 flex gap-2">
             <button
               onClick={() => setShowFiltersPanel(true)}
-              className={`flex-1 h-[42px] px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                isDark 
-                  ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' 
-                  : 'bg-white border-gray-300 text-[#1E293B] hover:bg-gray-50'
-              }`}
+              className="btn-outline flex-1 h-[42px] px-4 flex items-center justify-center gap-2"
             >
               <Filter className="w-4 h-4" />
               <span className="hidden sm:inline">Advanced</span>
             </button>
             <button
               onClick={() => setViewMode(viewMode === 'table' ? 'grid' : 'table')}
-              className={`h-[42px] px-4 rounded-lg transition-all ${
-                isDark 
-                  ? 'bg-[#E63946] hover:bg-[#FF4D5A] text-white' 
-                  : 'bg-[#BA2027] hover:bg-[#A01C22] text-white'
-              }`}
+              className="btn-primary h-[42px] px-4"
             >
               {viewMode === 'table' ? 'Grid' : 'Table'}
             </button>
@@ -388,14 +359,12 @@ export default function LeadsPage() {
 
         {/* Table View */}
         {viewMode === 'table' && (
-          <div className={`rounded-2xl overflow-hidden shadow-lg animate-fadeIn ${
-            isDark ? 'bg-[#16151A]/90 border border-white/10 backdrop-blur-md' : 'bg-white border border-gray-200'
-          }`}>
+          <div className="glass-card overflow-hidden animate-fadeIn">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1000px]">
                 <thead className="sticky top-0 z-10">
-                  <tr className={`${isDark ? 'bg-white/5' : 'bg-gray-50'} border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-                    <th className={`text-left px-6 py-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <tr style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
+                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
                       <input
                         type="checkbox"
                         checked={selectedLeads.length === paginatedLeads.length && paginatedLeads.length > 0}
@@ -406,43 +375,32 @@ export default function LeadsPage() {
                             setSelectedLeads([]);
                           }
                         }}
-                        className={`w-4 h-4 rounded cursor-pointer transition-all appearance-none ${
-                          isDark 
-                            ? 'bg-white/10 border-2 border-white/20 hover:border-white/40' 
-                            : 'bg-white border-2 border-gray-300 hover:border-gray-400'
-                        } checked:bg-[#E63946] checked:border-[#E63946] focus:ring-2 focus:ring-offset-0 focus:ring-[#E63946]/50 relative`}
-                        style={{
-                          backgroundImage: selectedLeads.length === paginatedLeads.length && paginatedLeads.length > 0 
-                            ? `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E")`
-                            : 'none',
-                          backgroundSize: '100% 100%',
-                          backgroundPosition: 'center',
-                          backgroundRepeat: 'no-repeat'
-                        }}
                       />
                     </th>
-                    <th className={`text-left px-6 py-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
                       Lead Info
                     </th>
-                    <th className={`text-left px-6 py-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
                       Contact
                     </th>
-                    <th className={`text-left px-6 py-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
                       Company
                     </th>
                     <th 
-                      className={`text-left px-6 py-4 text-sm font-semibold cursor-pointer hover:text-[#E63946] transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                      className="text-left px-6 py-4 cursor-pointer hover:text-[var(--color-primary)] transition-colors"
+                      style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}
                       onClick={() => handleSort('leadScore')}
                     >
                       Score
                     </th>
                     <th 
-                      className={`text-left px-6 py-4 text-sm font-semibold cursor-pointer hover:text-[#E63946] transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                      className="text-left px-6 py-4 cursor-pointer hover:text-[var(--color-primary)] transition-colors"
+                      style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}
                       onClick={() => handleSort('status')}
                     >
                       Status
                     </th>
-                    <th className={`text-left px-6 py-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
                       Actions
                     </th>
                   </tr>
@@ -460,29 +418,16 @@ export default function LeadsPage() {
                           type="checkbox"
                           checked={selectedLeads.includes(lead.id)}
                           onChange={() => handleLeadSelection(lead.id)}
-                          className={`w-4 h-4 rounded cursor-pointer transition-all appearance-none ${
-                            isDark 
-                              ? 'bg-white/10 border-2 border-white/20 hover:border-white/40' 
-                              : 'bg-white border-2 border-gray-300 hover:border-gray-400'
-                          } checked:bg-[#E63946] checked:border-[#E63946] focus:ring-2 focus:ring-offset-0 focus:ring-[#E63946]/50 relative`}
-                          style={{
-                            backgroundImage: selectedLeads.includes(lead.id)
-                              ? `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E")`
-                              : 'none',
-                            backgroundSize: '100% 100%',
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat'
-                          }}
                         />
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <LeadAvatar firstName={lead.firstName} lastName={lead.lastName} size="md" />
                           <div>
-                            <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
                               {lead.firstName} {lead.lastName}
                             </div>
-                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                               {lead.title}
                             </div>
                           </div>
@@ -490,11 +435,11 @@ export default function LeadsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="space-y-1">
-                          <div className={`text-sm flex items-center gap-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <div className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                             <Mail className="w-3.5 h-3.5" />
                             {lead.email}
                           </div>
-                          <div className={`text-sm flex items-center gap-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <div className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                             <Phone className="w-3.5 h-3.5" />
                             {lead.phone}
                           </div>
@@ -502,11 +447,11 @@ export default function LeadsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div>
-                          <div className={`text-sm font-medium flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            <Building2 className="w-4 h-4 text-gray-400" />
+                          <div className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
+                            <Building2 className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
                             {lead.company}
                           </div>
-                          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                             {lead.industry} • {lead.employeeSize}
                           </div>
                         </div>
@@ -515,16 +460,16 @@ export default function LeadsPage() {
                         <LeadScoreRing score={lead.leadScore} size={65} />
                       </td>
                       <td className="px-6 py-4">
-                        <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${getStatusColor(lead.status)}`}>
+                        <div className={getStatusColor(lead.status)}>
                           {getStatusIcon(lead.status)}
-                          <span className="text-sm font-medium">{lead.status}</span>
+                          <span>{lead.status}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
                           <button
                             onClick={(e) => toggleStar(lead.id, e)}
-                            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                            className="btn-ghost p-2"
                           >
                             <Star 
                               className={`w-4 h-4 ${
@@ -536,11 +481,9 @@ export default function LeadsPage() {
                           </button>
                           <button 
                             onClick={() => handleLeadDetail(lead)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-                            }`}
+                            className="btn-ghost p-2"
                           >
-                            <Eye className="w-4 h-4 text-gray-400" />
+                            <Eye className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
                           </button>
                         </div>
                       </td>
@@ -551,23 +494,15 @@ export default function LeadsPage() {
             </div>
 
             {/* Pagination */}
-            <div className={`flex flex-col sm:flex-row items-center justify-between px-6 py-4 gap-4 border-t ${
-              isDark ? 'border-white/10' : 'border-gray-200'
-            }`}>
-              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 gap-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                 Showing {((currentPage - 1) * leadsPerPage) + 1} to {Math.min(currentPage * leadsPerPage, filteredLeads.length)} of {filteredLeads.length} leads
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg border transition-all ${
-                    currentPage === 1
-                      ? 'opacity-50 cursor-not-allowed'
-                      : isDark 
-                        ? 'border-white/10 text-white hover:bg-white/5' 
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className="btn-outline px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -578,12 +513,8 @@ export default function LeadsPage() {
                       onClick={() => setCurrentPage(page)}
                       className={`w-10 h-10 rounded-lg transition-all ${
                         currentPage === page
-                          ? isDark 
-                            ? 'bg-[#E63946] text-white' 
-                            : 'bg-[#BA2027] text-white'
-                          : isDark 
-                            ? 'text-gray-300 hover:bg-white/5' 
-                            : 'text-gray-700 hover:bg-gray-100'
+                          ? 'btn-primary'
+                          : 'btn-ghost'
                       }`}
                     >
                       {page}
@@ -593,13 +524,7 @@ export default function LeadsPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg border transition-all ${
-                    currentPage === totalPages
-                      ? 'opacity-50 cursor-not-allowed'
-                      : isDark 
-                        ? 'border-white/10 text-white hover:bg-white/5' 
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className="btn-outline px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
@@ -615,18 +540,14 @@ export default function LeadsPage() {
               <div
                 key={lead.id}
                 onClick={() => handleLeadDetail(lead)}
-                className={`rounded-xl p-5 border backdrop-blur-sm cursor-pointer transition-all hover:scale-105 animate-slideInUp ${
-                  isDark 
-                    ? 'bg-white/5 border-white/10 hover:shadow-[0_0_25px_rgba(230,57,70,0.2)]' 
-                    : 'bg-white border-gray-200 hover:shadow-[0_0_25px_rgba(186,32,39,0.15)]'
-                } ${lead.leadScore >= 90 ? 'animate-button-pulse' : ''}`}
+                className="glass-card p-5 cursor-pointer transition-all hover:scale-105 animate-slideInUp"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <LeadAvatar firstName={lead.firstName} lastName={lead.lastName} size="lg" />
                   <button
                     onClick={(e) => toggleStar(lead.id, e)}
-                    className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                    className="btn-ghost p-1.5"
                   >
                     <Star 
                       className={`w-4 h-4 ${
@@ -638,10 +559,10 @@ export default function LeadsPage() {
                   </button>
                 </div>
 
-                <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className="font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>
                   {lead.firstName} {lead.lastName}
                 </h3>
-                <p className={`text-sm mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className="mb-3" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                   {lead.title}
                 </p>
 
@@ -650,19 +571,19 @@ export default function LeadsPage() {
                 </div>
 
                 <div className="space-y-2 mb-4">
-                  <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <Building2 className="w-3.5 h-3.5 text-gray-400" />
+                  <div className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                    <Building2 className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
                     <span className="truncate">{lead.company}</span>
                   </div>
-                  <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <Mail className="w-3.5 h-3.5 text-gray-400" />
+                  <div className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                    <Mail className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
                     <span className="truncate">{lead.email}</span>
                   </div>
                 </div>
 
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border w-full justify-center ${getStatusColor(lead.status)}`}>
+                <div className={`${getStatusColor(lead.status)} w-full justify-center`}>
                   {getStatusIcon(lead.status)}
-                  <span className="text-sm font-medium">{lead.status}</span>
+                  <span>{lead.status}</span>
                 </div>
               </div>
             ))}
@@ -673,36 +594,28 @@ export default function LeadsPage() {
       {/* Bulk Action Bar */}
       {selectedLeads.length > 0 && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40 animate-slideInUp">
-          <div className={`rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-4 backdrop-blur-md ${
-            isDark ? 'bg-[#16151A]/95 border border-white/10' : 'bg-white/95 border border-gray-200'
-          }`}>
-            <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <div className="glass-card-strong px-6 py-4 flex items-center gap-4">
+            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
               {selectedLeads.length} selected
             </span>
-            <div className={`h-6 w-px ${isDark ? 'bg-white/10' : 'bg-gray-300'}`} />
+            <div className="h-6 w-px" style={{ background: 'var(--color-border)' }} />
             <button 
               onClick={() => toast.success(`Exporting ${selectedLeads.length} leads`)}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-medium ${
-                isDark ? 'bg-[#E63946]/20 hover:bg-[#E63946]/30 text-[#E63946]' : 'bg-[#BA2027]/10 hover:bg-[#BA2027]/20 text-[#BA2027]'
-              }`}
+              className="btn-outline px-4 py-2 flex items-center gap-2"
             >
               <Download className="w-4 h-4" />
               Export
             </button>
             <button 
               onClick={() => toast.info('Status change modal coming soon')}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-medium ${
-                isDark ? 'bg-[#4285F4]/20 hover:bg-[#4285F4]/30 text-[#4285F4]' : 'bg-[#4285F4]/10 hover:bg-[#4285F4]/20 text-[#4285F4]'
-              }`}
+              className="btn-outline px-4 py-2 flex items-center gap-2"
             >
               <FileText className="w-4 h-4" />
               Change Status
             </button>
             <button 
               onClick={() => toast.info('Assignment modal coming soon')}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-medium ${
-                isDark ? 'bg-[#0F9D58]/20 hover:bg-[#0F9D58]/30 text-[#0F9D58]' : 'bg-[#0F9D58]/10 hover:bg-[#0F9D58]/20 text-[#0F9D58]'
-              }`}
+              className="btn-outline px-4 py-2 flex items-center gap-2"
             >
               <UserCheck className="w-4 h-4" />
               Assign
@@ -728,6 +641,6 @@ export default function LeadsPage() {
         onClose={() => setIsDrawerOpen(false)}
         lead={selectedLead}
       />
-    </div>
+    </AppLayout>
   );
 }
