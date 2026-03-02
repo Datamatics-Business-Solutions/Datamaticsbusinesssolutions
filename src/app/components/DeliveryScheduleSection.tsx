@@ -8,215 +8,212 @@ interface DeliveryScheduleSectionProps {
 }
 
 export function DeliveryScheduleSection({ campaign }: DeliveryScheduleSectionProps) {
-  // If no delivery schedule data, show placeholder
+  // Don't render if missing required data
   if (!campaign.deliverySchedule || !campaign.goalLeads || !campaign.deliveredLeads) {
-    return (
-      <div className="glass-card p-6 mt-6">
-        <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-4">
-          Delivery Schedule & Progress
-        </h2>
-        <div className="text-center py-8">
-          <Package className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--color-text-muted)' }} />
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
-            No delivery schedule configured for this campaign
-          </p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
-  const today = new Date('2026-03-02T00:00:00Z'); // Current date from requirements
-  const progressPercentage = Math.round((campaign.deliveredLeads / campaign.goalLeads) * 100);
-  const remainingLeads = campaign.goalLeads - campaign.deliveredLeads;
-  
-  // Get completed and upcoming deliveries
-  const completedDeliveries = campaign.deliverySchedule.filter(d => d.status === 'completed');
-  const upcomingDeliveries = campaign.deliverySchedule.filter(d => d.status === 'upcoming');
-  const nextDelivery = upcomingDeliveries[0];
-  
-  // Calculate days until next delivery
-  const daysUntilNext = nextDelivery ? differenceInDays(parseISO(nextDelivery.date), today) : 0;
-  
-  // Get current week's deliveries (Mon Mar 2 - Sun Mar 8, 2026)
+  const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Monday
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 }); // Sunday
-  const thisWeekDeliveries = campaign.deliverySchedule.filter(d => {
-    const deliveryDate = parseISO(d.date);
-    return (isSameDay(deliveryDate, weekStart) || isAfter(deliveryDate, weekStart)) && 
-           (isSameDay(deliveryDate, weekEnd) || isBefore(deliveryDate, weekEnd));
+
+  // Filter deliveries for this week
+  const thisWeeksDeliveries = campaign.deliverySchedule.filter(delivery => {
+    const deliveryDate = parseISO(delivery.date);
+    return isAfter(deliveryDate, weekStart) && isBefore(deliveryDate, weekEnd) || isSameDay(deliveryDate, weekStart) || isSameDay(deliveryDate, weekEnd);
   });
 
-  // Generate week calendar (7 days from Monday)
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  // Filter upcoming deliveries (future only)
+  const upcomingDeliveries = campaign.deliverySchedule
+    .filter(delivery => {
+      const deliveryDate = parseISO(delivery.date);
+      return isAfter(deliveryDate, today) || isSameDay(deliveryDate, today);
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 4); // Show next 4 deliveries
 
-  // Delivery cadence summary
-  const deliveryCadence = campaign.deliveryDays?.join(' & ') || 'Custom Schedule';
-  const avgLeadsPerDelivery = campaign.leadsPerDelivery || 0;
+  // Calculate progress
+  const progressPercentage = Math.round((campaign.deliveredLeads / campaign.goalLeads) * 100);
+  const remainingLeads = campaign.goalLeads - campaign.deliveredLeads;
 
-  // Calculate estimated completion date
-  const remainingDeliveries = upcomingDeliveries.length;
-  const estimatedCompletionDate = remainingDeliveries > 0 
-    ? parseISO(upcomingDeliveries[upcomingDeliveries.length - 1].date) 
-    : today;
+  // Format date helper
+  const formatDeliveryDate = (dateStr: string) => {
+    try {
+      return format(parseISO(dateStr), 'EEE, MMM d, yyyy');
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Get relative date label
+  const getRelativeDateLabel = (dateStr: string) => {
+    const deliveryDate = parseISO(dateStr);
+    const diffDays = differenceInDays(deliveryDate, today);
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    if (diffDays === -1) return 'Yesterday';
+    if (diffDays > 0 && diffDays <= 7) return `In ${diffDays} days`;
+    return null;
+  };
 
   return (
-    <div className="mt-6 space-y-6">
-      {/* Header Section */}
-      <div className="glass-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-            Delivery Schedule & Progress
-          </h2>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: progressPercentage === 100 ? 'var(--color-success-bg)' : 'var(--color-info-bg)' }}>
-            <TrendingUp className="w-4 h-4" style={{ color: progressPercentage === 100 ? 'var(--color-success)' : 'var(--color-info)' }} />
-            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: progressPercentage === 100 ? 'var(--color-success)' : 'var(--color-info)' }}>
-              {progressPercentage === 100 ? 'Completed' : 'On Track'}
-            </span>
-          </div>
-        </div>
-
-        {/* Campaign Progress Bar */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-              Campaign Progress
-            </span>
-            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-primary)' }}>
-              {campaign.deliveredLeads} / {campaign.goalLeads} leads
-            </span>
-          </div>
-          <div className="relative w-full h-3 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
-            <motion.div
-              className="absolute top-0 left-0 h-full rounded-full"
-              style={{ background: 'linear-gradient(90deg, #BA2027 0%, #D32F2F 100%)' }}
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPercentage}%` }}
-              transition={{ duration: 1, ease: 'easeOut' }}
-            />
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-              {progressPercentage}% Complete
-            </span>
-            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-              {remainingLeads} leads remaining
-            </span>
-          </div>
-        </div>
-
-        {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-4 rounded-lg" style={{ background: 'var(--color-surface)' }}>
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
-              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                Delivery Days
-              </span>
-            </div>
-            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-              {deliveryCadence}
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg" style={{ background: 'var(--color-surface)' }}>
-            <div className="flex items-center gap-2 mb-2">
-              <Package className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
-              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                Per Delivery
-              </span>
-            </div>
-            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-              {avgLeadsPerDelivery} leads
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg" style={{ background: 'var(--color-surface)' }}>
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
-              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                Completed
-              </span>
-            </div>
-            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-              {completedDeliveries.length} batches
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg" style={{ background: 'var(--color-surface)' }}>
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
-              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                Est. Completion
-              </span>
-            </div>
-            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-              {format(estimatedCompletionDate, 'MMM d, yyyy')}
-            </div>
-          </div>
+    <motion.div 
+      className="glass-card p-6 mt-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+          Delivery Schedule & Progress
+        </h2>
+        <div className="flex items-center gap-2">
+          <Calendar className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+            {campaign.deliveryDays?.join(', ')}
+          </span>
         </div>
       </div>
 
-      {/* Weekly Calendar & Upcoming Deliveries Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Weekly Calendar View */}
-        <div className="glass-card p-6">
-          <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-4">
+      {/* Progress Bar */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
+            Overall Progress
+          </span>
+          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-primary)' }}>
+            {progressPercentage}%
+          </span>
+        </div>
+        <div className="h-3 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: 'var(--color-primary)' }}
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ duration: 1, ease: 'easeOut' }}
+          />
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+            {campaign.deliveredLeads.toLocaleString()} delivered
+          </span>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+            {remainingLeads.toLocaleString()} remaining of {campaign.goalLeads.toLocaleString()}
+          </span>
+        </div>
+      </div>
+
+      {/* This Week's Schedule */}
+      {thisWeeksDeliveries.length > 0 && (
+        <div className="mb-6">
+          <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-3 flex items-center gap-2">
+            <Clock className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
             This Week's Schedule
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+              ({format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d')})
+            </span>
           </h3>
-          <div className="space-y-2">
-            {weekDays.map((day, index) => {
-              const delivery = campaign.deliverySchedule?.find(d => isSameDay(parseISO(d.date), day));
-              const isToday = isSameDay(day, today);
-              const hasDelivery = !!delivery;
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {thisWeeksDeliveries.map((delivery, index) => {
+              const relativeLabel = getRelativeDateLabel(delivery.date);
+              const isCompleted = delivery.status === 'completed';
               
               return (
                 <motion.div
                   key={index}
-                  className="flex items-center gap-3 p-3 rounded-lg transition-all"
+                  className="p-4 rounded-lg border"
                   style={{ 
-                    background: isToday ? 'var(--color-primary-tint)' : hasDelivery ? 'var(--color-surface)' : 'transparent',
-                    border: `1px solid ${isToday ? 'var(--color-primary)' : hasDelivery ? 'var(--color-border)' : 'transparent'}`
+                    borderColor: isCompleted ? 'var(--color-success)' : 'var(--color-border)',
+                    background: isCompleted ? 'var(--color-success-bg)' : 'var(--color-bg-secondary)'
+                  }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                        {delivery.dayOfWeek}
+                      </div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                        {format(parseISO(delivery.date), 'MMM d')}
+                      </div>
+                    </div>
+                    {isCompleted ? (
+                      <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+                    ) : (
+                      <Package className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                    )}
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                    {delivery.leadsDelivered.toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                    leads {isCompleted ? 'delivered' : 'scheduled'}
+                  </div>
+                  {relativeLabel && (
+                    <div className="mt-2 inline-block px-2 py-1 rounded-full" style={{ background: 'var(--color-primary-tint)', fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-primary)' }}>
+                      {relativeLabel}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Upcoming Deliveries */}
+      {upcomingDeliveries.length > 0 && (
+        <div>
+          <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-3 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
+            Upcoming Deliveries
+          </h3>
+          <div className="space-y-3">
+            {upcomingDeliveries.map((delivery, index) => {
+              const relativeLabel = getRelativeDateLabel(delivery.date);
+              const isNext = index === 0;
+              
+              return (
+                <motion.div
+                  key={index}
+                  className="flex items-center justify-between p-4 rounded-lg"
+                  style={{ 
+                    background: isNext ? 'var(--color-primary-tint)' : 'var(--color-bg-secondary)',
+                    border: isNext ? '1px solid var(--color-primary)' : '1px solid var(--color-border)'
                   }}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <div className="flex-shrink-0 w-16">
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                      {format(day, 'EEE')}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: isNext ? 'var(--color-primary)' : 'var(--color-bg-tertiary)' }}>
+                      <Calendar className="w-5 h-5" style={{ color: isNext ? 'white' : 'var(--color-text-secondary)' }} />
                     </div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: isToday ? 'var(--color-primary)' : 'var(--color-text-primary)' }}>
-                      {format(day, 'MMM d')}
+                    <div>
+                      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                        {formatDeliveryDate(delivery.date)}
+                      </div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                        {delivery.dayOfWeek}
+                        {relativeLabel && ` • ${relativeLabel}`}
+                      </div>
                     </div>
                   </div>
-                  
-                  {hasDelivery ? (
-                    <div className="flex-1 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {delivery.status === 'completed' ? (
-                          <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
-                        ) : (
-                          <Package className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
-                        )}
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
-                          Delivery Scheduled
-                        </span>
-                      </div>
-                      <div className="px-2 py-1 rounded" style={{ background: delivery.status === 'completed' ? 'var(--color-success-bg)' : 'var(--color-info-bg)' }}>
-                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: delivery.status === 'completed' ? 'var(--color-success)' : 'var(--color-info)' }}>
-                          {delivery.leadsDelivered} leads
-                        </span>
-                      </div>
+                  <div className="text-right">
+                    <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                      {delivery.leadsDelivered.toLocaleString()}
                     </div>
-                  ) : (
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
-                      No delivery
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                      leads
                     </div>
-                  )}
-                  
-                  {isToday && (
-                    <div className="px-2 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--color-primary)', color: 'white' }}>
-                      Today
+                  </div>
+                  {isNext && (
+                    <div className="ml-3 px-3 py-1 rounded-full" style={{ background: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'white' }}>
+                      Next
                     </div>
                   )}
                 </motion.div>
@@ -224,143 +221,52 @@ export function DeliveryScheduleSection({ campaign }: DeliveryScheduleSectionPro
             })}
           </div>
         </div>
+      )}
 
-        {/* Upcoming Deliveries */}
-        <div className="glass-card p-6">
-          <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-4">
-            Upcoming Deliveries
-          </h3>
-          {upcomingDeliveries.length > 0 ? (
-            <div className="space-y-3">
-              {upcomingDeliveries.slice(0, 4).map((delivery, index) => {
-                const deliveryDate = parseISO(delivery.date);
-                const daysUntil = differenceInDays(deliveryDate, today);
-                const isNext = index === 0;
-                
-                return (
-                  <motion.div
-                    key={index}
-                    className="p-4 rounded-lg"
-                    style={{ 
-                      background: isNext ? 'var(--color-primary-tint)' : 'var(--color-surface)',
-                      border: `1px solid ${isNext ? 'var(--color-primary)' : 'var(--color-border)'}`
-                    }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" style={{ color: isNext ? 'var(--color-primary)' : 'var(--color-text-secondary)' }} />
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                          {format(deliveryDate, 'EEEE, MMM d, yyyy')}
-                        </span>
-                      </div>
-                      {isNext && (
-                        <div className="px-2 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--color-primary)', color: 'white' }}>
-                          Next
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                          {delivery.leadsDelivered} leads expected
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                          {daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `in ${daysUntil} days`}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <CheckCircle2 className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--color-success)' }} />
-              <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                All Deliveries Complete!
-              </p>
-              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }} className="mt-1">
-                This campaign has finished all scheduled deliveries.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Delivery Timeline */}
-      <div className="glass-card p-6">
+      {/* Full Timeline */}
+      <div className="mt-6 pt-6" style={{ borderTop: '1px solid var(--color-border)' }}>
         <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-4">
-          Delivery Timeline
+          Full Delivery Timeline
         </h3>
-        <div className="relative">
-          {/* Timeline Line */}
-          <div className="absolute left-6 top-0 bottom-0 w-0.5" style={{ background: 'var(--color-border)' }} />
-          
-          <div className="space-y-4">
-            {campaign.deliverySchedule.map((delivery, index) => {
-              const deliveryDate = parseISO(delivery.date);
-              const isCompleted = delivery.status === 'completed';
-              const isPast = isBefore(deliveryDate, today);
-              
-              return (
-                <motion.div
-                  key={index}
-                  className="relative flex items-start gap-4"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  {/* Timeline Dot */}
-                  <div 
-                    className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{ 
-                      background: isCompleted ? 'var(--color-success)' : isPast ? 'var(--color-warning)' : 'var(--color-info)',
-                      boxShadow: '0 0 0 4px var(--color-surface)'
-                    }}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-white" />
-                    ) : (
-                      <Package className="w-5 h-5 text-white" />
-                    )}
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {campaign.deliverySchedule.map((delivery, index) => {
+            const isCompleted = delivery.status === 'completed';
+            const deliveryDate = parseISO(delivery.date);
+            const isPast = isBefore(deliveryDate, today);
+            
+            return (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-2 rounded hover:bg-[var(--color-bg-secondary)] transition-colors"
+              >
+                <div className={`w-2 h-2 rounded-full flex-shrink-0`} style={{ background: isCompleted ? 'var(--color-success)' : isPast ? 'var(--color-text-muted)' : 'var(--color-primary)' }} />
+                <div className="flex-1 flex items-center justify-between">
+                  <div>
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                      {formatDeliveryDate(delivery.date)}
+                    </span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }} className="ml-2">
+                      ({delivery.dayOfWeek})
+                    </span>
                   </div>
-                  
-                  {/* Delivery Info */}
-                  <div className="flex-1 pb-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                        {format(deliveryDate, 'EEEE, MMMM d, yyyy')}
-                      </span>
-                      <div className="px-2 py-1 rounded" style={{ background: isCompleted ? 'var(--color-success-bg)' : 'var(--color-info-bg)' }}>
-                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: isCompleted ? 'var(--color-success)' : 'var(--color-info)' }}>
-                          {isCompleted ? 'Delivered' : 'Scheduled'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                        {delivery.leadsDelivered} leads {isCompleted ? 'delivered' : 'expected'}
-                      </span>
-                      {!isCompleted && (
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                          • {differenceInDays(deliveryDate, today)} days remaining
-                        </span>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                      {delivery.leadsDelivered.toLocaleString()} leads
+                    </span>
+                    <span className={`px-2 py-1 rounded text-xs`} style={{ 
+                      background: isCompleted ? 'var(--color-success-bg)' : 'var(--color-info-bg)',
+                      color: isCompleted ? 'var(--color-success)' : 'var(--color-info)',
+                      fontWeight: 'var(--font-weight-medium)'
+                    }}>
+                      {isCompleted ? 'Completed' : 'Upcoming'}
+                    </span>
                   </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

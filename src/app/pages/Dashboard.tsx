@@ -17,7 +17,7 @@ import {
   X,
   ChevronUp,
 } from 'lucide-react';
-import { mockCampaigns } from '../mockData';
+import { allClients, type Campaign } from '../data/mockClients';
 import { AppLayout } from '../components/AppLayout';
 import { useCountUp } from '../hooks/useCountUp';
 import { NewCampaignModal, CampaignFormData } from '../components/NewCampaignModal';
@@ -39,6 +39,20 @@ const generateSparklineData = (baseValue: number, trend: 'up' | 'down' = 'up') =
   }));
 };
 
+// Flatten all campaigns from all clients
+const getAllCampaignsFlat = (): Array<Campaign & { clientName: string }> => {
+  const campaigns: Array<Campaign & { clientName: string }> = [];
+  allClients.forEach(client => {
+    client.campaigns.forEach(campaign => {
+      campaigns.push({
+        ...campaign,
+        clientName: client.companyName
+      });
+    });
+  });
+  return campaigns;
+};
+
 export default function Dashboard() {
   useDocumentTitle('My Campaigns');
   
@@ -56,9 +70,12 @@ export default function Dashboard() {
 
   const accountTeam = getAccountTeam('client_1');
 
-  // Base data
-  const baseCampaigns = mockCampaigns.filter((c) => c.status === 'In progress').length;
-  const baseLeadsMonthly = mockCampaigns.reduce((sum, c) => sum + c.delivered, 0);
+  // Get all campaigns flattened
+  const allCampaignsFlat = useMemo(() => getAllCampaignsFlat(), []);
+
+  // Base data using allClients
+  const baseCampaigns = allCampaignsFlat.filter((c) => c.status === 'active').length;
+  const baseLeadsMonthly = allCampaignsFlat.reduce((sum, c) => sum + (c.delivered || 0), 0);
   const baseSpendMonthly = 24500;
 
   // Calculate metrics based on period
@@ -84,7 +101,7 @@ export default function Dashboard() {
   const leadsData = generateSparklineData(totalLeadsDelivered / 12, 'up');
   const spendData = generateSparklineData(totalSpend / 12, 'down');
 
-  const filteredCampaigns = mockCampaigns.filter((campaign) => {
+  const filteredCampaigns = allCampaignsFlat.filter((campaign) => {
     const matchesSearch = campaign.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -92,35 +109,30 @@ export default function Dashboard() {
 
   const getStatusPill = (status: string) => {
     const config = {
-      'In progress': {
+      'active': {
         classes: 'badge badge-active',
         icon: Circle,
         hasPulse: true,
       },
-      Completed: {
+      'completed': {
         classes: 'badge badge-completed',
         icon: CheckCircle2,
         hasPulse: false,
       },
-      Paused: {
+      'paused': {
         classes: 'badge badge-paused',
         icon: Pause,
         hasPulse: false,
       },
-      'Not started': {
-        classes: 'badge badge-paused',
-        icon: Clock,
-        hasPulse: false,
-      },
     };
 
-    const statusConfig = config[status as keyof typeof config] || config['Not started'];
+    const statusConfig = config[status as keyof typeof config] || config['paused'];
     const Icon = statusConfig.icon;
 
     return (
       <span className={statusConfig.classes}>
         <Icon className={`w-3.5 h-3.5 ${statusConfig.hasPulse ? 'animate-pulse' : ''}`} />
-        {status}
+        {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
@@ -303,10 +315,9 @@ export default function Dashboard() {
               className="input-base px-4 py-3 pr-10 appearance-none cursor-pointer w-full sm:w-auto"
             >
               <option value="All">All Status</option>
-              <option value="In progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Paused">Paused</option>
-              <option value="Not started">Not Started</option>
+              <option value="active">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="paused">Paused</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280] pointer-events-none" />
           </div>
@@ -337,7 +348,9 @@ export default function Dashboard() {
               </thead>
               <tbody className="border-t border-[#EEECEC]">
                 {filteredCampaigns.map((campaign, index) => {
-                  const progress = (campaign.delivered / campaign.target) * 100;
+                  const progress = campaign.target && campaign.delivered 
+                    ? ((campaign.delivered / campaign.target) * 100) 
+                    : 0;
                   return (
                     <motion.tr
                       key={campaign.id}
@@ -352,13 +365,13 @@ export default function Dashboard() {
                             {campaign.name}
                           </div>
                           <div className="text-xs text-[#6B7280] mt-1">
-                            {campaign.clientCompany}
+                            {campaign.clientName}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm text-[#6B7280]">
-                          {campaign.serviceType}
+                          Leads
                         </span>
                       </td>
                       <td className="px-6 py-4">{getStatusPill(campaign.status)}</td>
@@ -376,7 +389,7 @@ export default function Dashboard() {
                             </span>
                           </div>
                           <div className="text-xs text-[#9CA3AF]">
-                            {campaign.delivered.toLocaleString()} / {campaign.target.toLocaleString()} leads
+                            {(campaign.delivered || 0).toLocaleString()} / {(campaign.target || 0).toLocaleString()} leads
                           </div>
                         </div>
                       </td>

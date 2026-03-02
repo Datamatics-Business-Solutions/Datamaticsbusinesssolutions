@@ -9,7 +9,8 @@ import {
   Download,
   DollarSign,
   ArrowLeft,
-  Activity
+  Activity,
+  Package
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { JobCardModal } from '../components/JobCardModalGlass';
@@ -52,8 +53,13 @@ export default function CampaignDetail() {
   }
 
   const acceptanceRate = campaign.acceptanceRate || 0;
-  const progressPercentage = campaign.target && campaign.delivered 
-    ? Math.round((campaign.delivered / campaign.target) * 100)
+  
+  // Use goalLeads/deliveredLeads if available, otherwise fall back to target/delivered
+  const targetLeads = campaign.goalLeads || campaign.target || campaign.totalLeads || 0;
+  const deliveredLeads = campaign.deliveredLeads || campaign.delivered || campaign.totalLeads || 0;
+  
+  const progressPercentage = targetLeads > 0
+    ? Math.round((deliveredLeads / targetLeads) * 100)
     : 0;
 
   const getStatusColor = (status: string) => {

@@ -407,16 +407,16 @@ export const mockDailyProgress: DailyProgress[] = [
 ];
 
 export const mockActivityUpdates: ActivityUpdate[] = [
-  { title: 'RFP received from client', date: '2026-01-05', completed: true },
-  { title: 'Job card signed by client', date: '2026-01-12', completed: true },
-  { title: 'Campaign started', date: '2026-01-15', completed: true },
-  { title: 'First batch delivered (50 leads)', date: '2026-01-22', completed: true },
-  { title: 'Second batch delivered (50 leads)', date: '2026-01-29', completed: true },
-  { title: 'Third batch delivered (50 leads)', date: '2026-02-05', completed: true },
-  { title: 'Campaign milestone: 50% complete', date: '2026-02-15', completed: true },
-  { title: 'Fourth batch delivered (50 leads)', date: '2026-02-20', completed: true },
-  { title: 'Fifth batch in progress', date: '2026-02-27', completed: false },
-  { title: 'Campaign completion', date: '2026-04-15', completed: false },
+  { title: 'RFP received from client', message: 'RFP received from client', date: '2026-01-05', timestamp: 'Jan 5, 2026', completed: true },
+  { title: 'Job card signed by client', message: 'Job card signed by client', date: '2026-01-12', timestamp: 'Jan 12, 2026', completed: true },
+  { title: 'Campaign started', message: 'Campaign started - Lead generation in progress', date: '2026-01-15', timestamp: 'Jan 15, 2026', completed: true },
+  { title: 'First batch delivered (150 leads)', message: 'First batch delivered - 150 leads sent for review', date: '2026-02-03', timestamp: 'Feb 3, 2026', completed: true },
+  { title: 'Second batch delivered (150 leads)', message: 'Second batch delivered - 150 leads sent for review', date: '2026-02-06', timestamp: 'Feb 6, 2026', completed: true },
+  { title: 'Third batch delivered (150 leads)', message: 'Third batch delivered - 150 leads sent for review', date: '2026-02-10', timestamp: 'Feb 10, 2026', completed: true },
+  { title: 'Fourth batch delivered (150 leads)', message: 'Fourth batch delivered - 150 leads sent for review', date: '2026-02-13', timestamp: 'Feb 13, 2026', completed: true },
+  { title: 'Fifth batch delivered (80 leads)', message: 'Fifth batch delivered - 80 leads sent for review', date: '2026-02-17', timestamp: 'Feb 17, 2026', completed: true },
+  { title: 'Campaign milestone: 56% complete', message: 'Campaign has reached 56% completion - 680 of 1,200 leads delivered', date: '2026-02-20', timestamp: 'Feb 20, 2026', completed: true },
+  { title: 'Next batch scheduled', message: 'Next delivery scheduled for Mar 3, 2026 - 150 leads expected', date: '2026-03-01', timestamp: '2 days ago', completed: false },
 ];
 
 // ============ LEADS ============

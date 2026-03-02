@@ -1,11 +1,13 @@
 import { X, FileText, Send, Download } from 'lucide-react';
+import { Logo } from './Logo';
 
 interface JobCardModalProps {
   campaign: any;
   onClose: () => void;
+  isOpen?: boolean;
 }
 
-export function JobCardModal({ campaign, onClose }: JobCardModalProps) {
+export function JobCardModal({ campaign, onClose, isOpen = true }: JobCardModalProps) {
   const handleSendForSignature = () => {
     alert('Job card sent for e-signature!');
     onClose();
@@ -15,20 +17,34 @@ export function JobCardModal({ campaign, onClose }: JobCardModalProps) {
     alert('Downloading PDF...');
   };
 
+  // Don't render if not open
+  if (!isOpen) return null;
+
+  // Close on backdrop click
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-white/95 backdrop-blur-lg rounded-2xl w-full max-w-[800px] max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 rounded-t-2xl relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors z-10"
+            aria-label="Close"
           >
             <X className="w-6 h-6" />
           </button>
           <div className="flex items-center justify-between">
-            <div className="text-2xl font-bold text-white">
-              DatamaticsBPM
+            <div className="flex items-center">
+              <Logo className="h-8" />
             </div>
             <div className="text-right">
               <div className="text-sm text-white/80">JOB CARD</div>
@@ -69,7 +85,7 @@ export function JobCardModal({ campaign, onClose }: JobCardModalProps) {
               <ul className="space-y-2 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
                   <span className="text-purple-600 mt-1">•</span>
-                  <span>Generate and deliver {campaign.target} qualified {campaign.type.toLowerCase()} leads</span>
+                  <span>Generate and deliver {campaign.target} qualified leads</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-purple-600 mt-1">•</span>

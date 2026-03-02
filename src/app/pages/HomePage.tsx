@@ -421,7 +421,7 @@ export default function HomePage() {
             {/* Campaign 1 */}
             <div
               className="rounded-xl p-4 bg-white border border-[#E5E7EB] cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => navigate('/campaigns/1')}
+              onClick={() => navigate('/campaigns/camp_1')}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
@@ -455,7 +455,7 @@ export default function HomePage() {
             {/* Campaign 2 */}
             <div
               className="rounded-xl p-4 bg-white border border-[#E5E7EB] cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => navigate('/campaigns/3')}
+              onClick={() => navigate('/campaigns/camp_3')}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
@@ -491,7 +491,7 @@ export default function HomePage() {
             {/* Campaign 3 */}
             <div
               className="rounded-xl p-4 bg-white border border-[#E5E7EB] cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => navigate('/campaigns/4')}
+              onClick={() => navigate('/campaigns/camp_4')}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">

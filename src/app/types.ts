@@ -40,6 +40,8 @@ export interface DailyProgress {
 
 export interface ActivityUpdate {
   title: string;
+  message?: string;
   date: string;
+  timestamp?: string;
   completed: boolean;
 }
