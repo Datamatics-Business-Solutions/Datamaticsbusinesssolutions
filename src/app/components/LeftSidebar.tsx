@@ -58,8 +58,19 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
   // Upload modal
   const [showUploadModal, setShowUploadModal] = useState(false);
   
+  // Feedback jiggle animation — fires every 5s to attract attention
+  const [feedbackJiggle, setFeedbackJiggle] = useState(false);
+
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
   const tooltipTimeoutRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFeedbackJiggle(true);
+      setTimeout(() => setFeedbackJiggle(false), 700);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Save collapsed sections to localStorage when changed
   useEffect(() => {
@@ -161,8 +172,8 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         },
         { name: 'Client Assignments', icon: Building2, path: '/internal/client-assignment', section: 'PLATFORM' },
         { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
-        { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
+        { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
       ];
     }
 
@@ -189,8 +200,8 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           quickActionHandler: () => setShowUploadModal(true)
         },
         { name: 'Reports', icon: FileBarChart, path: '/internal/reports', section: 'PLATFORM' },
-        { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
+        { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
       ];
     }
 
@@ -224,8 +235,8 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
       },
       { name: 'Documents', icon: FolderOpen, path: '/documents', section: 'ORGANIZATION' },
       { name: 'Support', icon: MessageSquare, path: '/support', section: 'ORGANIZATION' },
-      { name: 'Feedback', icon: MessageCircle, path: '/feedback', section: 'ORGANIZATION' },
       { name: 'Account', icon: UserCircle, path: '/account', section: 'ORGANIZATION' },
+      { name: 'Feedback', icon: MessageCircle, path: '/feedback', section: 'ORGANIZATION' },
     ];
   };
 
@@ -390,11 +401,21 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                             transition={{ duration: 0.2 }}
                           >
                             <motion.div
-                              whileHover={{ 
-                                scale: 1.1,
-                                rotate: isActive ? 0 : 2,
-                                transition: { duration: 0.2, ease: 'easeOut' }
-                              }}
+                              animate={
+                                item.name === 'Feedback' && feedbackJiggle
+                                  ? { rotate: [0, -12, 12, -9, 9, -5, 5, 0], scale: [1, 1.15, 1.15, 1.1, 1.1, 1.05, 1.05, 1] }
+                                  : { rotate: 0, scale: 1 }
+                              }
+                              transition={
+                                item.name === 'Feedback' && feedbackJiggle
+                                  ? { duration: 0.65, ease: 'easeInOut' }
+                                  : { duration: 0.2, ease: 'easeOut' }
+                              }
+                              whileHover={
+                                item.name !== 'Feedback'
+                                  ? { scale: 1.1, rotate: isActive ? 0 : 2, transition: { duration: 0.2, ease: 'easeOut' } }
+                                  : undefined
+                              }
                             >
                               <Icon 
                                 className={`w-6 h-6 flex-shrink-0 transition-colors duration-200 ${
@@ -555,7 +576,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         )}
       </div>
 
-      {/* Bottom Section */}
+      {/* Bottom Section — Logout + User Profile */}
       <div className="border-t border-[#EEECEC] p-4 space-y-2">
         {/* Logout */}
         <div className="relative">
@@ -585,8 +606,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
               )}
             </AnimatePresence>
           </button>
-
-          {/* Tooltip */}
           {!isExpanded && showTooltip === 'Log Out' && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -616,7 +635,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
             <div className="w-10 h-10 rounded-full bg-[#BA2027] flex items-center justify-center text-white font-semibold flex-shrink-0">
               {userInitials}
             </div>
-            
             <AnimatePresence>
               {isExpanded && (
                 <motion.div
@@ -642,8 +660,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
               )}
             </AnimatePresence>
           </button>
-
-          {/* Tooltip */}
           {!isExpanded && showTooltip === 'Account' && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -657,6 +673,29 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           )}
         </div>
       </div>
+
+      {/* Footer — disclaimer + credit */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="px-5 pb-4 pt-2 border-t border-[#EEECEC] flex flex-col gap-1"
+          >
+            <p className="text-[10px] text-[#B0B0B0] leading-relaxed">
+              © {new Date().getFullYear()} DatamaticsBPM. All rights reserved. This portal is for authorised users only. Unauthorised access is prohibited.
+            </p>
+            <a
+              href="mailto:vishalpmehta@gmail.com?subject=DatamaticsBPM Client Portal"
+              className="text-[10px] text-[#BA2027]/60 hover:text-[#BA2027] transition-colors duration-200 cursor-pointer"
+            >
+              Made with ♥ by Vishal
+            </a>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 

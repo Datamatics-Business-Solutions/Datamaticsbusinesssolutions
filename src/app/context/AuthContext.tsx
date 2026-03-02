@@ -33,7 +33,7 @@ export const mockUsers: User[] = [
   {
     id: 'u1',
     name: 'Sarah Mitchell',
-    email: 'client@acmecorp.com',
+    email: 'vishalpmehta@gmail.com',
     role: 'client',
     assignedClients: [],
     company: 'Acme Corp',
@@ -56,6 +56,13 @@ export const mockUsers: User[] = [
     id: 'u4',
     name: 'Praful Sanil',
     email: 'praful.sanil@datamaticsbpm.com',
+    role: 'ops_manager',
+    assignedClients: [],
+  },
+  {
+    id: 'u5',
+    name: 'Vishal Mehta',
+    email: 'vishalpmehta@gmail.com',
     role: 'ops_manager',
     assignedClients: [],
   },
