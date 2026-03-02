@@ -95,6 +95,10 @@ export const router = createBrowserRouter([
     Component: withSuspense(Invoices),
   },
   {
+    path: '/payment',
+    Component: withSuspense(Payment),
+  },
+  {
     path: '/payment/:invoiceId',
     Component: withSuspense(Payment),
   },

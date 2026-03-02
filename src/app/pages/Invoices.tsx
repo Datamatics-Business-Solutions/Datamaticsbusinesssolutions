@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Download, Search, FileText, CheckCircle, Clock, AlertCircle, Eye, CreditCard, PieChart as PieChartIcon, Building2, ArrowRightLeft, Calendar, ChevronDown, X } from 'lucide-react';
 import { TableRow } from '../components/TableRow';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { mockInvoices } from '../mockInvoices';
 import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
@@ -17,6 +17,7 @@ import { TableSkeleton } from '../components/SkeletonLoader';
 export default function Invoices() {
   useDocumentTitle('Invoices');
   
+  const navigate = useNavigate();
   const [pageLoaded, setPageLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('All');
@@ -316,8 +317,7 @@ export default function Invoices() {
                             {(invoice.status === 'Pending' || invoice.status === 'Overdue') ? (
                               <button
                                 onClick={() => {
-                                  toast.success(`Redirecting to payment for ${invoice.invoiceNumber}...`);
-                                  // Here you would redirect to payment gateway
+                                  navigate(`/payment/${invoice.id}`);
                                 }}
                                 className="btn-ghost p-2"
                                 title="Pay Now"

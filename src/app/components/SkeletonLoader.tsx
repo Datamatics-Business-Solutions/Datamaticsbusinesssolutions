@@ -33,18 +33,22 @@ export function Skeleton({ className = '', variant = 'rectangular' }: SkeletonPr
 }
 
 // Table skeleton loader
-export function TableSkeleton({ rows = 5 }: { rows?: number }) {
+export function TableSkeleton({ rows = 5, columns = 1 }: { rows?: number; columns?: number }) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   return (
-    <div className="space-y-3">
-      {Array.from({ length: rows }).map((_, index) => (
-        <div key={index} className="flex items-center gap-4 animate-fadeIn" style={{ animationDelay: `${index * 50}ms` }}>
-          <Skeleton className="h-12 w-full" />
-        </div>
+    <>
+      {Array.from({ length: rows }).map((_, rowIndex) => (
+        <tr key={rowIndex} className="animate-fadeIn" style={{ animationDelay: `${rowIndex * 50}ms` }}>
+          {Array.from({ length: columns }).map((_, colIndex) => (
+            <td key={colIndex} className="px-6 py-4">
+              <Skeleton className="h-8 w-full" />
+            </td>
+          ))}
+        </tr>
       ))}
-    </div>
+    </>
   );
 }
 
