@@ -10,6 +10,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  base: '/',
   resolve: {
     alias: {
       // Alias @ to the src directory
@@ -22,6 +23,9 @@ export default defineConfig({
 
   // Build optimization for better caching and performance
   build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: 'terser',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -51,5 +55,8 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 600
+  },
+  server: {
+    port: 3000
   }
 })
