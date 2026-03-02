@@ -12,18 +12,33 @@ import {
   FileText,
   Download,
   DollarSign,
-  ArrowLeft
+  ArrowLeft,
+  Activity
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { JobCardModal } from '../components/JobCardModalGlass';
 import { AnimatedDonutChart } from '../components/AnimatedDonutChart';
-import { mockCampaigns, mockActivityUpdates } from '../mockData';
+import { DeliveryScheduleSection } from '../components/DeliveryScheduleSection';
+import { allClients } from '../data/mockClients';
+import { mockActivityUpdates } from '../mockData';
 
 export default function CampaignDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const campaign = mockCampaigns.find(c => c.id === id);
   const [showJobCard, setShowJobCard] = useState(false);
+  
+  // Find the campaign across all clients
+  let campaign = null;
+  let client = null;
+  
+  for (const c of allClients) {
+    const foundCampaign = c.campaigns.find(camp => camp.id === id);
+    if (foundCampaign) {
+      campaign = foundCampaign;
+      client = c;
+      break;
+    }
+  }
 
   if (!campaign) {
     return (
@@ -40,20 +55,26 @@ export default function CampaignDetail() {
     );
   }
 
-  const acceptanceRate = Math.round((campaign.delivered / campaign.target) * 100);
-  const progressPercentage = Math.round((campaign.delivered / campaign.target) * 100);
+  const acceptanceRate = campaign.acceptanceRate || 0;
+  const progressPercentage = campaign.target && campaign.delivered 
+    ? Math.round((campaign.delivered / campaign.target) * 100)
+    : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'In progress':
+      case 'active':
         return 'badge badge-active';
-      case 'Completed':
+      case 'completed':
         return 'badge badge-completed';
-      case 'Paused':
+      case 'paused':
         return 'badge badge-paused';
       default:
-        return 'badge badge-completed';
+        return 'badge badge-active';
     }
+  };
+
+  const formatStatus = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
   return (
@@ -81,10 +102,12 @@ export default function CampaignDetail() {
               <h1 style={{ color: 'var(--color-text-primary)' }}>{campaign.name}</h1>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
-              <span className={getStatusColor(campaign.status)}>{campaign.status}</span>
-              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                {campaign.startDate} - {campaign.endDate}
-              </span>
+              <span className={getStatusColor(campaign.status)}>{formatStatus(campaign.status)}</span>
+              {campaign.startDate && campaign.endDate && (
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                  {campaign.startDate} - {campaign.endDate}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex gap-2">
@@ -110,7 +133,7 @@ export default function CampaignDetail() {
                 <Target className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
               </div>
             </div>
-            <div className="kpi-card__number">{campaign.target}</div>
+            <div className="kpi-card__number">{campaign.target || campaign.totalLeads}</div>
             <div className="kpi-card__label">Target</div>
           </div>
 
@@ -120,7 +143,7 @@ export default function CampaignDetail() {
                 <TrendingUp className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
               </div>
             </div>
-            <div className="kpi-card__number">{campaign.delivered}</div>
+            <div className="kpi-card__number">{campaign.delivered || campaign.totalLeads}</div>
             <div className="kpi-card__label">Delivered</div>
           </div>
 
@@ -140,7 +163,7 @@ export default function CampaignDetail() {
                 <DollarSign className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
               </div>
             </div>
-            <div className="kpi-card__number">${(campaign.budget / 1000).toFixed(0)}K</div>
+            <div className="kpi-card__number">${campaign.budget ? (campaign.budget / 1000).toFixed(0) : '0'}K</div>
             <div className="kpi-card__label">Budget</div>
           </div>
         </div>
@@ -163,19 +186,19 @@ export default function CampaignDetail() {
             <div className="mt-6 grid grid-cols-3 gap-4">
               <div className="text-center">
                 <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-                  {campaign.target}
+                  {campaign.target || campaign.totalLeads}
                 </div>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>Target</div>
               </div>
               <div className="text-center">
                 <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-primary)' }}>
-                  {campaign.delivered}
+                  {campaign.delivered || campaign.totalLeads}
                 </div>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>Delivered</div>
               </div>
               <div className="text-center">
                 <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-                  {campaign.target - campaign.delivered}
+                  {(campaign.target || campaign.totalLeads) - (campaign.delivered || campaign.totalLeads)}
                 </div>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>Remaining</div>
               </div>
@@ -192,24 +215,28 @@ export default function CampaignDetail() {
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
                   Status
                 </div>
-                <span className={getStatusColor(campaign.status)}>{campaign.status}</span>
+                <span className={getStatusColor(campaign.status)}>{formatStatus(campaign.status)}</span>
               </div>
-              <div>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
-                  Duration
+              {campaign.startDate && campaign.endDate && (
+                <div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
+                    Duration
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                    {campaign.startDate} - {campaign.endDate}
+                  </div>
                 </div>
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                  {campaign.startDate} - {campaign.endDate}
+              )}
+              {campaign.budget && (
+                <div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
+                    Budget
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+                    ${campaign.budget.toLocaleString()}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
-                  Budget
-                </div>
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                  ${campaign.budget.toLocaleString()}
-                </div>
-              </div>
+              )}
               <div>
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-1">
                   Account Manager
@@ -245,6 +272,9 @@ export default function CampaignDetail() {
             ))}
           </div>
         </div>
+
+        {/* Delivery Schedule Section */}
+        <DeliveryScheduleSection campaign={campaign} />
       </div>
 
       {/* Job Card Modal */}

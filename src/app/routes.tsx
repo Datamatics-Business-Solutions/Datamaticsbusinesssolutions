@@ -22,6 +22,7 @@ const InternalReports = lazy(() => import('./pages/InternalReports'));
 const OpsOverviewPage = lazy(() => import('./pages/OpsOverviewPage'));
 const ManagerDashboardPage = lazy(() => import('./pages/ManagerDashboardPage'));
 const TeamManagementPage = lazy(() => import('./pages/TeamManagementPage'));
+const ClientAssignmentPage = lazy(() => import('./pages/ClientAssignmentPage'));
 const ErrorBoundary = lazy(() => import('./pages/ErrorBoundary'));
 
 // Loading fallback component
@@ -137,6 +138,10 @@ export const router = createBrowserRouter([
   {
     path: '/internal/uploads',
     Component: withSuspense(LeadUploadDashboard),
+  },
+  {
+    path: '/internal/client-assignment',
+    Component: withSuspense(ClientAssignmentPage),
   },
   {
     path: '*',

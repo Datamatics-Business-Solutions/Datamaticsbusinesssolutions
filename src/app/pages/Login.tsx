@@ -366,7 +366,7 @@ export default function Login() {
       <div className="hidden lg:block w-px bg-[rgba(0,0,0,0.08)]" />
 
       {/* Right Side - Testimonial Panel - Always Light Theme */}
-      <div className="hidden lg:flex lg:flex-1 flex-col items-center justify-center p-12 relative overflow-hidden transition-all duration-1000 bg-gradient-to-br from-[#BA2027] via-[#D32F2F] to-[#BA2027]">
+      <div className="hidden lg:flex lg:flex-1 items-center justify-center p-12 relative overflow-hidden transition-all duration-1000 bg-gradient-to-br from-[#BA2027] via-[#D32F2F] to-[#BA2027]">
         {/* Animated Background Elements */}
         <div 
           className="absolute inset-0 opacity-20"
@@ -393,7 +393,7 @@ export default function Login() {
         />
 
         {/* Center Content Container */}
-        <div className="relative z-10 flex flex-col items-center justify-center gap-8 max-w-lg w-full">
+        <div className="relative z-10 flex flex-col items-center justify-center gap-8 max-w-lg w-full my-auto">
           {/* Testimonial Card with Red Gradient */}
           <div 
             key={activeTesti.id}

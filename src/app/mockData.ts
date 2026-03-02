@@ -88,9 +88,11 @@ export interface TeamMember {
   id: string;
   name: string;
   email: string;
-  role: 'Campaign Manager' | 'Backup Manager' | 'Ops Manager';
+  phone: string;
+  role: 'Campaign Manager' | 'Campaign Backup' | 'Operations Manager';
   assignedClients: string[];
   activeCampaigns: number;
+  clientsAssigned: number;
   status: 'Active' | 'Away';
   avatar?: string;
 }
@@ -98,21 +100,25 @@ export interface TeamMember {
 export const mockTeamMembers: TeamMember[] = [
   {
     id: 'tm_1',
-    name: 'Sarah Mitchell',
-    email: 'sarah.mitchell@datamatics.com',
+    name: 'Anish Akkoat',
+    email: 'anish.akkoat@datamaticsbpm.com',
+    phone: '+91 22 4040 1234',
     role: 'Campaign Manager',
-    assignedClients: ['TechVentures Agency', 'MedMarketing Solutions'],
-    activeCampaigns: 2,
+    assignedClients: ['Acme Corp', 'TechCo Ltd', 'Meridian Group'],
+    activeCampaigns: 3,
+    clientsAssigned: 3,
     status: 'Active',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
   },
   {
     id: 'tm_2',
     name: 'Michael Chen',
     email: 'michael.chen@datamatics.com',
+    phone: '+1 415-555-0142',
     role: 'Campaign Manager',
-    assignedClients: ['FinTech Growth Partners', 'Industrial Marketing Group'],
+    assignedClients: ['Global Innovations Inc', 'Pinnacle Solutions'],
     activeCampaigns: 2,
+    clientsAssigned: 2,
     status: 'Active',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
   },
@@ -120,29 +126,35 @@ export const mockTeamMembers: TeamMember[] = [
     id: 'tm_3',
     name: 'Emily Rodriguez',
     email: 'emily.rodriguez@datamatics.com',
+    phone: '+1 212-555-0198',
     role: 'Campaign Manager',
-    assignedClients: ['CloudScale Ventures'],
-    activeCampaigns: 0,
-    status: 'Away',
+    assignedClients: ['Nexus Enterprises'],
+    activeCampaigns: 1,
+    clientsAssigned: 1,
+    status: 'Active',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
   },
   {
     id: 'tm_4',
-    name: 'David Park',
-    email: 'david.park@datamatics.com',
-    role: 'Backup Manager',
-    assignedClients: ['TechVentures Agency', 'FinTech Growth Partners', 'RetailTech Aggregators'],
+    name: 'Arjun Patel',
+    email: 'arjun.patel@datamaticsbpm.com',
+    phone: '+91 22 4040 5678',
+    role: 'Campaign Backup',
+    assignedClients: ['Acme Corp', 'TechCo Ltd', 'Meridian Group'],
     activeCampaigns: 3,
+    clientsAssigned: 3,
     status: 'Active',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
   },
   {
     id: 'tm_5',
-    name: 'John Davies',
-    email: 'john.davies@datamatics.com',
-    role: 'Ops Manager',
+    name: 'Praful Sanil',
+    email: 'praful.sanil@datamaticsbpm.com',
+    phone: '+91 22 4040 9012',
+    role: 'Operations Manager',
     assignedClients: [],
     activeCampaigns: 6,
+    clientsAssigned: 0,
     status: 'Active',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
   },

@@ -158,6 +158,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           quickActionIcon: Plus,
           quickActionHandler: () => setShowUploadModal(true)
         },
+        { name: 'Client Assignments', icon: Building2, path: '/internal/client-assignment', section: 'PLATFORM' },
         { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
       ];
@@ -422,7 +423,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
 
                             {/* Quick Action Button */}
                             {isExpanded && item.hasQuickAction && QuickActionIcon && (
-                              <motion.button
+                              <motion.div
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 whileHover={{ scale: 1.1 }}
@@ -431,10 +432,10 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                                   e.stopPropagation();
                                   item.quickActionHandler?.();
                                 }}
-                                className="w-6 h-6 rounded-lg bg-[#BA2027] hover:bg-[#9A1A21] text-white flex items-center justify-center transition-colors ml-1"
+                                className="w-6 h-6 rounded-lg bg-[#BA2027] hover:bg-[#9A1A21] text-white flex items-center justify-center transition-colors ml-1 cursor-pointer"
                               >
                                 <QuickActionIcon className="w-3.5 h-3.5" />
-                              </motion.button>
+                              </motion.div>
                             )}
                           </motion.button>
 
