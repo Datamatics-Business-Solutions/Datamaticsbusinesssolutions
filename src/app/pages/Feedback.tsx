@@ -8,11 +8,11 @@ import {
   ArrowRight, Sparkles, Bot, Brain, BarChart3, CreditCard, Target,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import * as emailjs from '@emailjs/browser';
+import emailjs from '@emailjs/browser';
 
-const EMAILJS_SERVICE_ID = 'service_2cz8e3g';
-const EMAILJS_TEMPLATE_ID = 'template_4xaaoqg';
-const EMAILJS_PUBLIC_KEY = '_oEucjCREDn4wOTcz';
+const EMAILJS_SERVICE_ID  = 'service_2cz8e3g';
+const EMAILJS_TEMPLATE_ID = 'template_up5p94g';
+const EMAILJS_PUBLIC_KEY  = '_oEucjCREDn4wOTcz';
 
 type FeedbackType = 'bug' | 'feature' | 'improvement' | 'general';
 type FeedbackPriority = 'low' | 'medium' | 'high';
@@ -177,29 +177,31 @@ export default function Feedback() {
     setSubmitStatus(null);
 
     try {
-      if (
-        EMAILJS_SERVICE_ID === 'YOUR_SERVICE_ID' ||
-        EMAILJS_TEMPLATE_ID === 'YOUR_TEMPLATE_ID' ||
-        EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY'
-      ) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setSubmitStatus('success');
-      } else {
-        const templateParams = {
-          from_name: formData.name,
-          from_email: formData.email,
-          feedback_type: formData.type.toUpperCase(),
-          priority: formData.priority.toUpperCase(),
-          subject: formData.subject,
-          message: formData.message,
-          user_role: currentUser?.role || 'Unknown',
-          user_id: currentUser?.id || 'Unknown',
-          submitted_at: new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
-        };
+      // Template variables must match exactly what's in EmailJS template_up5p94g:
+      // {{email}} → To Email, {{from_name}}, {{from_email}}, {{user_role}},
+      // {{user_id}}, {{submitted_at}}, {{feedback_type}}, {{priority}},
+      // {{subject}}, {{message}}
+      const templateParams = {
+        email:         'vishalpmehta@gmail.com',   // maps to "To Email: {{email}}"
+        from_name:     formData.name,
+        from_email:    formData.email,
+        user_role:     currentUser?.role || 'Unknown',
+        user_id:       currentUser?.id  || 'Unknown',
+        submitted_at:  new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
+        feedback_type: formData.type.toUpperCase(),
+        priority:      formData.priority.toUpperCase(),
+        subject:       formData.subject,
+        message:       formData.message,
+      };
 
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
-        setSubmitStatus('success');
-      }
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams,
+        EMAILJS_PUBLIC_KEY,
+      );
+
+      setSubmitStatus('success');
 
       setTimeout(() => {
         setFormData({
@@ -207,9 +209,10 @@ export default function Feedback() {
           email: currentUser?.email || '', name: currentUser?.name || '',
         });
         setSubmitStatus(null);
-      }, 2500);
-    } catch (error) {
-      console.error('Error sending feedback:', error);
+      }, 3000);
+    } catch (error: any) {
+      console.error('EmailJS error:', error);
+      if (error?.text) console.error('EmailJS reason:', error.text);
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
