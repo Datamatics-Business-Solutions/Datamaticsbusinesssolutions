@@ -58,13 +58,6 @@ export const mockUsers: User[] = [
     role: 'ops_manager',
     assignedClients: [],
   },
-  {
-    id: 'u5',
-    name: 'Vishal Mehta',
-    email: 'vishalpmehta@gmail.com',
-    role: 'ops_manager',
-    assignedClients: [],
-  },
 ];
 
 // ============================================
