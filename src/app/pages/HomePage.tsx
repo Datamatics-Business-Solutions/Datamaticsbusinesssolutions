@@ -15,8 +15,8 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
-import { useCountUp } from '../hooks/useCountUp';
 import { AnimatedNumber } from '../components/AnimatedNumber';
+import { AnimatedCounter } from '../components/AnimatedCounter';
 import { AccountTeam } from '../components/AccountTeam';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAccountTeam } from '../data/mockClients';
@@ -48,11 +48,8 @@ export default function HomePage() {
   // Get value based on selected period
   const totalLeadsValue = leadsDataByPeriod[leadsPeriod];
 
-  // Animated counters for KPIs
-  const totalLeads = useCountUp(totalLeadsValue, 1500);
-  const activeCampaigns = useCountUp(3, 800);
-  const acceptanceRate = useCountUp(93, 1200);
-  const pendingInvoices = useCountUp(7800, 1500);
+  // No useCountUp here — AnimatedNumber and AnimatedCounter handle animation
+  // directly via imperative DOM updates (no React re-renders per frame)
 
   const recentActivity = [
     {
@@ -121,7 +118,7 @@ export default function HomePage() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1400px] mx-auto px-4 py-4 md:p-6 lg:p-8 space-y-6">
+      <div className="max-w-[1400px] mx-auto page-content space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
@@ -175,7 +172,7 @@ export default function HomePage() {
 
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold text-[#1F2937]">
-                      <AnimatedNumber value={totalLeads} />
+                      <AnimatedNumber value={totalLeadsValue} />
                     </span>
                     <span className="text-sm font-medium text-[#10B981]">
                       +12%
@@ -206,7 +203,7 @@ export default function HomePage() {
                   </p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold text-[#1F2937]">
-                      <AnimatedNumber value={activeCampaigns} />
+                      <AnimatedNumber value={3} />
                     </span>
                     <div className="flex items-center gap-1">
                       <div className="relative">
@@ -241,7 +238,7 @@ export default function HomePage() {
                   </p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold text-[#1F2937]">
-                      {acceptanceRate}%
+                      <AnimatedCounter end={93} duration={1200} suffix="%" />
                     </span>
                     <span className="text-sm font-medium text-[#10B981]">
                       +1%
@@ -273,7 +270,7 @@ export default function HomePage() {
                   Pending Invoices
                 </p>
                 <p className="text-2xl font-bold text-[#1F2937]">
-                  ${(pendingInvoices / 1000).toFixed(1)}K
+                  $<AnimatedCounter end={7.8} decimals={1} duration={1500} suffix="K" />
                 </p>
                 <p className="text-xs text-[#6B7280] mt-1">
                   1 invoice awaiting payment

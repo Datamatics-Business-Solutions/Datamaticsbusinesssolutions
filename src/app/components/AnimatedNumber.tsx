@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface AnimatedNumberProps {
   value: number;
@@ -9,48 +9,61 @@ interface AnimatedNumberProps {
   className?: string;
 }
 
-export function AnimatedNumber({ 
-  value, 
-  duration = 1500, 
+export function AnimatedNumber({
+  value,
+  duration = 1500,
   decimals = 0,
   prefix = '',
   suffix = '',
-  className = ''
+  className = '',
 }: AnimatedNumberProps) {
-  const [displayValue, setDisplayValue] = useState(0);
+  const spanRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const startValue = 0;
-    const endValue = value;
-    const startTime = Date.now();
+    const span = spanRef.current;
+    if (!span) return;
 
-    const animate = () => {
-      const currentTime = Date.now();
-      const elapsed = currentTime - startTime;
-      
-      if (elapsed < duration) {
-        // Easing function (ease-out)
-        const progress = elapsed / duration;
-        const easeProgress = 1 - Math.pow(1 - progress, 3);
-        const currentValue = startValue + (endValue - startValue) * easeProgress;
-        
-        setDisplayValue(currentValue);
-        requestAnimationFrame(animate);
+    let rafId: number;
+    let startTime: number | null = null;
+
+    const animate = (currentTime: number) => {
+      if (startTime === null) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+
+      // easeOutCubic: fast start, decelerates smoothly to end
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = value * eased;
+
+      const formatted =
+        decimals > 0
+          ? current.toFixed(decimals)
+          : Math.round(current).toLocaleString();
+
+      // Direct DOM update — no React re-render triggered
+      span.textContent = `${prefix}${formatted}${suffix}`;
+
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animate);
       } else {
-        setDisplayValue(endValue);
+        const final =
+          decimals > 0
+            ? value.toFixed(decimals)
+            : value.toLocaleString();
+        span.textContent = `${prefix}${final}${suffix}`;
       }
     };
 
-    requestAnimationFrame(animate);
-  }, [value, duration]);
+    rafId = requestAnimationFrame(animate);
 
-  const formattedValue = decimals > 0 
-    ? displayValue.toFixed(decimals)
-    : Math.round(displayValue).toLocaleString();
+    return () => cancelAnimationFrame(rafId);
+  }, [value, duration, prefix, suffix, decimals]);
+
+  const initialFormatted =
+    decimals > 0 ? (0).toFixed(decimals) : (0).toLocaleString();
 
   return (
-    <span className={className}>
-      {prefix}{formattedValue}{suffix}
+    <span ref={spanRef} className={className}>
+      {prefix}{initialFormatted}{suffix}
     </span>
   );
 }

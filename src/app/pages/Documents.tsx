@@ -146,7 +146,7 @@ export default function Documents() {
   const getTypeIcon = (type: string) => {
     const iconProps = {
       className: "w-8 h-8",
-      strokeWidth: 2,
+      strokeWidth: 1.5,
       style: { color: '#6B7280' }
     };
 
@@ -183,7 +183,7 @@ export default function Documents() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>
@@ -303,36 +303,21 @@ export default function Documents() {
           <div className="glass-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px]">
-                <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
+                <thead className="table-header">
                   <tr>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedDocs.length === filteredDocuments.length && filteredDocuments.length > 0}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedDocs(filteredDocuments.map(d => d.id));
-                          } else {
-                            setSelectedDocs([]);
-                          }
-                        }}
-                      />
-                    </th>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                      Document
-                    </th>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                      Type
-                    </th>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                      Uploaded
-                    </th>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                      Status
-                    </th>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                      Actions
-                    </th>
+                    <th className="table-th"><input
+                      type="checkbox"
+                      checked={selectedDocs.length === filteredDocuments.length && filteredDocuments.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedDocs(filteredDocuments.map(d => d.id));
+                        else setSelectedDocs([]);
+                      }}
+                    /></th>
+                    <th className="table-th">Document</th>
+                    <th className="table-th">Type</th>
+                    <th className="table-th">Uploaded By</th>
+                    <th className="table-th">Status</th>
+                    <th className="table-th">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -342,7 +327,7 @@ export default function Documents() {
                       showHoverEffect={true}
                       animationDelay={index * 50}
                     >
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                      <td className="table-td" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={selectedDocs.includes(doc.id)}
@@ -355,56 +340,37 @@ export default function Documents() {
                           }}
                         />
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <div className="flex items-center gap-3">
-                          <div className="text-2xl">{getTypeIcon(doc.type)}</div>
+                          <div>{getTypeIcon(doc.type)}</div>
                           <div>
-                            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                              {doc.name}
-                            </div>
-                            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                              {doc.size}
-                            </div>
+                            <div className="t1">{doc.name}</div>
+                            <div className="t3">{doc.size}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <span className="badge badge-completed">{doc.type}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                            {doc.uploadedBy}
-                          </div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                            {new Date(doc.uploadDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </div>
-                        </div>
+                      <td className="table-td">
+                        <div className="t1">{doc.uploadedBy}</div>
+                        <div className="t3">{new Date(doc.uploadDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <div className={getStatusColor(doc.status)}>
                           {getStatusIcon(doc.status)}
                           <span>{doc.status}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => toggleStar(doc.id)}
-                            className="btn-ghost p-2"
-                          >
+                      <td className="table-td" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => toggleStar(doc.id)} className="btn-ghost p-2" title="Star">
                             <Star className={`w-4 h-4 ${starred.includes(doc.id) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                           </button>
-                          <button
-                            onClick={() => handleViewDocument(doc)}
-                            className="btn-ghost p-2"
-                          >
+                          <button onClick={() => handleViewDocument(doc)} className="btn-ghost p-2" title="View">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => toast.success(`Downloading ${doc.name}`)}
-                            className="btn-ghost p-2"
-                          >
+                          <button onClick={() => toast.success(`Downloading ${doc.name}`)} className="btn-ghost p-2" title="Download">
                             <Download className="w-4 h-4" />
                           </button>
                         </div>

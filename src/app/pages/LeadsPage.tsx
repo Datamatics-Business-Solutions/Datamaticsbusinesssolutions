@@ -195,7 +195,7 @@ export default function LeadsPage() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Header with Stats */}
         <div className="mb-4 md:mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">
@@ -364,9 +364,9 @@ export default function LeadsPage() {
           <div className="glass-card overflow-hidden animate-fadeIn">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1000px]">
-                <thead className="sticky top-0 z-10">
-                  <tr style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
+                <thead className="sticky top-0 z-10 table-header">
+                  <tr>
+                    <th className="table-th">
                       <input
                         type="checkbox"
                         checked={selectedLeads.length === paginatedLeads.length && paginatedLeads.length > 0}
@@ -379,32 +379,12 @@ export default function LeadsPage() {
                         }}
                       />
                     </th>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
-                      Lead Info
-                    </th>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
-                      Contact
-                    </th>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
-                      Company
-                    </th>
-                    <th 
-                      className="text-left px-6 py-4 cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                      style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}
-                      onClick={() => handleSort('leadScore')}
-                    >
-                      Score
-                    </th>
-                    <th 
-                      className="text-left px-6 py-4 cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                      style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}
-                      onClick={() => handleSort('status')}
-                    >
-                      Status
-                    </th>
-                    <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)' }}>
-                      Actions
-                    </th>
+                    <th className="table-th">Lead Info</th>
+                    <th className="table-th">Contact</th>
+                    <th className="table-th">Company</th>
+                    <th className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors" onClick={() => handleSort('leadScore')}>Score</th>
+                    <th className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors" onClick={() => handleSort('status')}>Status</th>
+                    <th className="table-th">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -415,76 +395,58 @@ export default function LeadsPage() {
                       showHoverEffect={true}
                       animationDelay={index * 100}
                     >
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                      <td className="table-td" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={selectedLeads.includes(lead.id)}
                           onChange={() => handleLeadSelection(lead.id)}
                         />
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <div className="flex items-center gap-3">
                           <LeadAvatar firstName={lead.firstName} lastName={lead.lastName} size="md" />
                           <div>
-                            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
-                              {lead.firstName} {lead.lastName}
-                            </div>
-                            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                              {lead.title}
-                            </div>
+                            <div className="t1">{lead.firstName} {lead.lastName}</div>
+                            <div className="t2">{lead.title}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                          <div className="flex items-center gap-2 t2">
                             <Mail className="w-3.5 h-3.5" />
                             {lead.email}
                           </div>
-                          <div className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                          <div className="flex items-center gap-2 t2">
                             <Phone className="w-3.5 h-3.5" />
                             {lead.phone}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <div>
-                          <div className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
+                          <div className="flex items-center gap-2 t1">
                             <Building2 className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
                             {lead.company}
                           </div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                            {lead.industry} • {lead.employeeSize}
-                          </div>
+                          <div className="t2">{lead.industry} • {lead.employeeSize}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <LeadScoreRing score={lead.leadScore} size={65} />
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <div className={getStatusColor(lead.status)}>
                           {getStatusIcon(lead.status)}
                           <span>{lead.status}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => toggleStar(lead.id, e)}
-                            className="btn-ghost p-2"
-                          >
-                            <Star 
-                              className={`w-4 h-4 ${
-                                starred.includes(lead.id) 
-                                  ? 'fill-yellow-400 text-yellow-400' 
-                                  : 'text-gray-400'
-                              }`} 
-                            />
+                      <td className="table-td" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
+                          <button onClick={(e) => toggleStar(lead.id, e)} className="btn-ghost p-2" title="Star">
+                            <Star className={`w-4 h-4 ${starred.includes(lead.id) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                           </button>
-                          <button 
-                            onClick={() => handleLeadDetail(lead)}
-                            className="btn-ghost p-2"
-                          >
+                          <button onClick={() => handleLeadDetail(lead)} className="btn-ghost p-2" title="View lead">
                             <Eye className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
                           </button>
                         </div>

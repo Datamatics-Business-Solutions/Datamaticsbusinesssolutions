@@ -109,7 +109,7 @@ export default function Invoices() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">
           <div>
@@ -207,39 +207,25 @@ export default function Invoices() {
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px]">
-              <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
+              <thead className="table-header">
                 <tr>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedInvoices(filteredInvoices.map(inv => inv.id));
-                        } else {
-                          setSelectedInvoices([]);
-                        }
-                      }}
-                    />
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Invoice
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Campaign
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Amount
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Due Date
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Status
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Actions
-                  </th>
+                  <th className="table-th"><input
+                    type="checkbox"
+                    checked={selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedInvoices(filteredInvoices.map(inv => inv.id));
+                      } else {
+                        setSelectedInvoices([]);
+                      }
+                    }}
+                  /></th>
+                  <th className="table-th">Invoice</th>
+                  <th className="table-th">Campaign</th>
+                  <th className="table-th text-right">Amount</th>
+                  <th className="table-th">Due Date</th>
+                  <th className="table-th">Status</th>
+                  <th className="table-th">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -257,7 +243,7 @@ export default function Invoices() {
                         showHoverEffect={true}
                         animationDelay={index * 50}
                       >
-                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                        <td className="table-td" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={selectedInvoices.includes(invoice.id)}
@@ -270,57 +256,40 @@ export default function Invoices() {
                             }}
                           />
                         </td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                              {invoice.invoiceNumber}
-                            </div>
-                            <div className="flex items-center gap-1 mt-1">
-                              <PaymentIcon className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
-                              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                                {paymentInfo.method}
-                              </span>
-                            </div>
+                        <td className="table-td">
+                          <div className="t1">{invoice.invoiceNumber}</div>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <PaymentIcon className="w-3 h-3 t3" />
+                            <span className="t3">{paymentInfo.method}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                            {invoice.campaignName}
-                          </span>
+                        <td className="table-td">
+                          <span className="t1">{invoice.campaignName}</span>
                         </td>
-                        <td className="px-6 py-4">
-                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                            ${invoice.amount.toLocaleString()}
-                          </span>
+                        <td className="table-td text-right">
+                          <span className="t1">${invoice.amount.toLocaleString()}</span>
                         </td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                              {new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        <td className="table-td">
+                          <div className="t1">{new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                          {invoice.status !== 'Paid' && (
+                            <div className="t3" style={{ color: daysUntil < 0 ? 'var(--color-error)' : undefined }}>
+                              {daysUntil < 0 ? `${Math.abs(daysUntil)} days overdue` : `Due in ${daysUntil} days`}
                             </div>
-                            {invoice.status !== 'Paid' && (
-                              <div style={{ fontSize: 'var(--font-size-xs)', color: daysUntil < 0 ? 'var(--color-error)' : 'var(--color-text-muted)' }}>
-                                {daysUntil < 0 ? `${Math.abs(daysUntil)} days overdue` : `Due in ${daysUntil} days`}
-                              </div>
-                            )}
-                          </div>
+                          )}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="table-td">
                           <div className={getStatusColor(invoice.status)}>
                             {getStatusIcon(invoice.status)}
                             <span>{invoice.status}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            {/* Pay icon for Pending/Overdue, View for Paid - maintain consistent 2-button layout */}
+                        <td className="table-td">
+                          <div className="flex items-center gap-1">
                             {(invoice.status === 'Pending' || invoice.status === 'Overdue') ? (
                               <button
-                                onClick={() => {
-                                  navigate(`/payment/${invoice.id}`);
-                                }}
+                                onClick={() => navigate(`/payment/${invoice.id}`)}
                                 className="btn-ghost p-2"
-                                title="Pay Now"
+                                title="Pay now"
                               >
                                 <DollarSign className="w-4 h-4 text-[#BA2027]" />
                               </button>
@@ -328,7 +297,7 @@ export default function Invoices() {
                               <button
                                 onClick={() => handleViewInvoice(invoice)}
                                 className="btn-ghost p-2"
-                                title="View Invoice"
+                                title="View invoice"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -336,7 +305,7 @@ export default function Invoices() {
                             <button
                               onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}...`)}
                               className="btn-ghost p-2"
-                              title="Download Invoice"
+                              title="Download invoice"
                             >
                               <Download className="w-4 h-4" />
                             </button>

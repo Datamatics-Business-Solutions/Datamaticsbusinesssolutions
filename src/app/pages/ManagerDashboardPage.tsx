@@ -117,7 +117,7 @@ export default function ManagerDashboardPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6">
+      <div className="max-w-[1440px] mx-auto page-content">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>

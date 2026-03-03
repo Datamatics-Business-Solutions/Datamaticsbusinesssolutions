@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
-import { Search, ChevronDown, ChevronUp, Upload } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Upload, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { mockCampaigns } from '../mockData';
 
@@ -48,7 +48,7 @@ export default function InternalCampaignList() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6">
+      <div className="max-w-[1440px] mx-auto page-content">
         <div className="mb-6">
           <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">All Campaigns</h1>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
@@ -86,32 +86,30 @@ export default function InternalCampaignList() {
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px]">
-              <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
+              <thead className="table-header">
                 <tr>
                   <th
-                    className="text-left px-6 py-4 cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                    style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: sortField === 'name' ? 'var(--color-primary)' : 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}
+                    className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors"
+                    style={{ color: sortField === 'name' ? 'var(--color-primary)' : undefined }}
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-1">Campaign <SortIcon field="name" /></div>
                   </th>
                   <th
-                    className="text-left px-6 py-4 cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                    style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: sortField === 'progress' ? 'var(--color-primary)' : 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}
+                    className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors"
+                    style={{ color: sortField === 'progress' ? 'var(--color-primary)' : undefined }}
                     onClick={() => handleSort('progress')}
                   >
                     <div className="flex items-center gap-1">Progress <SortIcon field="progress" /></div>
                   </th>
                   <th
-                    className="text-left px-6 py-4 cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                    style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: sortField === 'status' ? 'var(--color-primary)' : 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}
+                    className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors"
+                    style={{ color: sortField === 'status' ? 'var(--color-primary)' : undefined }}
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center gap-1">Status <SortIcon field="status" /></div>
                   </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Actions
-                  </th>
+                  <th className="table-th">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,15 +124,11 @@ export default function InternalCampaignList() {
                       animationDelay={index * 50}
                       onClick={() => navigate(`/internal/campaigns/${campaign.id}`)}
                     >
-                      <td className="px-6 py-4">
-                        <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                          {campaign.name}
-                        </div>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }} className="mt-0.5">
-                          {campaign.startDate} → {campaign.endDate}
-                        </div>
+                      <td className="table-td">
+                        <div className="t1">{campaign.name}</div>
+                        <div className="t3 mt-0.5">{campaign.startDate} → {campaign.endDate}</div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <div className="space-y-1.5" style={{ minWidth: '160px' }}>
                           <div className="flex items-center gap-3">
                             <div className="progress-bar flex-1">
@@ -143,16 +137,14 @@ export default function InternalCampaignList() {
                                 style={{ width: `${progress}%` }}
                               />
                             </div>
-                            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)', minWidth: '30px' }}>
-                              {progress}%
-                            </span>
+                            <span className="t2" style={{ minWidth: '30px' }}>{progress}%</span>
                           </div>
-                          <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                          <div className="t3">
                             {campaign.delivered.toLocaleString()} / {campaign.target.toLocaleString()} leads
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <span className={`badge ${
                           campaign.status === 'In progress' ? 'badge-active' :
                           campaign.status === 'Completed' ? 'badge-completed' :
@@ -161,13 +153,13 @@ export default function InternalCampaignList() {
                           {campaign.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                      <td className="table-td" onClick={(e) => e.stopPropagation()}>
                         <button
-                          className="btn-outline px-3 py-1.5"
-                          style={{ fontSize: 'var(--font-size-sm)' }}
+                          className="btn-ghost p-2"
+                          title="View campaign"
                           onClick={() => navigate(`/internal/campaigns/${campaign.id}`)}
                         >
-                          View
+                          <Eye className="w-4 h-4" />
                         </button>
                       </td>
                     </TableRow>

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface AnimatedCounterProps {
   end?: number;
-  value?: number; // Allow either 'end' or 'value'
+  value?: number;
   duration?: number;
   prefix?: string;
   suffix?: string;
@@ -10,50 +10,64 @@ interface AnimatedCounterProps {
   className?: string;
 }
 
-export function AnimatedCounter({ 
-  end, 
+export function AnimatedCounter({
+  end,
   value,
-  duration = 2000, 
-  prefix = '', 
-  suffix = '', 
+  duration = 2000,
+  prefix = '',
+  suffix = '',
   decimals = 0,
-  className = '' 
+  className = '',
 }: AnimatedCounterProps) {
-  // Use 'value' if provided, otherwise use 'end', default to 0
   const targetValue = value ?? end ?? 0;
-  const [count, setCount] = useState(0);
+  const spanRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    const span = spanRef.current;
+    if (!span) return;
+
+    let rafId: number;
     let startTime: number | null = null;
-    const startValue = 0;
 
     const animate = (currentTime: number) => {
       if (startTime === null) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
-      
-      // Easing function for smooth animation
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      const currentCount = startValue + (targetValue - startValue) * easeOutQuart;
-      
-      setCount(currentCount);
+
+      // easeOutQuart: fast start, decelerates smoothly to end
+      const eased = 1 - Math.pow(1 - progress, 4);
+      const current = targetValue * eased;
+
+      const formatted =
+        decimals > 0
+          ? current.toFixed(decimals)
+          : Math.floor(current).toLocaleString();
+
+      // Direct DOM update — no React re-render triggered
+      span.textContent = `${prefix}${formatted}${suffix}`;
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        rafId = requestAnimationFrame(animate);
       } else {
-        setCount(targetValue);
+        const final =
+          decimals > 0
+            ? targetValue.toFixed(decimals)
+            : targetValue.toLocaleString();
+        span.textContent = `${prefix}${final}${suffix}`;
       }
     };
 
-    requestAnimationFrame(animate);
-  }, [targetValue, duration]);
+    rafId = requestAnimationFrame(animate);
 
-  const formattedValue = decimals > 0 
-    ? count.toFixed(decimals) 
-    : Math.floor(count).toLocaleString();
+    return () => cancelAnimationFrame(rafId);
+  }, [targetValue, duration, prefix, suffix, decimals]);
+
+  // Render the initial "0" synchronously so there's no flicker
+  const initialFormatted =
+    decimals > 0 ? (0).toFixed(decimals) : (0).toLocaleString();
 
   return (
-    <span className={className}>
-      {prefix}{formattedValue}{suffix}
+    <span ref={spanRef} className={className}>
+      {prefix}{initialFormatted}{suffix}
     </span>
   );
 }

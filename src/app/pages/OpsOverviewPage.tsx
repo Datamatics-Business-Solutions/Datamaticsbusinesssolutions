@@ -227,7 +227,7 @@ export default function OpsOverviewPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1600px] mx-auto px-4 py-4 md:px-6 md:py-6">
+      <div className="max-w-[1600px] mx-auto page-content">
         {/* Header with Primary CTA */}
         <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>

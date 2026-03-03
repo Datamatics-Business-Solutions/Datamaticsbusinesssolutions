@@ -156,7 +156,7 @@ export default function LeadUploadDashboard() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1600px] mx-auto px-4 py-4 md:px-6 md:py-6">
+      <div className="max-w-[1600px] mx-auto page-content">
         {/* Hero Header with Giant Upload Button */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">

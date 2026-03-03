@@ -402,7 +402,7 @@ export default function Login() {
             {/* Quote Icon */}
             <div className="mb-8 animate-scaleIn flex justify-center">
               <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                <Quote className="w-10 h-10 text-white" strokeWidth={2} />
+                <Quote className="w-10 h-10 text-white" />
               </div>
             </div>
 
@@ -447,15 +447,15 @@ export default function Login() {
             </div>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 bg-white/90 backdrop-blur-sm">
-                <CheckCircle2 className="w-5 h-5 text-[#059669]" strokeWidth={2.5} />
+                <CheckCircle2 className="w-5 h-5 text-[#059669]" />
                 <span className="text-sm font-semibold whitespace-nowrap text-[#1A1A1A]">Fortune 500</span>
               </div>
               <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 bg-white/90 backdrop-blur-sm">
-                <CheckCircle2 className="w-5 h-5 text-[#059669]" strokeWidth={2.5} />
+                <CheckCircle2 className="w-5 h-5 text-[#059669]" />
                 <span className="text-sm font-semibold whitespace-nowrap text-[#1A1A1A]">Enterprise SaaS</span>
               </div>
               <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 bg-white/90 backdrop-blur-sm">
-                <CheckCircle2 className="w-5 h-5 text-[#059669]" strokeWidth={2.5} />
+                <CheckCircle2 className="w-5 h-5 text-[#059669]" />
                 <span className="text-sm font-semibold whitespace-nowrap text-[#1A1A1A]">Global Tech</span>
               </div>
             </div>

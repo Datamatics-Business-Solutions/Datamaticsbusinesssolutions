@@ -132,7 +132,7 @@ export function GlassNavigation({ showInternalBadge = false }: GlassNavigationPr
               }}
               className="p-2 rounded-lg relative transition-all hover:bg-[#BA2027]/8 text-[#4A4A4A] hover:text-[#BA2027]"
             >
-              <Bell className="w-6 h-6 stroke-[2]" />
+              <Bell className="w-6 h-6" />
               {unreadCount > 0 && (
                 <motion.span 
                   initial={{ scale: 0 }}

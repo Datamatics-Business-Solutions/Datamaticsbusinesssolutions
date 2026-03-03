@@ -30,7 +30,7 @@ export default function Account() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1200px] mx-auto px-4 py-4 md:px-6 md:py-6 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1200px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Header */}
         <div className="mb-6">
           <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Account Settings</h1>

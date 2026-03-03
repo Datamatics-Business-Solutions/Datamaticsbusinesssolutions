@@ -215,7 +215,7 @@ export default function ReportsPage() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto px-6 py-4 transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
         {/* Compact Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div>

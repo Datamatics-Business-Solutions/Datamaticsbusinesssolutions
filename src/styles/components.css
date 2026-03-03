@@ -239,3 +239,102 @@
 .progress-bar__fill--completed {
   background: #34C759;
 }
+
+/* ============================================
+   SITE-WIDE ICON STANDARDISATION
+   Every Lucide icon renders with className "lucide".
+   CSS rules beat SVG presentation attributes, so
+   this single rule enforces stroke-width: 1.5
+   across the entire portal with zero per-file changes.
+   ============================================ */
+
+.lucide {
+  /* Stroke weight: matches Documents.tsx approved standard */
+  stroke-width: 1.5;
+  /* Never let icons collapse inside flex/grid containers */
+  flex-shrink: 0;
+}
+
+/* Tiny inline indicators (arrows, badge dots) stay crisp at small sizes */
+.lucide-arrow-up-right,
+.lucide-arrow-down-right,
+.lucide-chevron-right,
+.lucide-chevron-down,
+.lucide-chevron-up {
+  stroke-width: 1.5;
+}
+
+/* ============================================
+   PAGE CONTENT WRAPPER
+   Standard inner padding for all main pages.
+   Keep max-w-* and mx-auto on the element too.
+   ============================================ */
+
+.page-content {
+  padding: 24px;
+}
+
+@media (min-width: 768px) {
+  .page-content {
+    padding: 32px;
+  }
+}
+
+/* ============================================
+   TABLE STANDARDS
+   Use these classes on every <th> and <td>
+   to keep all tables identical across the app.
+   ============================================ */
+
+.table-header {
+  background: var(--color-border-light);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Column header cell */
+.table-th {
+  padding: 10px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Data cell */
+.table-td {
+  padding: 13px 20px;
+  vertical-align: middle;
+}
+
+/* ============================================
+   TYPOGRAPHY TIERS
+   3 semantic text levels — use instead of
+   verbose inline style={{ fontSize, fontWeight }}
+   ============================================ */
+
+/* Tier 1 — Primary data value, name, amount */
+.t1 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+/* Tier 2 — Supporting detail, subtitle */
+.t2 {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* Tier 3 — Muted metadata, timestamps */
+.t3 {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}

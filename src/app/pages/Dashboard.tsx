@@ -16,11 +16,12 @@ import {
   ChevronDown,
   X,
   ChevronUp,
+  Eye,
 } from 'lucide-react';
 import { allClients, type Campaign } from '../data/mockClients';
 import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
-import { useCountUp } from '../hooks/useCountUp';
+import { AnimatedCounter } from '../components/AnimatedCounter';
 import { NewCampaignModal, CampaignFormData } from '../components/NewCampaignModal';
 import { EmptyState } from '../components/EmptyState';
 import { AccountTeam } from '../components/AccountTeam';
@@ -92,11 +93,6 @@ export default function Dashboard() {
   const totalLeadsDelivered = Math.round(baseLeadsMonthly * getMultiplier(leadsPeriod));
   const totalSpend = Math.round(baseSpendMonthly * getMultiplier(spendPeriod));
 
-  // Animated counters
-  const animatedCampaigns = useCountUp(activeCampaigns, 1500);
-  const animatedLeads = useCountUp(totalLeadsDelivered, 2000);
-  const animatedSpend = useCountUp(totalSpend, 1800);
-
   // Sparkline data
   const campaignsData = generateSparklineData(activeCampaigns, 'up');
   const leadsData = generateSparklineData(totalLeadsDelivered / 12, 'up');
@@ -140,7 +136,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1400px] mx-auto px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8 space-y-6 md:space-y-8">
+      <div className="max-w-[1400px] mx-auto page-content space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
@@ -197,7 +193,7 @@ export default function Dashboard() {
             </div>
             
             <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none">{animatedCampaigns}</span>
+              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none"><AnimatedCounter end={activeCampaigns} duration={1500} /></span>
               <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#059669]">
                 <TrendingUp className="w-4 h-4" />
                 +8%
@@ -243,7 +239,7 @@ export default function Dashboard() {
             </div>
             
             <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none">{animatedLeads.toLocaleString()}</span>
+              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none"><AnimatedCounter end={totalLeadsDelivered} duration={2000} /></span>
               <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#059669]">
                 <TrendingUp className="w-4 h-4" />
                 +12%
@@ -287,7 +283,7 @@ export default function Dashboard() {
             </div>
             
             <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none">${animatedSpend.toLocaleString()}</span>
+              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none">$<AnimatedCounter end={totalSpend} duration={1800} /></span>
               <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#BA2027]">
                 <TrendingUp className="w-4 h-4 rotate-180" />
                 -3%
@@ -328,23 +324,13 @@ export default function Dashboard() {
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
+              <thead className="table-header">
                 <tr>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Campaign
-                  </th>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Type
-                  </th>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Progress
-                  </th>
-                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Actions
-                  </th>
+                  <th className="table-th">Campaign</th>
+                  <th className="table-th">Type</th>
+                  <th className="table-th">Status</th>
+                  <th className="table-th">Progress</th>
+                  <th className="table-th">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -359,23 +345,17 @@ export default function Dashboard() {
                       animationDelay={index * 50}
                       onClick={() => navigate(`/campaigns/${campaign.id}`)}
                     >
-                      <td className="px-6 py-4">
+                      <td className="table-td">
                         <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                            {campaign.name}
-                          </div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }} className="mt-1">
-                            {campaign.clientName}
-                          </div>
+                          <div className="t1">{campaign.name}</div>
+                          <div className="t3 mt-0.5">{campaign.clientName}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                          Leads
-                        </span>
+                      <td className="table-td">
+                        <span className="t2">Leads</span>
                       </td>
-                      <td className="px-6 py-4">{getStatusPill(campaign.status)}</td>
-                      <td className="px-6 py-4">
+                      <td className="table-td">{getStatusPill(campaign.status)}</td>
+                      <td className="table-td">
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-3">
                             <div className="progress-bar flex-1">
@@ -384,25 +364,25 @@ export default function Dashboard() {
                                 style={{ width: `${Math.min(progress, 100)}%` }}
                               />
                             </div>
-                            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)' }}>
+                            <span className="t2" style={{ minWidth: '28px' }}>
                               {Math.round(progress)}%
                             </span>
                           </div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                          <div className="t3">
                             {(campaign.delivered || 0).toLocaleString()} / {(campaign.target || 0).toLocaleString()} leads
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-td" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/campaigns/${campaign.id}`);
                           }}
-                          className="btn-outline px-3 py-1.5"
-                          style={{ fontSize: 'var(--font-size-sm)' }}
+                          className="btn-ghost p-2"
+                          title="View details"
                         >
-                          View Details
+                          <Eye className="w-4 h-4" />
                         </button>
                       </td>
                     </TableRow>

@@ -69,7 +69,7 @@ export default function CampaignList() {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 md:py-6 lg:px-8 lg:py-8">
+      <div className="max-w-7xl mx-auto page-content">
         {/* Header with New Campaign Button */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8 gap-4">
           <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">Your Campaigns</h1>

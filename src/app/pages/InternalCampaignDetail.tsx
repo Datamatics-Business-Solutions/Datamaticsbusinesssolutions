@@ -26,7 +26,7 @@ export default function InternalCampaignDetail() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6">
+      <div className="max-w-[1440px] mx-auto page-content">
         <div className="mb-6">
           <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">{campaign.name}</h1>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>

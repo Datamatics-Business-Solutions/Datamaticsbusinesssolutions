@@ -42,7 +42,7 @@ export default function InternalDashboard() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1440px] mx-auto px-4 py-4 md:px-6 md:py-6">
+      <div className="max-w-[1440px] mx-auto page-content">
         {/* Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -174,11 +174,11 @@ export default function InternalDashboard() {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[500px]">
-                <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
+                <thead className="table-header">
                   <tr>
-                    <th className="text-left px-6 py-3" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>Campaign</th>
-                    <th className="text-left px-6 py-3" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>Progress</th>
-                    <th className="text-left px-6 py-3" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>Status</th>
+                    <th className="table-th">Campaign</th>
+                    <th className="table-th">Progress</th>
+                    <th className="table-th">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -193,15 +193,15 @@ export default function InternalDashboard() {
                         showHoverEffect
                         onClick={() => navigate(`/internal/campaigns/${campaign.id}`)}
                       >
-                        <td className="px-6 py-4">
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                        <td className="table-td">
+                          <div className="t1">
                             {campaign.name.length > 36 ? `${campaign.name.substring(0, 36)}…` : campaign.name}
                           </div>
-                          <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                          <div className="t3">
                             {campaign.delivered.toLocaleString()} / {campaign.target.toLocaleString()}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="table-td">
                           <div className="flex items-center gap-2" style={{ minWidth: '100px' }}>
                             <div className="progress-bar flex-1">
                               <div
@@ -209,12 +209,10 @@ export default function InternalDashboard() {
                                 style={{ width: `${progress}%` }}
                               />
                             </div>
-                            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)', minWidth: '28px' }}>
-                              {progress}%
-                            </span>
+                            <span className="t2" style={{ minWidth: '28px' }}>{progress}%</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="table-td">
                           <span className={`badge ${
                             campaign.status === 'In progress' ? 'badge-active' :
                             campaign.status === 'Completed' ? 'badge-completed' :
