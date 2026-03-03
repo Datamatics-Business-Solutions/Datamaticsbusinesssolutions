@@ -4,12 +4,12 @@
    ============================================ */
 
 .glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--glass-shadow);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   transition: 
     transform var(--transition-fast),
     box-shadow var(--transition-fast);
@@ -17,16 +17,16 @@
 
 .glass-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--glass-shadow-raised);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
 }
 
 .glass-card-strong {
-  background: var(--glass-bg-strong);
-  backdrop-filter: var(--glass-blur-strong);
-  -webkit-backdrop-filter: var(--glass-blur-strong);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--glass-shadow-raised);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 /* ============================================
@@ -36,12 +36,12 @@
    ============================================ */
 
 .kpi-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--glass-shadow);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   padding: var(--space-6);
   transition: 
     transform var(--transition-fast),
@@ -50,7 +50,7 @@
 
 .kpi-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--glass-shadow-raised);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
 }
 
 .kpi-card__number {
@@ -224,17 +224,18 @@
 
 .progress-bar {
   height: 6px;
-  background: var(--color-border-light);
-  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
   overflow: hidden;
 }
 
 .progress-bar__fill {
   height: 100%;
-  border-radius: var(--radius-full);
-  background: linear-gradient(90deg, 
-    var(--color-primary) 0%, 
-    var(--color-primary-light) 100%);
-  animation: progressFill 1s 
-    cubic-bezier(0.4,0,0.2,1) forwards;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  transition: width 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-bar__fill--completed {
+  background: #34C759;
 }

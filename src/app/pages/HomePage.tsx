@@ -331,24 +331,24 @@ export default function HomePage() {
         {/* Recent Activity & Needs Attention */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Activity */}
-          <div className="rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
-            <h2 className="text-sm font-semibold text-[#1F2937] mb-4">
+          <div className="rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+            <h2 className="font-semibold text-[#1C1C1E] mb-4" style={{ fontSize: '18px', fontWeight: 600 }}>
               Recent Activity
             </h2>
-            <div className="space-y-3">
+            <div className="divide-y divide-black/[0.04]">
               {recentActivity.map((activity) => (
                 <div
                   key={activity.id}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/40 transition-colors cursor-pointer"
+                  className="flex items-center gap-3 py-3 first:pt-0 last:pb-0 hover:bg-white/40 rounded-xl px-2 transition-colors cursor-pointer"
                 >
-                  <div className={`p-2 rounded-lg ${activity.bg}`}>
-                    <activity.icon className={`w-4 h-4 ${activity.color}`} />
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <activity.icon className="w-4 h-4 text-[#6E6E73]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#374151] leading-tight">
+                    <p className="text-[#1C1C1E]" style={{ fontSize: '14px', fontWeight: 400 }}>
                       {activity.text}
                     </p>
-                    <p className="text-xs text-[#9CA3AF] mt-1">
+                    <p className="text-[#6E6E73] mt-0.5" style={{ fontSize: '12px' }}>
                       {activity.time}
                     </p>
                   </div>
@@ -358,59 +358,77 @@ export default function HomePage() {
           </div>
 
           {/* Needs Your Attention */}
-          <div className="rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
-            <h2 className="text-sm font-semibold text-[#1F2937] mb-4">
+          <div className="rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+            <h2 className="font-semibold text-[#1C1C1E] mb-4" style={{ fontSize: '18px', fontWeight: 600 }}>
               Needs Your Attention
             </h2>
             <div className="space-y-3">
-              {needsAttention.map((item) => (
-                <motion.div
-                  key={item.id}
-                  className={`flex items-start gap-3 p-3 rounded-lg border-l-2 cursor-pointer ${
-                    item.type === 'error'
-                      ? 'border-l-[#C0392B] bg-red-50/30'
-                      : item.type === 'warning'
-                      ? 'border-l-[#F59E0B] bg-amber-50/30'
-                      : 'border-l-[#6B7280] bg-gray-50/30'
-                  }`}
-                  whileHover={{ scale: 1.01 }}
-                  onClick={item.buttonAction}
-                >
-                  <item.icon className={`w-5 h-5 ${item.iconColor} flex-shrink-0 mt-0.5`} />
-                  <div className="flex-1">
-                    <p className="text-sm text-[#374151] leading-tight">
-                      {item.text}
-                    </p>
-                    <div className="flex items-center gap-1 mt-2">
-                      <span
-                        className={`text-sm font-semibold ${
-                          item.type === 'error' ? 'text-[#C0392B]' : 'text-[#1E3A5F]'
-                        }`}
-                      >
-                        {item.buttonText}
-                      </span>
-                      <ArrowUpRight
-                        className={`w-3.5 h-3.5 ${
-                          item.type === 'error' ? 'text-[#C0392B]' : 'text-[#1E3A5F]'
-                        }`}
-                      />
+              {needsAttention.map((item) => {
+                const borderColor =
+                  item.type === 'error' ? '#FF3B30' :
+                  item.type === 'warning' ? '#FF9F0A' : '#8E8E93';
+
+                const bgTint =
+                  item.type === 'error' ? 'rgba(255,59,48,0.05)' :
+                  item.type === 'warning' ? 'rgba(255,159,10,0.05)' : 'rgba(142,142,147,0.05)';
+
+                const pillBg =
+                  item.type === 'error' ? 'rgba(255,59,48,0.12)' :
+                  item.type === 'warning' ? 'rgba(255,159,10,0.12)' : 'rgba(142,142,147,0.12)';
+
+                const pillText =
+                  item.type === 'error' ? '#FF3B30' :
+                  item.type === 'warning' ? '#C47A00' : '#6E6E73';
+
+                return (
+                  <motion.div
+                    key={item.id}
+                    whileHover={{ x: 2, boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+                    transition={{ duration: 0.18 }}
+                    onClick={item.buttonAction}
+                    className="flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all"
+                    style={{
+                      borderLeft: `3px solid ${borderColor}`,
+                      borderRadius: '12px',
+                      background: bgTint,
+                    }}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{ background: pillBg }}
+                    >
+                      <item.icon className="w-4 h-4" style={{ color: borderColor }} />
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[#1C1C1E] leading-snug" style={{ fontSize: '14px', fontWeight: 400 }}>
+                        {item.text}
+                      </p>
+                      <div className="mt-2">
+                        <span
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+                          style={{ background: pillBg, color: pillText, fontSize: '12px', fontWeight: 600 }}
+                        >
+                          {item.buttonText} ↗
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>
 
         {/* Campaign Snapshot */}
-        <div className="rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-[#1F2937]">
+        <div className="rounded-2xl p-6 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-semibold text-[#1C1C1E]" style={{ fontSize: '18px', fontWeight: 600 }}>
               Campaign Snapshot
             </h2>
             <button
               onClick={() => navigate('/campaigns')}
-              className="flex items-center gap-1 text-sm font-semibold text-[#1E3A5F] hover:text-[#162D47] transition-colors"
+              className="flex items-center gap-1 text-[#BA2027] hover:text-[#9A1A21] transition-colors font-semibold"
+              style={{ fontSize: '14px', fontWeight: 600 }}
             >
               View all campaigns
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -418,109 +436,95 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Campaign 1 */}
-            <div
-              className="rounded-xl p-4 bg-white border border-[#E5E7EB] cursor-pointer hover:shadow-lg transition-all"
+            {/* Campaign 1 — In Progress */}
+            <motion.div
+              className="rounded-xl p-4 bg-white border border-[#E5E7EB] cursor-pointer transition-all"
               onClick={() => navigate('/campaigns/camp_1')}
+              whileHover={{
+                borderColor: 'rgba(0,122,255,0.4)',
+                boxShadow: '0 4px 20px rgba(0,122,255,0.08)',
+              }}
+              transition={{ duration: 0.18 }}
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#1F2937] mb-1">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-[#1C1C1E] mb-1 leading-snug" style={{ fontSize: '14px' }}>
                     Enterprise IT Security Campaign Q1 2026
                   </h3>
-                  <p className="text-xs text-[#6B7280]">Leads</p>
+                  <p className="text-[#6E6E73]" style={{ fontSize: '12px' }}>Leads</p>
                 </div>
-                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 whitespace-nowrap ml-2">
+                <span className="ml-2 flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600" style={{ fontSize: '12px', fontWeight: 600 }}>
                   In Progress
                 </span>
               </div>
-              <div className="space-y-2">
-                <div className="w-full rounded-full h-2 bg-[#E5E7EB] overflow-hidden">
-                  <div
-                    className="bg-blue-500 h-full rounded-full transition-all duration-500"
-                    style={{ width: '64%' }}
-                  ></div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#374151]">
-                    320/500
-                  </span>
-                  <span className="text-xs font-semibold text-blue-600">
-                    64%
-                  </span>
-                </div>
+              <div className="progress-bar mt-3">
+                <div className="progress-bar__fill" style={{ width: '64%' }} />
               </div>
-            </div>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-[#6E6E73]" style={{ fontSize: '12px' }}>320/500</span>
+                <span className="text-[#6E6E73]" style={{ fontSize: '12px' }}>64%</span>
+              </div>
+            </motion.div>
 
-            {/* Campaign 2 */}
-            <div
-              className="rounded-xl p-4 bg-white border border-[#E5E7EB] cursor-pointer hover:shadow-lg transition-all"
+            {/* Campaign 2 — Completed */}
+            <motion.div
+              className="rounded-xl p-4 bg-white border border-[#E5E7EB] cursor-pointer transition-all"
               onClick={() => navigate('/campaigns/camp_3')}
+              whileHover={{
+                borderColor: 'rgba(0,122,255,0.4)',
+                boxShadow: '0 4px 20px rgba(0,122,255,0.08)',
+              }}
+              transition={{ duration: 0.18 }}
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#1F2937] mb-1">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-[#1C1C1E] mb-1 leading-snug" style={{ fontSize: '14px' }}>
                     Healthcare Content Syndication Feb 2026
                   </h3>
-                  <p className="text-xs text-[#6B7280]">
-                    Content Syndication
-                  </p>
+                  <p className="text-[#6E6E73]" style={{ fontSize: '12px' }}>Content Syndication</p>
                 </div>
-                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-green-50 text-green-600 whitespace-nowrap ml-2">
+                <span className="ml-2 flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-600" style={{ fontSize: '12px', fontWeight: 600 }}>
                   Completed
                 </span>
               </div>
-              <div className="space-y-2">
-                <div className="w-full rounded-full h-2 bg-[#E5E7EB] overflow-hidden">
-                  <div
-                    className="bg-green-500 h-full rounded-full transition-all duration-500"
-                    style={{ width: '100%' }}
-                  ></div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#374151]">
-                    850/800
-                  </span>
-                  <span className="text-xs font-semibold text-green-600">
-                    106%
-                  </span>
-                </div>
+              <div className="progress-bar mt-3">
+                <div className="progress-bar__fill progress-bar__fill--completed" style={{ width: '100%' }} />
               </div>
-            </div>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-[#6E6E73]" style={{ fontSize: '12px' }}>850/800</span>
+                <span className="text-[#6E6E73]" style={{ fontSize: '12px' }}>106%</span>
+              </div>
+            </motion.div>
 
-            {/* Campaign 3 */}
-            <div
-              className="rounded-xl p-4 bg-white border border-[#E5E7EB] cursor-pointer hover:shadow-lg transition-all"
+            {/* Campaign 3 — In Progress */}
+            <motion.div
+              className="rounded-xl p-4 bg-white border border-[#E5E7EB] cursor-pointer transition-all"
               onClick={() => navigate('/campaigns/camp_4')}
+              whileHover={{
+                borderColor: 'rgba(0,122,255,0.4)',
+                boxShadow: '0 4px 20px rgba(0,122,255,0.08)',
+              }}
+              transition={{ duration: 0.18 }}
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#1F2937] mb-1">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-[#1C1C1E] mb-1 leading-snug" style={{ fontSize: '14px' }}>
                     Financial Services BANT Qualification
                   </h3>
-                  <p className="text-xs text-[#6B7280]">BANT</p>
+                  <p className="text-[#6E6E73]" style={{ fontSize: '12px' }}>BANT</p>
                 </div>
-                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 whitespace-nowrap ml-2">
+                <span className="ml-2 flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600" style={{ fontSize: '12px', fontWeight: 600 }}>
                   In Progress
                 </span>
               </div>
-              <div className="space-y-2">
-                <div className="w-full rounded-full h-2 bg-[#E5E7EB] overflow-hidden">
-                  <div
-                    className="bg-blue-500 h-full rounded-full transition-all duration-500"
-                    style={{ width: '43%' }}
-                  ></div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#374151]">
-                    129/300
-                  </span>
-                  <span className="text-xs font-semibold text-blue-600">
-                    43%
-                  </span>
-                </div>
+              <div className="progress-bar mt-3">
+                <div className="progress-bar__fill" style={{ width: '43%' }} />
               </div>
-            </div>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-[#6E6E73]" style={{ fontSize: '12px' }}>129/300</span>
+                <span className="text-[#6E6E73]" style={{ fontSize: '12px' }}>43%</span>
+              </div>
+            </motion.div>
           </div>
         </div>
 

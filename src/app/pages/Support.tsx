@@ -123,18 +123,35 @@ export default function Support() {
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Open':
+        return <Clock className="w-3.5 h-3.5" />;
+      case 'In Progress':
+        return <Activity className="w-3.5 h-3.5" />;
+      case 'Waiting':
+        return <Clock className="w-3.5 h-3.5" />;
+      case 'Resolved':
+        return <CheckCircle className="w-3.5 h-3.5" />;
+      case 'Closed':
+        return <CheckCircle className="w-3.5 h-3.5" />;
+      default:
+        return <Clock className="w-3.5 h-3.5" />;
+    }
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'Urgent':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-600 bg-red-50 border border-red-100';
       case 'High':
-        return 'text-orange-600 bg-orange-50';
+        return 'text-orange-600 bg-orange-50 border border-orange-100';
       case 'Medium':
-        return 'text-yellow-600 bg-yellow-50';
+        return 'text-yellow-600 bg-yellow-50 border border-yellow-100';
       case 'Low':
-        return 'text-blue-600 bg-blue-50';
+        return 'text-blue-600 bg-blue-50 border border-blue-100';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 bg-gray-50 border border-gray-100';
     }
   };
 
@@ -283,14 +300,15 @@ export default function Support() {
                       <span className="badge badge-completed">{ticket.category}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(ticket.priority)}`}>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full ${getPriorityColor(ticket.priority)}`} style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', letterSpacing: 'var(--letter-spacing-wide)' }}>
                         {ticket.priority}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={getStatusColor(ticket.status)}>
-                        {ticket.status}
-                      </span>
+                      <div className={getStatusColor(ticket.status)}>
+                        {getStatusIcon(ticket.status)}
+                        <span>{ticket.status}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
@@ -300,7 +318,8 @@ export default function Support() {
                     <td className="px-6 py-4">
                       <button
                         onClick={() => toast.info('Opening ticket...')}
-                        className="btn-outline px-3 py-1 text-sm"
+                        className="btn-outline px-3 py-1.5"
+                        style={{ fontSize: 'var(--font-size-sm)' }}
                       >
                         View
                       </button>

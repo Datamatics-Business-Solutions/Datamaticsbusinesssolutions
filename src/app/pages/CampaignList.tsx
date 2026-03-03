@@ -98,11 +98,7 @@ export default function CampaignList() {
         )}
 
         {/* Filters */}
-        <div className="rounded-2xl p-5 mb-6 border" style={{
-          background: '#FFFFFF',
-          border: '1px solid rgba(0, 0, 0, 0.06)',
-          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04)'
-        }}>
+        <div className="glass-card p-5 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -111,14 +107,14 @@ export default function CampaignList() {
                 placeholder="Search by campaign name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="input-base w-full pl-10 pr-4 py-2"
               />
             </div>
             <div className="relative">
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+                className="input-base px-4 py-2 pr-10 appearance-none cursor-pointer"
               >
                 <option value="All">All Statuses</option>
                 <option value="Under review">Under review</option>
@@ -133,7 +129,7 @@ export default function CampaignList() {
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
-                className="px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+                className="input-base px-4 py-2 pr-10 appearance-none cursor-pointer"
               >
                 <option value="All time">All time</option>
                 <option value="This month">This month</option>
@@ -146,67 +142,62 @@ export default function CampaignList() {
         </div>
 
         {/* Campaign Table */}
-        <div className="rounded-2xl overflow-hidden border" style={{
-          background: '#FFFFFF',
-          border: '1px solid rgba(0, 0, 0, 0.06)',
-          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04)'
-        }}>
+        <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Campaign Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Service Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Start Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     End Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Delivered vs Target
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Last Updated
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Action
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {filteredCampaigns.map((campaign, index) => (
                   <TableRow 
                     key={campaign.id}
                     showHoverEffect={true}
                     animationDelay={index * 100}
-                    className={index % 2 === 1 ? 'bg-[#F8FCFD]/50' : ''}
                   >
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
+                      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>{campaign.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">{campaign.serviceType}</div>
+                      <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{campaign.serviceType}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={campaign.status} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-6 py-4 whitespace-nowrap" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                       {new Date(campaign.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-6 py-4 whitespace-nowrap" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                       {new Date(campaign.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600 whitespace-nowrap">
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }} className="whitespace-nowrap">
                           {campaign.delivered} / {campaign.target}
                         </span>
                         <div className="w-24">
@@ -214,13 +205,14 @@ export default function CampaignList() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-6 py-4 whitespace-nowrap" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                       {new Date(campaign.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
                         to={`/campaigns/${campaign.id}`}
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                        className="btn-outline px-3 py-1.5"
+                        style={{ fontSize: 'var(--font-size-sm)' }}
                       >
                         View details
                       </Link>
@@ -233,8 +225,8 @@ export default function CampaignList() {
         </div>
 
         {filteredCampaigns.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            No campaigns found matching your filters.
+          <div className="glass-card py-16 text-center">
+            <p className="text-[#6B7280]">No campaigns found matching your filters.</p>
           </div>
         )}
       </div>

@@ -63,10 +63,7 @@
   80% { transform: translateX(3px); }
 }
 
-@keyframes progressFill {
-  from { width: 0%; }
-  to { width: var(--progress-value); }
-}
+/* progressFill keyframe removed — progress bars now use React state + CSS transition */
 
 /* Utility classes */
 .animate-fadeIn { 

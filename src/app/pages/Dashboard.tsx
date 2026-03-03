@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { allClients, type Campaign } from '../data/mockClients';
 import { AppLayout } from '../components/AppLayout';
+import { TableRow } from '../components/TableRow';
 import { useCountUp } from '../hooks/useCountUp';
 import { NewCampaignModal, CampaignFormData } from '../components/NewCampaignModal';
 import { EmptyState } from '../components/EmptyState';
@@ -167,7 +168,7 @@ export default function Dashboard() {
             initial={{ opacity: 0.8 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl border border-[#EEECEC] p-6 shadow-sm"
+            className="glass-card p-6"
           >
             <div className="flex items-center justify-between mb-4">
               <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">ACTIVE CAMPAIGNS</h5>
@@ -211,7 +212,7 @@ export default function Dashboard() {
             initial={{ opacity: 0.8 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl border border-[#EEECEC] p-6 shadow-sm"
+            className="glass-card p-6"
           >
             <div className="flex items-center justify-between mb-4">
               <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
@@ -257,7 +258,7 @@ export default function Dashboard() {
             initial={{ opacity: 0.8 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl border border-[#EEECEC] p-6 shadow-sm"
+            className="glass-card p-6"
           >
             <div className="flex items-center justify-between mb-4">
               <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">TOTAL SPEND</h5>
@@ -327,56 +328,55 @@ export default function Dashboard() {
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-[#F9F9F9] border-b border-[#EEECEC]">
+              <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Campaign
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Type
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Progress
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="border-t border-[#EEECEC]">
+              <tbody>
                 {filteredCampaigns.map((campaign, index) => {
                   const progress = campaign.target && campaign.delivered 
                     ? ((campaign.delivered / campaign.target) * 100) 
                     : 0;
                   return (
-                    <motion.tr
+                    <TableRow
                       key={campaign.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="hover:bg-white/40 transition-colors cursor-pointer border-b border-[#F5F5F5]"
+                      showHoverEffect={true}
+                      animationDelay={index * 50}
+                      onClick={() => navigate(`/campaigns/${campaign.id}`)}
                     >
                       <td className="px-6 py-4">
                         <div>
-                          <div className="text-sm font-semibold text-[#1F2937]">
+                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
                             {campaign.name}
                           </div>
-                          <div className="text-xs text-[#6B7280] mt-1">
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }} className="mt-1">
                             {campaign.clientName}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-[#6B7280]">
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                           Leads
                         </span>
                       </td>
                       <td className="px-6 py-4">{getStatusPill(campaign.status)}</td>
                       <td className="px-6 py-4">
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                           <div className="flex items-center gap-3">
                             <div className="progress-bar flex-1">
                               <div
@@ -384,24 +384,28 @@ export default function Dashboard() {
                                 style={{ width: `${Math.min(progress, 100)}%` }}
                               />
                             </div>
-                            <span className="text-sm font-medium text-[#6B7280]">
+                            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)' }}>
                               {Math.round(progress)}%
                             </span>
                           </div>
-                          <div className="text-xs text-[#9CA3AF]">
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
                             {(campaign.delivered || 0).toLocaleString()} / {(campaign.target || 0).toLocaleString()} leads
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <button
-                          onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                          className="btn-outline px-4 py-2 text-sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/campaigns/${campaign.id}`);
+                          }}
+                          className="btn-outline px-3 py-1.5"
+                          style={{ fontSize: 'var(--font-size-sm)' }}
                         >
                           View Details
                         </button>
                       </td>
-                    </motion.tr>
+                    </TableRow>
                   );
                 })}
               </tbody>

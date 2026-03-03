@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
+import { TableRow } from '../components/TableRow';
 import { mockTeamMembers } from '../mockData';
 import { StatusBadge } from '../components/StatusBadge';
 import { useAuth } from '../context/AuthContext';
@@ -148,13 +149,10 @@ export default function TeamManagementPage() {
               </thead>
               <tbody>
                 {sortedTeam.map((member, index) => (
-                  <motion.tr
+                  <TableRow
                     key={member.email}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="hover:bg-[var(--color-border-light)] transition-colors"
-                    style={{ borderBottom: '1px solid var(--color-border)' }}
+                    showHoverEffect={true}
+                    animationDelay={index * 50}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -193,7 +191,7 @@ export default function TeamManagementPage() {
                         <Edit className="w-4 h-4" />
                       </button>
                     </td>
-                  </motion.tr>
+                  </TableRow>
                 ))}
               </tbody>
             </table>

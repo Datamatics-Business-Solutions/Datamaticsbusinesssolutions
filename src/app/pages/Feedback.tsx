@@ -4,7 +4,7 @@ import { AppLayout } from '../components/AppLayout';
 import {
   MessageSquare, Send, CheckCircle2, AlertCircle, Lightbulb,
   TrendingUp, Zap, Shield, Users, DollarSign, ChevronDown,
-  Rocket, GitBranch, Clock, FileSignature, Upload, Receipt,
+  Rocket, GitBranch, Clock, FilePen, Upload, Receipt,
   ArrowRight, Sparkles, Bot, Brain, BarChart3, CreditCard, Target,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -47,7 +47,7 @@ const coreAutomations = [
     buildTime: '~1 day',
   },
   {
-    icon: FileSignature,
+    icon: FilePen,
     emoji: '✍️',
     color: 'purple',
     title: 'DocuSign — Auto-Generate & Send Job Cards',

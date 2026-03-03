@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
+import { TableRow } from '../components/TableRow';
 import { allClients, getGlobalStats, Client } from '../data/mockClients';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { LeadUploadModal } from '../components/LeadUploadModal';
@@ -407,13 +408,10 @@ export default function OpsOverviewPage() {
               </thead>
               <tbody>
                 {filteredUploads.map((upload, index) => (
-                  <motion.tr
+                  <TableRow
                     key={upload.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="hover:bg-[var(--color-border-light)] transition-colors"
-                    style={{ borderBottom: '1px solid var(--color-border)' }}
+                    showHoverEffect={true}
+                    animationDelay={index * 30}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -478,7 +476,7 @@ export default function OpsOverviewPage() {
                         {formatTimeAgo(upload.uploadedAt)}
                       </div>
                     </td>
-                  </motion.tr>
+                  </TableRow>
                 ))}
               </tbody>
             </table>
@@ -549,13 +547,11 @@ export default function OpsOverviewPage() {
               </thead>
               <tbody>
                 {filteredAndSortedClients.map((client, index) => (
-                  <motion.tr
+                  <TableRow
                     key={client.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="hover:bg-[var(--color-border-light)] transition-colors"
-                    style={{ borderBottom: '1px solid var(--color-border)' }}
+                    showHoverEffect={true}
+                    animationDelay={index * 30}
+                    onClick={() => navigate(`/internal/campaigns/${client.campaigns[0]?.id}`)}
                   >
                     <td className="px-6 py-4">
                       <div>
@@ -592,7 +588,7 @@ export default function OpsOverviewPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleQuickUpload(client)}
@@ -610,7 +606,7 @@ export default function OpsOverviewPage() {
                         </button>
                       </div>
                     </td>
-                  </motion.tr>
+                  </TableRow>
                 ))}
               </tbody>
             </table>

@@ -726,12 +726,16 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
       <div
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="hidden md:flex flex-col h-screen bg-[#F8F7F7] border-r border-[#EEECEC] overflow-hidden flex-shrink-0"
+        className="hidden md:flex flex-col h-screen overflow-hidden flex-shrink-0"
         style={{ 
           width: isPinned ? '260px' : (isHovered ? '260px' : '72px'),
           minWidth: isPinned ? '260px' : (isHovered ? '260px' : '72px'),
           transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isExpanded ? '4px 0 24px rgba(0,0,0,0.08)' : '2px 0 8px rgba(0,0,0,0.04)',
+          background: 'rgba(255, 255, 255, 0.72)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRight: '1px solid rgba(0, 0, 0, 0.06)',
+          boxShadow: isExpanded ? '4px 0 24px rgba(0,0,0,0.06)' : '2px 0 8px rgba(0,0,0,0.03)',
           willChange: 'width',
           transform: 'translateZ(0)'
         }}
@@ -747,8 +751,14 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
             animate={{ x: 0 }}
             exit={{ x: -260 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="md:hidden fixed left-0 top-0 h-screen w-[260px] bg-[#F8F7F7] border-r border-[#EEECEC] z-[60] overflow-hidden"
-            style={{ boxShadow: '2px 0 8px rgba(0,0,0,0.04)' }}
+            className="md:hidden fixed left-0 top-0 h-screen w-[260px] z-[60] overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.92)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              borderRight: '1px solid rgba(0, 0, 0, 0.06)',
+              boxShadow: '4px 0 24px rgba(0,0,0,0.08)'
+            }}
           >
             {sidebarContent}
           </motion.div>

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
-import { AnimatedCounter } from '../components/AnimatedCounter';
+import { TableRow } from '../components/TableRow';
 import { LeadUploadModal } from '../components/LeadUploadModal';
 import { allClients, recentUploadBatches, type LeadUploadBatch } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
@@ -482,13 +482,10 @@ export default function LeadUploadDashboard() {
               </thead>
               <tbody>
                 {filteredUploads.map((upload, index) => (
-                  <motion.tr
+                  <TableRow
                     key={upload.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="hover:bg-[var(--color-border-light)] transition-colors"
-                    style={{ borderBottom: '1px solid var(--color-border)' }}
+                    showHoverEffect={true}
+                    animationDelay={index * 30}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -553,12 +550,13 @@ export default function LeadUploadDashboard() {
                         {formatTimeAgo(upload.uploadedAt)}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-2">
                         {upload.status === 'failed' && (
                           <button
                             onClick={() => handleQuickUpload(upload.clientId, upload.campaignId)}
-                            className="btn-primary px-3 py-1.5 text-xs"
+                            className="btn-primary px-3 py-1.5"
+                            style={{ fontSize: 'var(--font-size-xs)' }}
                           >
                             Retry
                           </button>
@@ -573,7 +571,7 @@ export default function LeadUploadDashboard() {
                         )}
                       </div>
                     </td>
-                  </motion.tr>
+                  </TableRow>
                 ))}
               </tbody>
             </table>
