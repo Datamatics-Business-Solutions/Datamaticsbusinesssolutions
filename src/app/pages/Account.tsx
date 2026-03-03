@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   User, Mail, Phone, Building2, MapPin, Globe, Lock, Bell, Shield,
   Smartphone, Monitor, Users, UserPlus, Trash2, Edit, Check, X,
@@ -12,13 +12,8 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 export default function Account() {
   useDocumentTitle('Account Settings');
   
-  const [pageLoaded, setPageLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'company' | 'team' | 'security' | 'notifications'>('profile');
   const [showPassword, setShowPassword] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => setPageLoaded(true), 100);
-  }, []);
 
   const tabs = [
     { id: 'profile', label: 'My Profile', icon: User },
@@ -30,7 +25,7 @@ export default function Account() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1200px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1200px] mx-auto page-content animate-fadeIn`}>
         {/* Header */}
         <div className="mb-6">
           <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Account Settings</h1>

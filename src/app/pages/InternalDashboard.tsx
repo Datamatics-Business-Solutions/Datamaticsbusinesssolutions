@@ -173,7 +173,7 @@ export default function InternalDashboard() {
               </button>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[500px]">
+              <table className="w-full min-w-[700px]">
                 <thead className="table-header">
                   <tr>
                     <th className="table-th">Campaign</th>
@@ -182,48 +182,40 @@ export default function InternalDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentCampaigns.map((campaign, index) => {
-                    const progress = campaign.target > 0
-                      ? Math.min(Math.round((campaign.delivered / campaign.target) * 100), 100)
-                      : 0;
-                    return (
-                      <TableRow
-                        key={campaign.id}
-                        animationDelay={index * 40}
-                        showHoverEffect
-                        onClick={() => navigate(`/internal/campaigns/${campaign.id}`)}
-                      >
-                        <td className="table-td">
-                          <div className="t1">
-                            {campaign.name.length > 36 ? `${campaign.name.substring(0, 36)}…` : campaign.name}
+                  {recentCampaigns.map((campaign, index) => (
+                    <TableRow key={campaign.id} index={index}>
+                      <td className="table-td">
+                        <div className="t1">
+                          {campaign.name.length > 36 ? `${campaign.name.substring(0, 36)}…` : campaign.name}
+                        </div>
+                        <div className="t3">
+                          {campaign.delivered.toLocaleString()} / {campaign.target.toLocaleString()}
+                        </div>
+                      </td>
+                      <td className="table-td">
+                        <div className="flex items-center gap-2" style={{ minWidth: '100px' }}>
+                          <div className="progress-bar flex-1">
+                            <div
+                              className={`progress-bar__fill ${campaign.status === 'Completed' ? 'progress-bar__fill--completed' : ''}`}
+                              style={{ width: `${campaign.target > 0 ? Math.min(Math.round((campaign.delivered / campaign.target) * 100), 100) : 0}%` }}
+                            />
                           </div>
-                          <div className="t3">
-                            {campaign.delivered.toLocaleString()} / {campaign.target.toLocaleString()}
-                          </div>
-                        </td>
-                        <td className="table-td">
-                          <div className="flex items-center gap-2" style={{ minWidth: '100px' }}>
-                            <div className="progress-bar flex-1">
-                              <div
-                                className={`progress-bar__fill ${campaign.status === 'Completed' ? 'progress-bar__fill--completed' : ''}`}
-                                style={{ width: `${progress}%` }}
-                              />
-                            </div>
-                            <span className="t2" style={{ minWidth: '28px' }}>{progress}%</span>
-                          </div>
-                        </td>
-                        <td className="table-td">
-                          <span className={`badge ${
-                            campaign.status === 'In progress' ? 'badge-active' :
-                            campaign.status === 'Completed' ? 'badge-completed' :
-                            'badge-paused'
-                          }`}>
-                            {campaign.status}
+                          <span className="t2" style={{ minWidth: '28px' }}>
+                            {campaign.target > 0 ? Math.min(Math.round((campaign.delivered / campaign.target) * 100), 100) : 0}%
                           </span>
-                        </td>
-                      </TableRow>
-                    );
-                  })}
+                        </div>
+                      </td>
+                      <td className="table-td">
+                        <span className={`badge ${
+                          campaign.status === 'In progress' ? 'badge-active' :
+                          campaign.status === 'Completed' ? 'badge-completed' :
+                          'badge-paused'
+                        }`}>
+                          {campaign.status}
+                        </span>
+                      </td>
+                    </TableRow>
+                  ))}
                 </tbody>
               </table>
             </div>

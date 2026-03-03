@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import {
   TrendingUp, Users, Target, DollarSign, Download,
@@ -70,14 +70,9 @@ function ChartCard({ title, children, actions }: { title: string; children: Reac
 }
 
 export default function InternalReports() {
-  const [pageLoaded, setPageLoaded] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [savedReports, setSavedReports] = useState<string[]>([]);
   const [activeMetric, setActiveMetric] = useState<'leads' | 'revenue' | 'campaigns' | 'acceptance'>('leads');
-
-  useEffect(() => {
-    setTimeout(() => setPageLoaded(true), 100);
-  }, []);
 
   const totalLeads = monthlyData.reduce((sum, m) => sum + m.leads, 0);
   const totalRevenue = monthlyData.reduce((sum, m) => sum + m.revenue, 0);
@@ -103,7 +98,7 @@ export default function InternalReports() {
   return (
     <AppLayout>
       <div
-        className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className="max-w-[1440px] mx-auto page-content animate-fadeIn"
       >
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">

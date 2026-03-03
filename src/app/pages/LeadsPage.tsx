@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
 import { 
@@ -35,7 +35,6 @@ export default function LeadsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [starred, setStarred] = useState<string[]>([]);
-  const [pageLoaded, setPageLoaded] = useState(false);
   const [showAlert, setShowAlert] = useState(true);
   
   const [advancedFilters, setAdvancedFilters] = useState({
@@ -46,10 +45,6 @@ export default function LeadsPage() {
   });
 
   const leadsPerPage = viewMode === 'grid' ? 12 : 10;
-
-  useEffect(() => {
-    setTimeout(() => setPageLoaded(true), 100);
-  }, []);
 
   // Filter and sort leads
   const filteredLeads = mockLeads.filter(lead => {
@@ -195,7 +190,7 @@ export default function LeadsPage() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className="max-w-[1440px] mx-auto page-content animate-fadeIn">
         {/* Header with Stats */}
         <div className="mb-4 md:mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">

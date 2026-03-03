@@ -4,7 +4,8 @@
    ============================================ */
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.72);
+  /* Solid fallback for browsers without backdrop-filter (older Android WebView) */
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -15,18 +16,42 @@
     box-shadow var(--transition-fast);
 }
 
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.98);
+  }
+}
+
 .glass-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
 }
 
 .glass-card-strong {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 20px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-card-strong {
+    background: #ffffff;
+  }
+}
+
+/* Reduce blur on mobile — heavy blur causes GPU lag on mid-range Android */
+@media (max-width: 767px) {
+  .glass-card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .glass-card-strong {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
 /* ============================================
@@ -36,7 +61,8 @@
    ============================================ */
 
 .kpi-card {
-  background: rgba(255, 255, 255, 0.72);
+  /* Solid fallback for browsers without backdrop-filter */
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -48,9 +74,23 @@
     box-shadow var(--transition-fast);
 }
 
+@supports not (backdrop-filter: blur(1px)) {
+  .kpi-card {
+    background: rgba(255, 255, 255, 0.98);
+  }
+}
+
 .kpi-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
+}
+
+/* Reduce blur on mobile */
+@media (max-width: 767px) {
+  .kpi-card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
 .kpi-card__number {
@@ -107,7 +147,7 @@
 }
 
 /* ============================================
-   BUTTONS
+   BUTTONS — 44×44px minimum touch targets
    ============================================ */
 
 .btn-primary {
@@ -124,6 +164,10 @@
     transform var(--transition-fast),
     box-shadow var(--transition-fast);
   cursor: pointer;
+  /* Minimum touch target */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .btn-primary:hover {
@@ -141,6 +185,10 @@
     background var(--transition-fast),
     transform var(--transition-fast);
   cursor: pointer;
+  /* Minimum touch target */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .btn-outline:hover {
@@ -157,6 +205,12 @@
     background var(--transition-fast),
     color var(--transition-fast);
   cursor: pointer;
+  /* Minimum touch target: 44×44px */
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-ghost:hover {
@@ -197,7 +251,8 @@
 }
 
 /* ============================================
-   INPUTS
+   INPUTS — 16px minimum on mobile prevents
+   iOS Safari and Android Chrome from auto-zooming
    ============================================ */
 
 .input-base {
@@ -210,12 +265,29 @@
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
   font-family: var(--font-family);
+  /* Minimum touch target height */
+  min-height: 44px;
 }
 
 .input-base:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-tint);
+}
+
+/* ============================================
+   MOBILE-ONLY GLOBAL INPUT SIZE FIX
+   Enforces 16px minimum to prevent auto-zoom
+   on iOS Safari and Android Chrome
+   ============================================ */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea,
+  .input-base {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
 }
 
 /* ============================================
@@ -271,12 +343,15 @@
    ============================================ */
 
 .page-content {
-  padding: 24px;
+  padding: 16px;
+  /* Bottom padding accounts for mobile tab bar + iOS safe area */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 768px) {
   .page-content {
     padding: 32px;
+    padding-bottom: 32px;
   }
 }
 
@@ -307,6 +382,81 @@
 .table-td {
   padding: 13px 20px;
   vertical-align: middle;
+}
+
+/* ============================================
+   RESPONSIVE TABLE → STACKED CARDS (MOBILE)
+   Apply .table-responsive to any <table>.
+   Add data-label="Column Name" to every <td>.
+   At < 640px, rows become cards and each cell
+   shows its label as a leading prefix.
+   ============================================ */
+
+@media (max-width: 639px) {
+  .table-responsive {
+    display: block;
+    width: 100%;
+  }
+
+  .table-responsive thead {
+    display: none; /* labels come from data-label */
+  }
+
+  .table-responsive tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .table-responsive tr {
+    display: block;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .table-responsive td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 14px;
+  }
+
+  .table-responsive td:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .table-responsive td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    min-width: 90px;
+    padding-top: 2px;
+  }
+
+  /* Hide columns marked as mobile-hidden */
+  .table-responsive td.mobile-hidden {
+    display: none;
+  }
+}
+
+/* ============================================
+   MOBILE BOTTOM TAB BAR SAFE AREA
+   ============================================ */
+
+.mobile-tab-bar {
+  /* iOS safe area for home indicator */
+  padding-bottom: env(safe-area-inset-bottom, 8px);
 }
 
 /* ============================================

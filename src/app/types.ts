@@ -1,4 +1,16 @@
-export type CampaignStatus = 'Not started' | 'In progress' | 'Paused' | 'Completed' | 'Under review';
+export type CampaignStatus =
+  | 'Not started'
+  | 'In progress'
+  | 'Paused'
+  | 'Completed'
+  | 'Under review'
+  | 'Pending Approval'
+  | 'Changes Requested'
+  | 'Cancelled'
+  | 'Accepted'
+  | 'Pending'
+  | 'Rejected'
+  | 'Overdue';
 
 export type ServiceType = 'Leads' | 'Content Syndication' | 'BANT' | 'Appointments' | 'Single Touch' | 'Double Touch' | 'Appointment Setting' | 'Custom';
 
@@ -28,6 +40,36 @@ export interface Campaign {
   scopeOfWork: string[];
   terms: string;
 }
+
+// ─── Campaign Approval Workflow ───────────────────────────────────────────────
+export type SubmissionStatus = 'Pending Approval' | 'Changes Requested' | 'Approved' | 'Declined';
+
+export interface CampaignSubmission {
+  id: string;
+  campaignName: string;
+  clientId: string;
+  clientCompany: string;
+  submittedBy: string;
+  submittedAt: string; // ISO date
+  assignedManager: string;
+  assignedManagerEmail: string;
+  status: SubmissionStatus;
+  // Campaign spec
+  serviceType: string;
+  geography: string;
+  locations: string[];
+  targetLeads: number;
+  cpl: number;
+  jobTitles: string[];
+  employeeSize: string;
+  industry: string;
+  additionalInfo?: string;
+  // Ops feedback
+  managerNotes?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface DailyProgress {
   date: string;

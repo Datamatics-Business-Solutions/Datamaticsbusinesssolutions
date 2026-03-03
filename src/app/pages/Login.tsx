@@ -45,22 +45,16 @@ export default function Login() {
   
   const navigate = useNavigate();
   const { setCurrentUser } = useAuth();
-  const [selectedUserId, setSelectedUserId] = useState('u1'); // Default to first user
+  const [selectedUserId, setSelectedUserId] = useState('u1');
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
   const [userSelectorFocused, setUserSelectorFocused] = useState(false);
-  const [pageLoaded, setPageLoaded] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   
   // Login page is always light theme
   const parallax = useParallax();
-
-  // Page load animation
-  useEffect(() => {
-    setTimeout(() => setPageLoaded(true), 100);
-  }, []);
 
   // Auto-rotate testimonials every 6 seconds
   useEffect(() => {
@@ -86,27 +80,24 @@ export default function Login() {
     setError('');
     setIsLoading(true);
 
-    // Simulate login
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Brief visual feedback delay — reduced from 1500ms to 300ms.
+    // Users shouldn't wait over a second for a mock login with no real network call.
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     if (!selectedUserId) {
       setError('Please select a user');
       setIsLoading(false);
-      // Shake animation
       formRef.current?.classList.add('animate-shake');
       setTimeout(() => formRef.current?.classList.remove('animate-shake'), 500);
       return;
     }
 
-    // Find and set the selected user
     const selectedUser = mockUsers.find(u => u.id === selectedUserId);
     if (selectedUser) {
       setCurrentUser(selectedUser);
-      
       setIsLoading(false);
       setShowSuccess(true);
       
-      // Success animation then navigate based on role
       const route = selectedUser.role === 'ops_manager' ? '/dashboard/ops' :
                     selectedUser.role === 'campaign_manager' ? '/dashboard/manager' :
                     selectedUser.role === 'campaign_backup' ? '/dashboard/manager' :
@@ -114,7 +105,7 @@ export default function Login() {
       
       setTimeout(() => {
         navigate(route);
-      }, 1200);
+      }, 600);
     }
   };
 
@@ -125,10 +116,10 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen overflow-hidden">
-      {/* Left Side - Login Form - Always Light Theme */}
+    <div className="flex min-h-screen overflow-hidden animate-fadeIn">
+      {/* Left Side - Login Form */}
       <div 
-        className="flex-1 flex items-start justify-center px-6 py-12 relative bg-white overflow-y-auto"
+        className="w-full lg:flex-1 flex items-start justify-center px-4 sm:px-6 py-8 sm:py-12 relative bg-white overflow-y-auto"
         style={{
           backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(186, 32, 39, 0.02) 0%, transparent 50%)'
         }}
@@ -158,12 +149,9 @@ export default function Login() {
           }}
         />
 
-        {/* Glassmorphism Form Container */}
+        {/* Glassmorphism Form Container — slides up on mount via CSS */}
         <div 
-          className="w-full max-w-[440px] relative z-10 p-8 rounded-3xl transition-all duration-500 bg-white/60 backdrop-blur-xl border border-black/5 shadow-[0_8px_32px_rgba(186,32,39,0.08)] my-auto"
-          style={{
-            transform: pageLoaded ? 'translateY(0)' : 'translateY(20px)'
-          }}
+          className="w-full max-w-[440px] relative z-10 p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-black/5 shadow-[0_8px_32px_rgba(186,32,39,0.08)] my-auto animate-slideInUp"
         >
           {/* Logo with Glow */}
           <div className="flex justify-center mb-6">

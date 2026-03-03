@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, Target, CheckCircle, Download,
@@ -45,15 +45,10 @@ function ChartCard({ title, children, actions }: any) {
 }
 
 export default function ReportsPage() {
-  const [pageLoaded, setPageLoaded] = useState(false);
   const [dateRange, setDateRange] = useState('30days');
   const [showExportModal, setShowExportModal] = useState(false);
   const [savedReports, setSavedReports] = useState<string[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
-
-  useEffect(() => {
-    setTimeout(() => setPageLoaded(true), 100);
-  }, []);
 
   // Campaign-specific data
   const campaignMetrics: Record<string, any> = {
@@ -215,7 +210,7 @@ export default function ReportsPage() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1440px] mx-auto page-content animate-fadeIn`}>
         {/* Compact Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div>

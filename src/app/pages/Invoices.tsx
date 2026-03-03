@@ -1,25 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Download, Search, FileText, CheckCircle, Clock, AlertCircle, Eye, CreditCard, PieChart as PieChartIcon, Building2, ArrowRightLeft, Calendar, ChevronDown, X } from 'lucide-react';
-import { TableRow } from '../components/TableRow';
-import { Link, useNavigate } from 'react-router';
-import { toast } from 'sonner';
-import { mockInvoices } from '../mockInvoices';
-import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
-import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
-import { DollarSign } from 'lucide-react';
-import { AppLayout } from '../components/AppLayout';
-import { SimpleEmptyState } from '../components/SimpleEmptyState';
-import { Tooltip } from '../components/Tooltip';
 import { useDebounce } from '../hooks/useDebounce';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { TableSkeleton } from '../components/SkeletonLoader';
 
 export default function Invoices() {
   useDocumentTitle('Invoices');
   
   const navigate = useNavigate();
-  const [pageLoaded, setPageLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
@@ -27,14 +12,6 @@ export default function Invoices() {
   const [showPreview, setShowPreview] = useState(false);
   
   const debouncedSearch = useDebounce(searchTerm, 300);
-
-  useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setIsLoading(false);
-      setPageLoaded(true);
-    }, 800);
-  }, []);
 
   const filteredInvoices = mockInvoices.filter(invoice => {
     const matchesStatus = statusFilter === 'All' || invoice.status === statusFilter;
@@ -109,7 +86,7 @@ export default function Invoices() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1440px] mx-auto page-content animate-fadeIn`}>
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">
           <div>
@@ -229,10 +206,7 @@ export default function Invoices() {
                 </tr>
               </thead>
               <tbody>
-                {isLoading ? (
-                  <TableSkeleton rows={5} columns={7} />
-                ) : (
-                  filteredInvoices.map((invoice, index) => {
+                {filteredInvoices.map((invoice, index) => {
                     const daysUntil = getDaysUntilDue(invoice.dueDate);
                     const paymentInfo = getPaymentMethod(invoice.status);
                     const PaymentIcon = paymentInfo.icon;
@@ -319,7 +293,7 @@ export default function Invoices() {
             </table>
           </div>
 
-          {filteredInvoices.length === 0 && !isLoading && (
+          {filteredInvoices.length === 0 && (
             <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
               No invoices found
             </div>

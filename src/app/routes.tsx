@@ -29,6 +29,7 @@ const ManagerDashboardPage = lazy(() => import('./pages/ManagerDashboardPage'));
 const TeamManagementPage = lazy(() => import('./pages/TeamManagementPage'));
 const ClientAssignmentPage = lazy(() => import('./pages/ClientAssignmentPage'));
 const ErrorBoundary = lazy(() => import('./pages/ErrorBoundary'));
+const CampaignApprovalsPage = lazy(() => import('./pages/CampaignApprovalsPage'));
 
 // Wraps every lazy page in a Suspense boundary with the branded splash.
 const withSuspense = (Component: React.LazyExoticComponent<any>) => {
@@ -132,6 +133,10 @@ export const router = createBrowserRouter([
   {
     path: '/internal/client-assignment',
     Component: withSuspense(ClientAssignmentPage),
+  },
+  {
+    path: '/internal/approvals',
+    Component: withSuspense(CampaignApprovalsPage),
   },
   {
     path: '*',

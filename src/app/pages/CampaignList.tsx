@@ -1,13 +1,175 @@
+import { mockCampaigns, mockCampaignSubmissions } from '../mockData';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { Search, Plus, Filter, ChevronDown } from 'lucide-react';
-import { mockCampaigns, type Campaign, type ServiceType, type CampaignStatus } from '../mockData';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  Search, Plus, ChevronDown,
+  Clock, CheckCircle2, AlertTriangle, MessageSquareDiff,
+} from 'lucide-react';
+import type { Campaign, CampaignStatus, CampaignSubmission, ServiceType } from '../types';
 import { ProgressBar } from '../components/ProgressBar';
 import { TableRow } from '../components/TableRow';
 import { AppLayout } from '../components/AppLayout';
 import { StatusBadge } from '../components/StatusBadge';
 import { NewCampaignModal, type CampaignFormData } from '../components/NewCampaignModal';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+
+// ─── Submission status timeline helper ───────────────────────────────────────
+function SubmissionTracker({ submissions }: { submissions: CampaignSubmission[] }) {
+  if (submissions.length === 0) return null;
+
+  return (
+    <div
+      className="mb-6 rounded-2xl overflow-hidden"
+      style={{
+        background: 'rgba(255,255,255,0.82)',
+        backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(255,255,255,0.6)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+      }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-6 py-4"
+        style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#BA2027]/10 flex items-center justify-center">
+            <Clock className="w-4 h-4 text-[#BA2027]" />
+          </div>
+          <div>
+            <p className="font-semibold text-[#111]" style={{ fontSize: '15px' }}>
+              Submitted for Approval
+            </p>
+            <p className="text-[#6B7280]" style={{ fontSize: '12px' }}>
+              {submissions.length} campaign{submissions.length > 1 ? 's' : ''} awaiting or pending your team's review
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {submissions.some(s => s.status === 'Pending Approval') && (
+            <span className="flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#BA2027] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#BA2027]" />
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Submission rows */}
+      <div className="divide-y divide-black/[0.04]">
+        {submissions.map(sub => {
+          const isPending = sub.status === 'Pending Approval';
+          const isChanges = sub.status === 'Changes Requested';
+
+          // 3-step timeline
+          const steps = [
+            { label: 'Submitted', done: true },
+            {
+              label: isPending ? 'Under Review' : isChanges ? 'Changes Needed' : 'Reviewed',
+              done: !isPending,
+              active: isPending,
+              warning: isChanges,
+            },
+            { label: 'Goes Live', done: false },
+          ];
+
+          return (
+            <div key={sub.id} className="px-6 py-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                {/* Campaign info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <StatusBadge status={sub.status} />
+                    <span className="text-xs text-[#9CA3AF]">
+                      {sub.serviceType} · Submitted {new Date(sub.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                  <p className="font-semibold text-[#1F2937] truncate" style={{ fontSize: '14px' }}>
+                    {sub.campaignName}
+                  </p>
+                  <p className="text-[#6B7280] mt-0.5" style={{ fontSize: '12px' }}>
+                    Assigned to {sub.assignedManager}
+                  </p>
+                </div>
+
+                {/* Timeline */}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {steps.map((step, i) => (
+                    <div key={i} className="flex items-center gap-1.5">
+                      <div className="flex flex-col items-center gap-1">
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center"
+                          style={{
+                            background: step.done
+                              ? '#059669'
+                              : step.active
+                              ? '#BA2027'
+                              : step.warning
+                              ? '#F59E0B'
+                              : 'rgba(0,0,0,0.08)',
+                            boxShadow: (step.active || step.warning)
+                              ? `0 0 0 3px ${step.warning ? 'rgba(245,158,11,0.15)' : 'rgba(186,32,39,0.15)'}`
+                              : 'none',
+                          }}
+                        >
+                          {step.done ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          ) : step.warning ? (
+                            <AlertTriangle className="w-3 h-3 text-white" />
+                          ) : (
+                            <div className="w-2 h-2 rounded-full bg-white/60" />
+                          )}
+                        </div>
+                        <span
+                          className="text-center whitespace-nowrap"
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            color: step.done ? '#059669' : step.active ? '#BA2027' : step.warning ? '#B45309' : '#9CA3AF',
+                          }}
+                        >
+                          {step.label}
+                        </span>
+                      </div>
+                      {i < steps.length - 1 && (
+                        <div
+                          className="w-8 h-px mb-4"
+                          style={{ background: step.done ? '#059669' : 'rgba(0,0,0,0.1)' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Changes Requested feedback callout */}
+              {isChanges && sub.managerNotes && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-3 rounded-xl p-3 flex items-start gap-2.5"
+                  style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}
+                >
+                  <MessageSquareDiff className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-amber-800 mb-0.5" style={{ fontSize: '12px' }}>
+                      Feedback from {sub.reviewedBy || sub.assignedManager}
+                    </p>
+                    <p className="text-amber-900 leading-relaxed" style={{ fontSize: '12px' }}>
+                      {sub.managerNotes}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function CampaignList() {
   useDocumentTitle('Campaigns');
@@ -17,46 +179,74 @@ export default function CampaignList() {
   const [dateRange, setDateRange] = useState<string>('All time');
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
   const [campaigns, setCampaigns] = useState(mockCampaigns);
+  const [clientSubmissions, setClientSubmissions] = useState<CampaignSubmission[]>(
+    // Show only submissions from the logged-in client (Acme Corp / client_1 for demo)
+    mockCampaignSubmissions.filter(s => s.clientId === 'client_1')
+  );
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const handleNewCampaignSubmit = (formData: CampaignFormData) => {
-    // Create new campaign object
     const newCampaign = {
       id: `${campaigns.length + 1}`,
       name: formData.name,
-      clientCompany: 'TechVentures Agency', // Would come from auth
+      clientCompany: 'Acme Corp',
       serviceType: formData.type as ServiceType,
-      status: 'Under review' as CampaignStatus,
+      status: 'Pending Approval' as CampaignStatus,
       startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days from now
+      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       delivered: 0,
-      target: 0, // Would be set later
+      target: 0,
       accepted: 0,
       lastUpdated: new Date().toISOString().split('T')[0],
       geo: `${formData.geography} (${formData.locations.slice(0, 3).join(', ')}${formData.locations.length > 3 ? '...' : ''})`,
       industry: 'TBD',
-      revenueRange: formData.revenueSizeMin && formData.revenueSizeMax 
-        ? `${formData.revenueSizeMin} - ${formData.revenueSizeMax}` 
+      revenueRange: formData.revenueSizeMin && formData.revenueSizeMax
+        ? `${formData.revenueSizeMin} - ${formData.revenueSizeMax}`
         : 'TBD',
       employeeSize: `${formData.employeeSizeMin} - ${formData.employeeSizeMax}`,
       jobTitles: formData.titles.join(', '),
       pricingModel: `Per lead ($${formData.cpl}/lead)`,
       clientDetails: {
-        name: 'TechVentures Agency',
+        name: 'Acme Corp',
         address: '123 Market Street, San Francisco, CA 94105',
-        contact: 'John Smith, john.smith@techventures.com, +1 415-555-0123'
+        contact: 'Sarah Mitchell, sarah.mitchell@acmecorp.com, +1 415-555-0123',
       },
       scopeOfWork: [
         `Campaign type: ${formData.type}`,
         `Target geography: ${formData.geography}`,
         `Locations: ${formData.locations.join(', ')}`,
         `Job titles: ${formData.titles.join(', ')}`,
-        formData.additionalInfo || 'Additional requirements to be confirmed'
+        formData.additionalInfo || 'Additional requirements to be confirmed',
       ],
-      terms: 'Campaign details under review. Job card will be sent for signature within 2 business days.'
+      terms: 'Campaign pending approval. Job card will be sent for signature upon campaign manager approval.',
     };
 
+    // Add to local campaign list
     setCampaigns([newCampaign, ...campaigns]);
+
+    // Add to submissions tracker
+    const newSubmission: CampaignSubmission = {
+      id: `sub_new_${Date.now()}`,
+      campaignName: formData.name,
+      clientId: 'client_1',
+      clientCompany: 'Acme Corp',
+      submittedBy: 'Sarah Mitchell',
+      submittedAt: new Date().toISOString(),
+      assignedManager: 'Anish Akkoat',
+      assignedManagerEmail: 'anish.akkoat@datamaticsbpm.com',
+      status: 'Pending Approval',
+      serviceType: formData.type,
+      geography: formData.geography,
+      locations: formData.locations,
+      targetLeads: 0,
+      cpl: Number(formData.cpl) || 0,
+      jobTitles: formData.titles,
+      employeeSize: `${formData.employeeSizeMin} - ${formData.employeeSizeMax}`,
+      industry: 'TBD',
+      additionalInfo: formData.additionalInfo,
+    };
+    setClientSubmissions(prev => [newSubmission, ...prev]);
+
     setShowSuccessMessage(true);
     setTimeout(() => setShowSuccessMessage(false), 5000);
   };
@@ -67,35 +257,51 @@ export default function CampaignList() {
     return matchesSearch && matchesStatus;
   });
 
+  // Only show submissions that are still actionable (not yet approved/declined)
+  const activeSubmissions = clientSubmissions.filter(
+    s => s.status === 'Pending Approval' || s.status === 'Changes Requested'
+  );
+
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto page-content">
-        {/* Header with New Campaign Button */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8 gap-4">
           <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">Your Campaigns</h1>
           <button
             onClick={() => setIsNewCampaignModalOpen(true)}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1E3A5F] to-[#1E3A5F]/80 text-white rounded-lg hover:from-[#1E3A5F]/90 hover:to-[#1E3A5F]/70 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold w-full sm:w-auto"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#BA2027] text-white rounded-xl hover:bg-[#9A1A21] active:bg-[#7A1419] transition-all shadow-md hover:shadow-lg font-semibold w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
-            Start a campaign
+            Submit a Campaign
           </button>
         </div>
 
+        {/* Submissions Tracker — shown when there are pending/changes-requested submissions */}
+        <SubmissionTracker submissions={activeSubmissions} />
+
         {/* Success Message */}
-        {showSuccessMessage && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5">
-              ✓
-            </div>
-            <div>
-              <h3 className="font-semibold text-green-900">Campaign Submitted Successfully!</h3>
-              <p className="text-sm text-green-700 mt-1">
-                Your campaign request is now under review. We'll send you a job card for signature within 2 business days.
-              </p>
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {showSuccessMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="mb-6 rounded-xl p-4 flex items-start gap-3"
+              style={{ background: 'rgba(5,150,105,0.07)', border: '1px solid rgba(5,150,105,0.2)' }}
+            >
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-emerald-900" style={{ fontSize: '14px' }}>
+                  Campaign Submitted for Approval
+                </p>
+                <p className="text-emerald-800 mt-0.5" style={{ fontSize: '13px' }}>
+                  Your campaign request has been sent to your campaign manager for review. You can track its status in the "Submitted for Approval" section above.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Filters */}
         <div className="glass-card p-5 mb-6">
@@ -117,7 +323,8 @@ export default function CampaignList() {
                 className="input-base px-4 py-2 pr-10 appearance-none cursor-pointer"
               >
                 <option value="All">All Statuses</option>
-                <option value="Under review">Under review</option>
+                <option value="Pending Approval">Pending Approval</option>
+                <option value="Changes Requested">Changes Requested</option>
                 <option value="Not started">Not started</option>
                 <option value="In progress">In progress</option>
                 <option value="Paused">Paused</option>
@@ -147,72 +354,47 @@ export default function CampaignList() {
             <table className="w-full">
               <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
                 <tr>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Campaign Name
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Service Type
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Status
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Start Date
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    End Date
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Delivered vs Target
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Last Updated
-                  </th>
-                  <th className="text-left px-6 py-4" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }}>
-                    Action
-                  </th>
+                  {['Campaign Name', 'Service Type', 'Status', 'Start Date', 'End Date', 'Delivered vs Target', 'Last Updated', 'Action'].map(col => (
+                    <th key={col} className="text-left px-6 py-4 table-th">{col}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredCampaigns.map((campaign, index) => (
-                  <TableRow 
+                  <TableRow
                     key={campaign.id}
                     showHoverEffect={true}
                     animationDelay={index * 100}
                   >
                     <td className="px-6 py-4">
-                      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>{campaign.name}</div>
+                      <div className="font-semibold text-[#1F2937]" style={{ fontSize: '14px' }}>{campaign.name}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{campaign.serviceType}</div>
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap table-td">{campaign.serviceType}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={campaign.status} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                    <td className="px-6 py-4 whitespace-nowrap table-td">
                       {new Date(campaign.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                    <td className="px-6 py-4 whitespace-nowrap table-td">
                       {new Date(campaign.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }} className="whitespace-nowrap">
-                          {campaign.delivered} / {campaign.target}
-                        </span>
+                        <span className="whitespace-nowrap table-td">{campaign.delivered} / {campaign.target}</span>
                         <div className="w-24">
                           <ProgressBar current={campaign.delivered} target={campaign.target} />
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                    <td className="px-6 py-4 whitespace-nowrap table-td">
                       {new Date(campaign.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
                         to={`/campaigns/${campaign.id}`}
                         className="btn-outline px-3 py-1.5"
-                        style={{ fontSize: 'var(--font-size-sm)' }}
+                        style={{ fontSize: '13px' }}
                       >
                         View details
                       </Link>
@@ -231,7 +413,6 @@ export default function CampaignList() {
         )}
       </div>
 
-      {/* New Campaign Modal */}
       <NewCampaignModal
         isOpen={isNewCampaignModalOpen}
         onClose={() => setIsNewCampaignModalOpen(false)}

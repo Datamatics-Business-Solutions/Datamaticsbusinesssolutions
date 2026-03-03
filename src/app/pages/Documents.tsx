@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Search, Plus, FileText, Filter, Grid3x3, List, Download, Trash2,
-  Eye, Star, Calendar, User, Tag, FolderOpen, Upload, X, Check, File,
-  FileSpreadsheet, Image as ImageIcon, Archive, ChevronDown, MoreVertical,
-  CheckCircle, AlertCircle, Clock, FileCheck, Lock, DollarSign, BarChart3
+  Eye, Star, Calendar, User, FolderOpen, Upload, X, Check,
+  FileSpreadsheet, ChevronDown, MoreVertical, Lock,
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { DocumentViewerModal } from '../components/DocumentViewerModal';
 import { UploadZoneModal } from '../components/UploadZoneModal';
 import { TableRow } from '../components/TableRow';
-import { motion } from 'motion/react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { toast } from 'sonner';
+import { AnimatedCounter } from '../components/AnimatedCounter';
 
 interface Document {
   id: string;
@@ -23,7 +22,6 @@ interface Document {
   status: 'Active' | 'Expired' | 'Pending' | 'Archived';
   campaign?: string;
   tags?: string[];
-  recentlyViewed?: boolean;
 }
 
 const mockDocuments: Document[] = [
@@ -37,7 +35,6 @@ const mockDocuments: Document[] = [
     status: 'Active',
     campaign: 'Enterprise IT Security Campaign Q1 2026',
     tags: ['Legal', 'Important'],
-    recentlyViewed: true
   },
   {
     id: '2',
@@ -49,7 +46,6 @@ const mockDocuments: Document[] = [
     status: 'Active',
     campaign: 'Healthcare Content Syndication - Feb 2026',
     tags: ['Active', 'Q1'],
-    recentlyViewed: true
   },
   {
     id: '3',
@@ -60,7 +56,6 @@ const mockDocuments: Document[] = [
     size: '980 KB',
     status: 'Active',
     tags: ['Legal'],
-    recentlyViewed: false
   },
   {
     id: '4',
@@ -72,7 +67,6 @@ const mockDocuments: Document[] = [
     status: 'Active',
     campaign: 'Multiple Campaigns',
     tags: ['Report', 'Analytics'],
-    recentlyViewed: true
   },
   {
     id: '5',
@@ -83,375 +77,533 @@ const mockDocuments: Document[] = [
     size: '320 KB',
     status: 'Active',
     tags: ['Billing', 'Q1'],
-    recentlyViewed: false
-  }
+  },
+  {
+    id: '6',
+    name: 'SaaS Campaign SOW - Feb 2026.pdf',
+    type: 'SOW',
+    uploadedBy: 'Anish Akkoat',
+    uploadDate: '2026-02-10',
+    size: '1.1 MB',
+    status: 'Active',
+    campaign: 'SaaS Appointment Setting Campaign - Feb 2026',
+    tags: ['Active'],
+  },
+  {
+    id: '7',
+    name: 'Q4 2025 Campaign Completion Report.pdf',
+    type: 'Report',
+    uploadedBy: 'Data Analytics Team',
+    uploadDate: '2026-01-05',
+    size: '3.8 MB',
+    status: 'Archived',
+    tags: ['Report', 'Archived'],
+  },
 ];
+
+const typeConfig: Record<Document['type'], { color: string; bg: string; icon: React.ElementType }> = {
+  Contract: { color: '#0891B2', bg: 'rgba(8,145,178,0.1)', icon: FileText },
+  SOW: { color: '#7C3AED', bg: 'rgba(124,58,237,0.1)', icon: FileText },
+  NDA: { color: '#BA2027', bg: 'rgba(186,32,39,0.1)', icon: Lock },
+  Invoice: { color: '#0F9D58', bg: 'rgba(15,157,88,0.1)', icon: FileText },
+  Report: { color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', icon: FileSpreadsheet },
+  Other: { color: '#6B7280', bg: 'rgba(107,114,128,0.1)', icon: FileText },
+};
+
+const statusConfig: Record<Document['status'], { label: string; color: string; bg: string }> = {
+  Active: { label: 'Active', color: '#0F9D58', bg: 'rgba(15,157,88,0.1)' },
+  Expired: { label: 'Expired', color: '#BA2027', bg: 'rgba(186,32,39,0.1)' },
+  Pending: { label: 'Pending', color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
+  Archived: { label: 'Archived', color: '#6B7280', bg: 'rgba(107,114,128,0.1)' },
+};
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 export default function Documents() {
   useDocumentTitle('Documents');
-  
-  const [pageLoaded, setPageLoaded] = useState(false);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('All');
   const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
-  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [starred, setStarred] = useState<string[]>([]);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [showViewer, setShowViewer] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [starred, setStarred] = useState<string[]>([]);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  useEffect(() => {
-    setTimeout(() => setPageLoaded(true), 100);
-  }, []);
-
-  const filteredDocuments = mockDocuments.filter(doc => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.campaign?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredDocuments = mockDocuments.filter((doc) => {
+    const matchesSearch =
+      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (doc.campaign?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     const matchesType = typeFilter === 'All' || doc.type === typeFilter;
     const matchesStatus = statusFilter === 'All' || doc.status === statusFilter;
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return 'badge badge-active';
-      case 'Expired':
-        return 'badge badge-paused';
-      case 'Pending':
-        return 'badge badge-paused';
-      case 'Archived':
-        return 'badge badge-completed';
-      default:
-        return 'badge badge-completed';
-    }
+  const toggleStar = (id: string) => {
+    setStarred((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return <CheckCircle className="w-4 h-4" />;
-      case 'Expired':
-        return <AlertCircle className="w-4 h-4" />;
-      case 'Pending':
-        return <Clock className="w-4 h-4" />;
-      case 'Archived':
-        return <FolderOpen className="w-4 h-4" />;
-      default:
-        return <File className="w-4 h-4" />;
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    const iconProps = {
-      className: "w-8 h-8",
-      strokeWidth: 1.5,
-      style: { color: '#6B7280' }
-    };
-
-    switch (type) {
-      case 'Contract':
-        return <FileCheck {...iconProps} />;
-      case 'SOW':
-        return <FileText {...iconProps} />;
-      case 'NDA':
-        return <Lock {...iconProps} />;
-      case 'Invoice':
-        return <DollarSign {...iconProps} />;
-      case 'Report':
-        return <BarChart3 {...iconProps} />;
-      default:
-        return <File {...iconProps} />;
-    }
-  };
-
-  const handleViewDocument = (doc: Document) => {
-    setSelectedDoc(doc);
+  const handleView = (doc: Document) => {
+    setSelectedDocument(doc);
     setShowViewer(true);
   };
 
-  const toggleStar = (docId: string) => {
-    if (starred.includes(docId)) {
-      setStarred(starred.filter(id => id !== docId));
-      toast.success('Removed from favorites');
-    } else {
-      setStarred([...starred, docId]);
-      toast.success('Added to favorites');
-    }
+  const handleDownload = (doc: Document) => {
+    toast.success(`Downloading ${doc.name}…`);
   };
+
+  const handleDelete = (doc: Document) => {
+    toast.success(`${doc.name} deleted`);
+    setActiveMenu(null);
+  };
+
+  const totalActive = mockDocuments.filter((d) => d.status === 'Active').length;
+  const totalContracts = mockDocuments.filter((d) => d.type === 'Contract' || d.type === 'SOW' || d.type === 'NDA').length;
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className="max-w-[1440px] mx-auto page-content animate-fadeIn">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Documents</h1>
+            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-1">Documents</h1>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              {filteredDocuments.length} documents • Manage contracts, reports, and files
+              Contracts, SOWs, reports, and campaign documents
             </p>
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="btn-primary px-4 py-2 flex items-center gap-2"
+            className="btn-primary px-4 py-2 flex items-center gap-2 w-full lg:w-auto justify-center"
           >
             <Upload className="w-4 h-4" />
             Upload Document
           </button>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 stagger-children">
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between">
-              <FileText className="kpi-card__icon" />
+        {/* KPI Row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger-children">
+          {[
+            { label: 'Total Documents', value: mockDocuments.length, icon: FileText, color: 'var(--color-primary)', bg: 'var(--color-primary-tint)' },
+            { label: 'Active', value: totalActive, icon: Check, color: 'var(--color-success)', bg: 'var(--color-success-bg)' },
+            { label: 'Contracts & Legal', value: totalContracts, icon: Lock, color: '#7C3AED', bg: 'rgba(124,58,237,0.1)' },
+            { label: 'Reports', value: mockDocuments.filter(d => d.type === 'Report').length, icon: FileSpreadsheet, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
+          ].map(({ label, value, icon: Icon, color, bg }, i) => (
+            <div key={label} className="kpi-card animate-slideInUp" style={{ animationDelay: `${i * 80}ms` }}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: bg }}>
+                  <Icon className="w-5 h-5" style={{ color }} />
+                </div>
+              </div>
+              <div className="kpi-card__number"><AnimatedCounter value={value} /></div>
+              <div className="kpi-card__label">{label}</div>
             </div>
-            <div className="kpi-card__number">5</div>
-            <div className="kpi-card__label">Total Docs</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between">
-              <CheckCircle className="kpi-card__icon" />
-            </div>
-            <div className="kpi-card__number">4</div>
-            <div className="kpi-card__label">Active</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between">
-              <Clock className="kpi-card__icon" />
-            </div>
-            <div className="kpi-card__number">1</div>
-            <div className="kpi-card__label">Pending</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between">
-              <Star className="kpi-card__icon" />
-            </div>
-            <div className="kpi-card__number">2</div>
-            <div className="kpi-card__label">Favorites</div>
-          </div>
+          ))}
         </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-5">
-          <div className="lg:col-span-5 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-            <input
-              type="text"
-              placeholder="Search documents..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-base w-full pl-10 pr-4 py-3"
-            />
-          </div>
+        {/* Filters + View Toggle */}
+        <div className="glass-card p-4 mb-4 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            {/* Search */}
+            <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+              <input
+                type="text"
+                placeholder="Search documents…"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input-base w-full pl-9 pr-4 py-2"
+                style={{ fontSize: 'var(--font-size-sm)' }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  <X className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
+                </button>
+              )}
+            </div>
 
-          <div className="lg:col-span-2">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="input-base w-full px-4 py-3"
-            >
-              <option value="All">All Types</option>
-              <option value="Contract">Contracts</option>
-              <option value="SOW">SOWs</option>
-              <option value="NDA">NDAs</option>
-              <option value="Invoice">Invoices</option>
-              <option value="Report">Reports</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div className="lg:col-span-2">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input-base w-full px-4 py-3"
-            >
-              <option value="All">All Status</option>
-              <option value="Active">Active</option>
-              <option value="Pending">Pending</option>
-              <option value="Expired">Expired</option>
-              <option value="Archived">Archived</option>
-            </select>
-          </div>
-
-          <div className="lg:col-span-3 flex gap-2">
-            <button
-              onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
-              className="btn-outline flex-1 px-4 py-3 flex items-center justify-center gap-2"
-            >
-              {viewMode === 'list' ? <Grid3x3 className="w-4 h-4" /> : <List className="w-4 h-4" />}
-              {viewMode === 'list' ? 'Grid' : 'List'}
-            </button>
-            {selectedDocs.length > 0 && (
-              <button
-                onClick={() => toast.success(`Downloading ${selectedDocs.length} documents`)}
-                className="btn-primary px-4 py-3 flex items-center gap-2"
+            {/* Type Filter */}
+            <div className="relative">
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="input-base px-3 py-2 pr-8 appearance-none"
+                style={{ fontSize: 'var(--font-size-sm)' }}
               >
-                <Download className="w-4 h-4" />
-              </button>
-            )}
+                <option value="All">All Types</option>
+                {(['Contract', 'SOW', 'NDA', 'Invoice', 'Report', 'Other'] as const).map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+            </div>
+
+            {/* Status Filter */}
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="input-base px-3 py-2 pr-8 appearance-none"
+                style={{ fontSize: 'var(--font-size-sm)' }}
+              >
+                <option value="All">All Statuses</option>
+                {(['Active', 'Expired', 'Pending', 'Archived'] as const).map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+            </div>
+          </div>
+
+          {/* View Toggle */}
+          <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: 'var(--color-border-light)' }}>
+            <button
+              onClick={() => setViewMode('table')}
+              className="p-2 rounded-md transition-colors"
+              style={{
+                background: viewMode === 'table' ? 'white' : 'transparent',
+                color: viewMode === 'table' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                boxShadow: viewMode === 'table' ? 'var(--shadow-sm)' : 'none',
+              }}
+              title="Table view"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className="p-2 rounded-md transition-colors"
+              style={{
+                background: viewMode === 'grid' ? 'white' : 'transparent',
+                color: viewMode === 'grid' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                boxShadow: viewMode === 'grid' ? 'var(--shadow-sm)' : 'none',
+              }}
+              title="Grid view"
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        {/* Documents Table/Grid */}
-        {viewMode === 'list' ? (
+        {/* Results count */}
+        <p className="mb-3" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+          {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''} found
+        </p>
+
+        {/* Table View */}
+        {viewMode === 'table' && (
           <div className="glass-card overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px]">
-                <thead className="table-header">
+              <table className="w-full min-w-[700px]">
+                <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
                   <tr>
-                    <th className="table-th"><input
-                      type="checkbox"
-                      checked={selectedDocs.length === filteredDocuments.length && filteredDocuments.length > 0}
-                      onChange={(e) => {
-                        if (e.target.checked) setSelectedDocs(filteredDocuments.map(d => d.id));
-                        else setSelectedDocs([]);
-                      }}
-                    /></th>
-                    <th className="table-th">Document</th>
-                    <th className="table-th">Type</th>
-                    <th className="table-th">Uploaded By</th>
-                    <th className="table-th">Status</th>
-                    <th className="table-th">Actions</th>
+                    {['', 'Document', 'Type', 'Status', 'Uploaded By', 'Date', 'Size', ''].map((h, i) => (
+                      <th
+                        key={i}
+                        className="text-left px-4 py-3"
+                        style={{
+                          fontSize: 'var(--font-size-xs)',
+                          fontWeight: 'var(--font-weight-semibold)',
+                          color: 'var(--color-text-secondary)',
+                          textTransform: 'uppercase',
+                          letterSpacing: 'var(--letter-spacing-wide)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDocuments.map((doc, index) => (
-                    <TableRow
-                      key={doc.id}
-                      showHoverEffect={true}
-                      animationDelay={index * 50}
-                    >
-                      <td className="table-td" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={selectedDocs.includes(doc.id)}
-                          onChange={() => {
-                            if (selectedDocs.includes(doc.id)) {
-                              setSelectedDocs(selectedDocs.filter(id => id !== doc.id));
-                            } else {
-                              setSelectedDocs([...selectedDocs, doc.id]);
-                            }
-                          }}
-                        />
+                  {filteredDocuments.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-12 text-center" style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>
+                        <FolderOpen className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                        No documents match your filters.
                       </td>
-                      <td className="table-td">
-                        <div className="flex items-center gap-3">
-                          <div>{getTypeIcon(doc.type)}</div>
-                          <div>
-                            <div className="t1">{doc.name}</div>
-                            <div className="t3">{doc.size}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="table-td">
-                        <span className="badge badge-completed">{doc.type}</span>
-                      </td>
-                      <td className="table-td">
-                        <div className="t1">{doc.uploadedBy}</div>
-                        <div className="t3">{new Date(doc.uploadDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                      </td>
-                      <td className="table-td">
-                        <div className={getStatusColor(doc.status)}>
-                          {getStatusIcon(doc.status)}
-                          <span>{doc.status}</span>
-                        </div>
-                      </td>
-                      <td className="table-td" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => toggleStar(doc.id)} className="btn-ghost p-2" title="Star">
-                            <Star className={`w-4 h-4 ${starred.includes(doc.id) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                          </button>
-                          <button onClick={() => handleViewDocument(doc)} className="btn-ghost p-2" title="View">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => toast.success(`Downloading ${doc.name}`)} className="btn-ghost p-2" title="Download">
-                            <Download className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </TableRow>
-                  ))}
+                    </tr>
+                  ) : (
+                    filteredDocuments.map((doc, index) => {
+                      const cfg = typeConfig[doc.type];
+                      const stsCfg = statusConfig[doc.status];
+                      const DocIcon = cfg.icon;
+                      const isStarred = starred.includes(doc.id);
+
+                      return (
+                        <TableRow key={doc.id} index={index}>
+                          {/* Star */}
+                          <td className="px-4 py-3 w-8">
+                            <button onClick={() => toggleStar(doc.id)}>
+                              <Star
+                                className="w-4 h-4 transition-colors"
+                                style={{
+                                  color: isStarred ? '#F59E0B' : 'var(--color-border)',
+                                  fill: isStarred ? '#F59E0B' : 'transparent',
+                                }}
+                              />
+                            </button>
+                          </td>
+
+                          {/* Name + Campaign */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cfg.bg }}>
+                                <DocIcon className="w-4 h-4" style={{ color: cfg.color }} />
+                              </div>
+                              <div className="min-w-0">
+                                <div
+                                  className="truncate max-w-[260px] cursor-pointer hover:underline"
+                                  style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}
+                                  onClick={() => handleView(doc)}
+                                  title={doc.name}
+                                >
+                                  {doc.name}
+                                </div>
+                                {doc.campaign && (
+                                  <div className="truncate max-w-[260px]" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                                    {doc.campaign}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Type */}
+                          <td className="px-4 py-3">
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded-full"
+                              style={{ fontSize: '12px', fontWeight: 600, color: cfg.color, background: cfg.bg, whiteSpace: 'nowrap' }}
+                            >
+                              {doc.type}
+                            </span>
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-4 py-3">
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded-full"
+                              style={{ fontSize: '12px', fontWeight: 600, color: stsCfg.color, background: stsCfg.bg, whiteSpace: 'nowrap' }}
+                            >
+                              {stsCfg.label}
+                            </span>
+                          </td>
+
+                          {/* Uploaded By */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <User className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }} />
+                              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                                {doc.uploadedBy}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Date */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }} />
+                              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                                {formatDate(doc.uploadDate)}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Size */}
+                          <td className="px-4 py-3">
+                            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                              {doc.size}
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleView(doc)}
+                                className="p-1.5 rounded-lg transition-colors hover:bg-black/5"
+                                title="Preview"
+                              >
+                                <Eye className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+                              </button>
+                              <button
+                                onClick={() => handleDownload(doc)}
+                                className="p-1.5 rounded-lg transition-colors hover:bg-black/5"
+                                title="Download"
+                              >
+                                <Download className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+                              </button>
+                              <div className="relative">
+                                <button
+                                  onClick={() => setActiveMenu(activeMenu === doc.id ? null : doc.id)}
+                                  className="p-1.5 rounded-lg transition-colors hover:bg-black/5"
+                                >
+                                  <MoreVertical className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+                                </button>
+                                {activeMenu === doc.id && (
+                                  <div
+                                    className="absolute right-0 top-full mt-1 w-36 rounded-xl shadow-xl z-10 overflow-hidden border"
+                                    style={{ background: 'white', borderColor: 'var(--color-border)' }}
+                                  >
+                                    <button
+                                      className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-black/5 transition-colors"
+                                      style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
+                                      onClick={() => { handleDownload(doc); setActiveMenu(null); }}
+                                    >
+                                      <Download className="w-4 h-4" />
+                                      Download
+                                    </button>
+                                    <button
+                                      className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-red-50 transition-colors"
+                                      style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-error)' }}
+                                      onClick={() => handleDelete(doc)}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                      Delete
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </TableRow>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
-
-            {filteredDocuments.length === 0 && (
-              <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
-                No documents found
-              </div>
-            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredDocuments.map((doc, index) => (
-              <motion.div
-                key={doc.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05 }}
-                className="glass-card p-5 cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => handleViewDocument(doc)}
-              >
-                <div className="text-center mb-4">
-                  <div className="text-5xl mb-2">{getTypeIcon(doc.type)}</div>
-                  <div className={getStatusColor(doc.status)}>
-                    {getStatusIcon(doc.status)}
-                    <span>{doc.status}</span>
-                  </div>
-                </div>
-                <h3 className="font-semibold mb-2 line-clamp-2" style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)' }}>
-                  {doc.name}
-                </h3>
-                <div className="space-y-1 mb-4">
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                    {doc.size}
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                    {new Date(doc.uploadDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleStar(doc.id);
-                    }}
-                    className="btn-ghost p-2 flex-1"
+        )}
+
+        {/* Grid View */}
+        {viewMode === 'grid' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredDocuments.length === 0 ? (
+              <div className="col-span-full glass-card p-12 text-center">
+                <FolderOpen className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>
+                  No documents match your filters.
+                </p>
+              </div>
+            ) : (
+              filteredDocuments.map((doc, index) => {
+                const cfg = typeConfig[doc.type];
+                const stsCfg = statusConfig[doc.status];
+                const DocIcon = cfg.icon;
+                const isStarred = starred.includes(doc.id);
+
+                return (
+                  <div
+                    key={doc.id}
+                    className="glass-card p-4 flex flex-col gap-3 animate-slideInUp"
+                    style={{ animationDelay: `${index * 60}ms` }}
                   >
-                    <Star className={`w-4 h-4 ${starred.includes(doc.id) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toast.success(`Downloading ${doc.name}`);
-                    }}
-                    className="btn-primary p-2 flex-1"
-                  >
-                    <Download className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                    {/* Top row */}
+                    <div className="flex items-start justify-between">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: cfg.bg }}>
+                        <DocIcon className="w-5 h-5" style={{ color: cfg.color }} />
+                      </div>
+                      <button onClick={() => toggleStar(doc.id)}>
+                        <Star
+                          className="w-4 h-4 transition-colors"
+                          style={{
+                            color: isStarred ? '#F59E0B' : 'var(--color-border)',
+                            fill: isStarred ? '#F59E0B' : 'transparent',
+                          }}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Name */}
+                    <div>
+                      <div
+                        className="line-clamp-2 cursor-pointer hover:underline"
+                        style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}
+                        onClick={() => handleView(doc)}
+                      >
+                        {doc.name}
+                      </div>
+                      {doc.campaign && (
+                        <div className="mt-1 truncate" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                          {doc.campaign}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Badges */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full"
+                        style={{ fontSize: '11px', fontWeight: 600, color: cfg.color, background: cfg.bg }}
+                      >
+                        {doc.type}
+                      </span>
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full"
+                        style={{ fontSize: '11px', fontWeight: 600, color: stsCfg.color, background: stsCfg.bg }}
+                      >
+                        {stsCfg.label}
+                      </span>
+                    </div>
+
+                    {/* Meta */}
+                    <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                        {formatDate(doc.uploadDate)} · {doc.size}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleView(doc)}
+                          className="p-1.5 rounded-lg hover:bg-black/5 transition-colors"
+                          title="Preview"
+                        >
+                          <Eye className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
+                        </button>
+                        <button
+                          onClick={() => handleDownload(doc)}
+                          className="p-1.5 rounded-lg hover:bg-black/5 transition-colors"
+                          title="Download"
+                        >
+                          <Download className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </div>
 
       {/* Modals */}
-      <DocumentViewerModal
-        isOpen={showViewer}
-        onClose={() => setShowViewer(false)}
-        document={selectedDoc}
-      />
+      {selectedDocument && (
+        <DocumentViewerModal
+          isOpen={showViewer}
+          onClose={() => { setShowViewer(false); setSelectedDocument(null); }}
+          document={selectedDocument}
+        />
+      )}
+
       <UploadZoneModal
         isOpen={showUploadModal}
         onClose={() => setShowUploadModal(false)}
       />
+
+      {/* Click-away to close menu */}
+      {activeMenu && (
+        <div
+          className="fixed inset-0 z-0"
+          onClick={() => setActiveMenu(null)}
+        />
+      )}
     </AppLayout>
   );
 }

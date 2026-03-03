@@ -1,6 +1,7 @@
 import { Campaign, DailyProgress, ActivityUpdate } from './types';
 
 // Extended Mock Data for all features
+import type { CampaignSubmission } from './types';
 
 // ============ RBAC - CLIENTS & TEAM ============
 export interface ClientData {
@@ -398,6 +399,105 @@ export const mockCampaigns: Campaign[] = [
     terms: 'Payment terms: Net 30. Only attended appointments are billable. Full briefing provided for each meeting.'
   }
 ];
+
+// ─── Campaign Approval Workflow — Mock Submissions ────────────────────────────
+
+export const mockCampaignSubmissions: CampaignSubmission[] = [
+  {
+    id: 'sub_001',
+    campaignName: 'AI-Powered SaaS Lead Generation Q2 2026',
+    clientId: 'client_1',
+    clientCompany: 'Acme Corp',
+    submittedBy: 'Sarah Mitchell',
+    submittedAt: '2026-03-01T09:30:00Z',
+    assignedManager: 'Anish Akkoat',
+    assignedManagerEmail: 'anish.akkoat@datamaticsbpm.com',
+    status: 'Pending Approval',
+    serviceType: 'Leads',
+    geography: 'North America',
+    locations: ['California', 'New York', 'Texas', 'Illinois'],
+    targetLeads: 400,
+    cpl: 55,
+    jobTitles: ['CTO', 'VP Engineering', 'Director of AI', 'Head of Data Science'],
+    employeeSize: '500 - 5,000',
+    industry: 'Software / SaaS',
+    additionalInfo: 'Focus on companies that have raised Series B or later. Prefer leads from companies actively using AI infrastructure.',
+  },
+  {
+    id: 'sub_002',
+    campaignName: 'EMEA Financial Services BANT Q2 2026',
+    clientId: 'client_2',
+    clientCompany: 'TechCo Ltd',
+    submittedBy: 'James Whitfield',
+    submittedAt: '2026-02-28T14:45:00Z',
+    assignedManager: 'Anish Akkoat',
+    assignedManagerEmail: 'anish.akkoat@datamaticsbpm.com',
+    status: 'Pending Approval',
+    serviceType: 'BANT',
+    geography: 'EMEA',
+    locations: ['United Kingdom', 'Germany', 'France', 'Netherlands', 'Sweden'],
+    targetLeads: 150,
+    cpl: 120,
+    jobTitles: ['CFO', 'Head of Finance', 'VP Financial Operations', 'Chief Risk Officer'],
+    employeeSize: '1,000+',
+    industry: 'Financial Services / Banking',
+    additionalInfo: 'BANT qualification required. Budget authority must be confirmed. Timeline: within 6 months.',
+  },
+  {
+    id: 'sub_003',
+    campaignName: 'Healthcare IT Director Content Syndication',
+    clientId: 'client_1',
+    clientCompany: 'Acme Corp',
+    submittedBy: 'Sarah Mitchell',
+    submittedAt: '2026-02-25T11:00:00Z',
+    assignedManager: 'Anish Akkoat',
+    assignedManagerEmail: 'anish.akkoat@datamaticsbpm.com',
+    status: 'Changes Requested',
+    serviceType: 'Content Syndication',
+    geography: 'North America',
+    locations: ['United States'],
+    targetLeads: 300,
+    cpl: 38,
+    jobTitles: ['CIO', 'IT Director', 'VP Healthcare IT', 'Director of Clinical Informatics'],
+    employeeSize: '200 - 5,000',
+    industry: 'Healthcare / Medical Devices',
+    additionalInfo: 'Distribute our Q1 Healthcare AI white paper. Need HIPAA-compliant contacts only.',
+    managerNotes: 'The target lead count of 300 at $38 CPL may be difficult for this geo/industry combo. We can do 200 leads confidently at $42 CPL, or 300 at $46 CPL. Please confirm which you prefer before we proceed. Also, can you share the white paper asset so we can verify content compliance?',
+    reviewedAt: '2026-02-26T09:15:00Z',
+    reviewedBy: 'Anish Akkoat',
+  },
+  {
+    id: 'sub_004',
+    campaignName: 'CloudTech APAC Appointment Setting Program',
+    clientId: 'client_3',
+    clientCompany: 'Meridian Group',
+    submittedBy: 'David Okafor',
+    submittedAt: '2026-02-20T08:00:00Z',
+    assignedManager: 'Anish Akkoat',
+    assignedManagerEmail: 'anish.akkoat@datamaticsbpm.com',
+    status: 'Approved',
+    serviceType: 'Appointment Setting',
+    geography: 'APAC',
+    locations: ['Singapore', 'Australia', 'Japan', 'India'],
+    targetLeads: 60,
+    cpl: 200,
+    jobTitles: ['CTO', 'VP Technology', 'Head of Cloud Infrastructure', 'DevOps Director'],
+    employeeSize: '500 - 2,000',
+    industry: 'Technology / Cloud Computing',
+    reviewedAt: '2026-02-21T10:30:00Z',
+    reviewedBy: 'Anish Akkoat',
+  },
+];
+
+export function getPendingSubmissions(): CampaignSubmission[] {
+  return mockCampaignSubmissions.filter(s => s.status === 'Pending Approval');
+}
+
+export function getSubmissionsNeedingAttention(): CampaignSubmission[] {
+  return mockCampaignSubmissions.filter(
+    s => s.status === 'Pending Approval' || s.status === 'Changes Requested'
+  );
+}
 
 export const mockDailyProgress: DailyProgress[] = [
   { date: '2026-02-24', leadsSourced: 45, leadsValidated: 38, leadsRejected: 7, bantQualified: 32, appointmentsSet: 2 },

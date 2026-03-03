@@ -92,10 +92,10 @@ export default function Dashboard() {
   const totalLeadsDelivered = Math.round(baseLeadsMonthly * getMultiplier(leadsPeriod));
   const totalSpend = Math.round(baseSpendMonthly * getMultiplier(spendPeriod));
 
-  // Sparkline data
-  const campaignsData = generateSparklineData(activeCampaigns, 'up');
-  const leadsData = generateSparklineData(totalLeadsDelivered / 12, 'up');
-  const spendData = generateSparklineData(totalSpend / 12, 'down');
+  // Sparkline data — memoized per period to avoid re-rolling Math.random() on unrelated re-renders
+  const campaignsData = useMemo(() => generateSparklineData(activeCampaigns, 'up'), [activeCampaigns]);
+  const leadsData = useMemo(() => generateSparklineData(totalLeadsDelivered / 12, 'up'), [totalLeadsDelivered]);
+  const spendData = useMemo(() => generateSparklineData(totalSpend / 12, 'down'), [totalSpend]);
 
   const filteredCampaigns = allCampaignsFlat.filter((campaign) => {
     const matchesSearch = campaign.name.toLowerCase().includes(debouncedSearch.toLowerCase());

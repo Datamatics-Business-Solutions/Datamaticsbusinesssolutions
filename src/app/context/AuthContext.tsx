@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState } from 'react';
+import { createContext, useContext, ReactNode, useState, useCallback } from 'react';
 
 // ============================================
 // TYPES
@@ -77,22 +77,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Default to first user (client) initially
   const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
 
-  // Permission helpers
-  const canUploadLeads = () => {
+  // Permission helpers — wrapped in useCallback so their identity stays stable
+  // across re-renders. This prevents all context consumers from re-rendering
+  // whenever AuthProvider re-renders for any unrelated reason.
+  const canUploadLeads = useCallback(() => {
     return currentUser.role === 'ops_manager' || currentUser.role === 'campaign_manager';
-  };
+  }, [currentUser.role]);
 
-  const canAccessOps = () => {
+  const canAccessOps = useCallback(() => {
     return currentUser.role === 'ops_manager';
-  };
+  }, [currentUser.role]);
 
-  const canManageTeam = () => {
+  const canManageTeam = useCallback(() => {
     return currentUser.role === 'ops_manager';
-  };
+  }, [currentUser.role]);
 
-  const canEditCampaigns = () => {
+  const canEditCampaigns = useCallback(() => {
     return currentUser.role === 'ops_manager' || currentUser.role === 'campaign_manager';
-  };
+  }, [currentUser.role]);
 
   return (
     <AuthContext.Provider

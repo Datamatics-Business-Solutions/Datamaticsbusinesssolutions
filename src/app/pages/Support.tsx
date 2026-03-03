@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
@@ -67,7 +67,6 @@ const mockTickets: Ticket[] = [
 ];
 
 export default function Support() {
-  const [pageLoaded, setPageLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [priorityFilter, setPriorityFilter] = useState<string>('All');
@@ -78,10 +77,6 @@ export default function Support() {
     category: 'General' as Ticket['category'],
     priority: 'Medium' as Ticket['priority']
   });
-
-  useEffect(() => {
-    setTimeout(() => setPageLoaded(true), 100);
-  }, []);
 
   const filteredTickets = mockTickets.filter(ticket => {
     const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -157,7 +152,7 @@ export default function Support() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className="max-w-[1440px] mx-auto page-content animate-fadeIn">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>

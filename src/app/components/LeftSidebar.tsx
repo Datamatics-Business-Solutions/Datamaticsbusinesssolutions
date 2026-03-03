@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, useLocation } from 'react-router';
 import {
@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Plus,
   MessageSquare,
+  ClipboardCheck,
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
@@ -123,29 +124,28 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     .join('')
     .toUpperCase() || 'U';
 
-  // Calculate badges dynamically
-  const getBadgeCounts = () => {
+  // Calculate badges dynamically — memoized since source data is module-level constants.
+  // Without memo, this iterates all clients/uploads on every render (hover, tooltip, jiggle…).
+  const badges = useMemo(() => {
     const processingUploads = recentUploadBatches.filter(u => u.status === 'processing').length;
     const failedUploads = recentUploadBatches.filter(u => u.status === 'failed').length;
     const activeCampaigns = allClients.reduce((sum, c) => sum + c.campaigns.filter(camp => camp.status === 'active').length, 0);
     const totalLeads = allClients.reduce((sum, c) => sum + c.totalLeads, 0);
-
-    // For clients, count unpaid invoices (mock)
-    const unpaidInvoices = 2;
-
+    // Pending approvals count (from mock data — 2 pending in demo)
+    const pendingApprovals = 2;
     return {
       processingUploads,
       failedUploads,
       activeCampaigns,
       totalLeads,
-      unpaidInvoices,
+      unpaidInvoices: 2,
+      pendingApprovals,
     };
-  };
+  }, []); // source arrays are module-level constants — never change at runtime
 
-  const badges = getBadgeCounts();
-
-  // Role-based navigation with badges and quick actions
-  const getNavigationItems = () => {
+  // Role-based navigation — memoized on role + badge counts.
+  // Re-computed only when the user's role changes, not on every hover/tooltip re-render.
+  const navigation = useMemo(() => {
     const role = currentUser?.role;
 
     if (role === 'ops_manager') {
@@ -158,6 +158,14 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           section: 'PLATFORM',
           badge: badges.activeCampaigns,
           badgeColor: 'bg-blue-500'
+        },
+        {
+          name: 'Approvals',
+          icon: ClipboardCheck,
+          path: '/internal/approvals',
+          section: 'PLATFORM',
+          badge: badges.pendingApprovals,
+          badgeColor: 'bg-[#BA2027]',
         },
         { 
           name: 'Upload Leads', 
@@ -187,6 +195,14 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           section: 'PLATFORM',
           badge: badges.activeCampaigns,
           badgeColor: 'bg-blue-500'
+        },
+        {
+          name: 'Approvals',
+          icon: ClipboardCheck,
+          path: '/internal/approvals',
+          section: 'PLATFORM',
+          badge: badges.pendingApprovals,
+          badgeColor: 'bg-[#BA2027]',
         },
         { 
           name: 'Upload Leads', 
@@ -238,20 +254,20 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
       { name: 'Account', icon: UserCircle, path: '/account', section: 'ORGANIZATION' },
       { name: 'Feedback', icon: MessageCircle, path: '/feedback', section: 'ORGANIZATION' },
     ];
-  };
+  }, [currentUser?.role, badges]);
 
-  const navigation = getNavigationItems();
-  const groupedNav = navigation.reduce((acc, item) => {
+  const groupedNav = useMemo(() => navigation.reduce((acc, item) => {
     if (!acc[item.section]) acc[item.section] = [];
     acc[item.section].push(item);
     return acc;
-  }, {} as Record<string, typeof navigation>);
+  }, {} as Record<string, typeof navigation>), [navigation]);
 
-  // Get assigned clients for managers
-  const assignedClients =
+  // Get assigned clients for managers — memoized on user ID
+  const assignedClients = useMemo(() =>
     currentUser?.role === 'campaign_manager' || currentUser?.role === 'campaign_backup'
       ? getAssignedClients(currentUser.id)
-      : [];
+      : [],
+  [currentUser?.role, currentUser?.id]);
 
   // Tooltip handlers
   const handleItemMouseEnter = (itemName: string) => {
@@ -701,10 +717,12 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
 
   return (
     <>
-      {/* Mobile Hamburger Button */}
+      {/* Mobile Hamburger Button — hidden on mobile since MobileTabBar handles navigation.
+          Kept only for tablet (md) range if sidebar is collapsed and user wants full nav. */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-4 left-4 z-[60] md:hidden p-2 rounded-lg bg-white shadow-lg text-[#1F2937]"
+        className="fixed top-4 left-4 z-[60] hidden p-2 rounded-lg bg-white shadow-lg text-[#1F2937]"
+        aria-label="Open navigation"
       >
         {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>

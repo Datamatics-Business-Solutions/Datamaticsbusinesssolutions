@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import {
   CreditCard, Plus, Trash2, Check, Calendar, Lock, Building2, MapPin, Star, Shield
@@ -39,13 +39,8 @@ const mockPaymentMethods: PaymentMethod[] = [
 ];
 
 export default function Payment() {
-  const [pageLoaded, setPageLoaded] = useState(false);
   const [showAddMethodModal, setShowAddMethodModal] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState(mockPaymentMethods);
-
-  useEffect(() => {
-    setTimeout(() => setPageLoaded(true), 100);
-  }, []);
 
   const handleSetDefault = (id: string) => {
     setPaymentMethods(methods =>
@@ -74,7 +69,7 @@ export default function Payment() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1200px] mx-auto page-content transition-opacity duration-700 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`max-w-[1200px] mx-auto page-content animate-fadeIn`}>
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>

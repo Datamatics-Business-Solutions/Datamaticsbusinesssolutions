@@ -359,7 +359,7 @@ export default function OpsOverviewPage() {
           </div>
           
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1000px]">
+            <table className="w-full min-w-[1000px] table-responsive">
               <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
                 <tr>
                   <th
@@ -413,7 +413,7 @@ export default function OpsOverviewPage() {
                     showHoverEffect={true}
                     animationDelay={index * 30}
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" data-label="File">
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
                         <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
@@ -421,7 +421,7 @@ export default function OpsOverviewPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" data-label="Client">
                       <div>
                         <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
                           {upload.clientName}
@@ -431,7 +431,7 @@ export default function OpsOverviewPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" data-label="Progress">
                       <div>
                         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
                           {upload.processedRows} / {upload.totalRows}
@@ -449,7 +449,7 @@ export default function OpsOverviewPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" data-label="Results">
                       <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
                         <span style={{ color: 'var(--color-success)', fontWeight: 'var(--font-weight-semibold)' }}>
                           {upload.successCount}
@@ -460,18 +460,18 @@ export default function OpsOverviewPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" data-label="Status">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 ${getStatusBadge(upload.status)}`}>
                         {getStatusIcon(upload.status)}
                         {upload.status.charAt(0).toUpperCase() + upload.status.slice(1)}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" data-label="Uploaded By">
                       <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
                         {upload.uploadedBy}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" data-label="Time">
                       <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
                         {formatTimeAgo(upload.uploadedAt)}
                       </div>
