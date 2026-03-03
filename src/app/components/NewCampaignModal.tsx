@@ -5,6 +5,7 @@ interface NewCampaignModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (campaign: CampaignFormData) => void;
+  prefill?: Partial<CampaignFormData>;
 }
 
 export interface CampaignFormData {
@@ -70,7 +71,7 @@ const JOB_TITLE_SUGGESTIONS = [
   'Director Sales', 'Director Marketing', 'Manager IT', 'Manager Sales', 'CISO'
 ];
 
-export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModalProps) {
+export function NewCampaignModal({ isOpen, onClose, onSubmit, prefill }: NewCampaignModalProps) {
   const [activeTab, setActiveTab] = useState<'manual' | 'email' | 'parse'>('manual');
   const [emailCopied, setEmailCopied] = useState(false);
   const [pastedEmail, setPastedEmail] = useState('');
@@ -78,18 +79,18 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
   const [titleInput, setTitleInput] = useState('');
   
   const [formData, setFormData] = useState<CampaignFormData>({
-    name: '',
-    type: 'Single Touch',
-    cpl: '',
-    geography: 'US',
-    locations: [],
-    employeeSizeMin: '1-10',
-    employeeSizeMax: '5000+',
-    revenueSizeMin: '',
-    revenueSizeMax: '',
-    titles: [],
+    name: prefill?.name ?? '',
+    type: prefill?.type ?? 'Single Touch',
+    cpl: prefill?.cpl ?? '',
+    geography: prefill?.geography ?? 'US',
+    locations: prefill?.locations ?? [],
+    employeeSizeMin: prefill?.employeeSizeMin ?? '1-10',
+    employeeSizeMax: prefill?.employeeSizeMax ?? '5000+',
+    revenueSizeMin: prefill?.revenueSizeMin ?? '',
+    revenueSizeMax: prefill?.revenueSizeMax ?? '',
+    titles: prefill?.titles ?? [],
     suppressionList: null,
-    additionalInfo: ''
+    additionalInfo: prefill?.additionalInfo ?? '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});

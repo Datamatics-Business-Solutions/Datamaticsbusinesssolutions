@@ -76,7 +76,7 @@ export default function InternalReports() {
 
   const totalLeads = monthlyData.reduce((sum, m) => sum + m.leads, 0);
   const totalRevenue = monthlyData.reduce((sum, m) => sum + m.revenue, 0);
-  const totalCampaigns = mockCampaigns.length;
+  const totalCampaigns = allClients.reduce((sum, c) => sum + c.campaigns.length, 0);
   const avgAcceptance = Math.round(monthlyData.reduce((sum, m) => sum + m.acceptance, 0) / monthlyData.length);
   const totalClients = allClients.length;
 

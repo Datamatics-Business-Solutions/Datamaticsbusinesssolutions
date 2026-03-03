@@ -8,10 +8,11 @@ import { AppLayout } from '../components/AppLayout';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { toast } from 'sonner';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { NotificationsTabContent } from '../components/NotificationsTabContent';
 
 export default function Account() {
   useDocumentTitle('Account Settings');
-  
+
   const [activeTab, setActiveTab] = useState<'profile' | 'company' | 'team' | 'security' | 'notifications'>('profile');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -20,12 +21,12 @@ export default function Account() {
     { id: 'company', label: 'Company Info', icon: Building2 },
     { id: 'team', label: 'Team Members', icon: Users },
     { id: 'security', label: 'Security', icon: Shield },
-    { id: 'notifications', label: 'Notifications', icon: Bell }
+    { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
   return (
     <AppLayout>
-      <div className={`max-w-[1200px] mx-auto page-content animate-fadeIn`}>
+      <div className="max-w-[1200px] mx-auto page-content animate-fadeIn">
         {/* Header */}
         <div className="mb-6">
           <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Account Settings</h1>
@@ -41,11 +42,9 @@ export default function Account() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'btn-primary'
-                    : 'btn-outline'
+                  activeTab === tab.id ? 'btn-primary' : 'btn-outline'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -63,7 +62,6 @@ export default function Account() {
                 Personal Information
               </h2>
 
-              {/* Profile Photo */}
               <div className="flex items-center gap-4 pb-6" style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'var(--color-primary)', color: 'white', fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)' }}>
                   SM
@@ -75,10 +73,7 @@ export default function Account() {
                   <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }} className="mb-2">
                     Upload a professional headshot
                   </p>
-                  <button
-                    onClick={() => toast.info('Photo upload coming soon')}
-                    className="btn-outline px-3 py-2 text-sm"
-                  >
+                  <button onClick={() => toast.info('Photo upload coming soon')} className="btn-outline px-3 py-2 text-sm">
                     Upload Photo
                   </button>
                 </div>
@@ -86,54 +81,34 @@ export default function Account() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    First Name
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">First Name</label>
                   <input type="text" defaultValue="John" className="input-base w-full px-4 py-3" />
                 </div>
-
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Last Name
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Last Name</label>
                   <input type="text" defaultValue="Smith" className="input-base w-full px-4 py-3" />
                 </div>
-
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Job Title
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Job Title</label>
                   <input type="text" defaultValue="Director of Marketing" className="input-base w-full px-4 py-3" />
                 </div>
-
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Company
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Company</label>
                   <input type="text" defaultValue="Acme Corp" className="input-base w-full px-4 py-3" disabled style={{ background: '#F5F5F5' }} />
                 </div>
-
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Email Address
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Email Address</label>
                   <input type="email" defaultValue="john.smith@acmecorp.com" className="input-base w-full px-4 py-3" />
                 </div>
-
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Phone Number
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Phone Number</label>
                   <input type="tel" defaultValue="+1 (555) 123-4567" className="input-base w-full px-4 py-3" />
                 </div>
               </div>
 
               <div className="flex justify-end gap-2">
                 <button className="btn-outline px-4 py-2">Cancel</button>
-                <button
-                  onClick={() => toast.success('Profile updated successfully')}
-                  className="btn-primary px-4 py-2 flex items-center gap-2"
-                >
+                <button onClick={() => toast.success('Profile updated successfully')} className="btn-primary px-4 py-2 flex items-center gap-2">
                   <Save className="w-4 h-4" />
                   Save Changes
                 </button>
@@ -146,19 +121,13 @@ export default function Account() {
               <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
                 Company Information
               </h2>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Company Name
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Company Name</label>
                   <input type="text" defaultValue="Acme Corporation" className="input-base w-full px-4 py-3" />
                 </div>
-
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Industry
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Industry</label>
                   <select className="input-base w-full px-4 py-3">
                     <option>Technology</option>
                     <option>Healthcare</option>
@@ -166,11 +135,8 @@ export default function Account() {
                     <option>Manufacturing</option>
                   </select>
                 </div>
-
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Company Size
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Company Size</label>
                   <select className="input-base w-full px-4 py-3">
                     <option>1-50 employees</option>
                     <option>51-200 employees</option>
@@ -178,21 +144,14 @@ export default function Account() {
                     <option>500+ employees</option>
                   </select>
                 </div>
-
                 <div className="md:col-span-2">
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Website
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Website</label>
                   <input type="url" defaultValue="https://acmecorp.com" className="input-base w-full px-4 py-3" />
                 </div>
               </div>
-
               <div className="flex justify-end gap-2">
                 <button className="btn-outline px-4 py-2">Cancel</button>
-                <button
-                  onClick={() => toast.success('Company information updated')}
-                  className="btn-primary px-4 py-2 flex items-center gap-2"
-                >
+                <button onClick={() => toast.success('Company information updated')} className="btn-primary px-4 py-2 flex items-center gap-2">
                   <Save className="w-4 h-4" />
                   Save Changes
                 </button>
@@ -205,69 +164,39 @@ export default function Account() {
               <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
                 Security Settings
               </h2>
-
               <div className="space-y-4">
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Current Password
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Current Password</label>
                   <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter current password"
-                      className="input-base w-full px-4 py-3 pr-12"
-                    />
-                    <button
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 btn-ghost p-2"
-                    >
+                    <input type={showPassword ? 'text' : 'password'} placeholder="Enter current password" className="input-base w-full px-4 py-3 pr-12" />
+                    <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 btn-ghost p-2">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
-
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    New Password
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">New Password</label>
                   <input type="password" placeholder="Enter new password" className="input-base w-full px-4 py-3" />
                 </div>
-
                 <div>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">
-                    Confirm New Password
-                  </label>
+                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Confirm New Password</label>
                   <input type="password" placeholder="Confirm new password" className="input-base w-full px-4 py-3" />
                 </div>
               </div>
-
               <div className="flex justify-end gap-2">
                 <button className="btn-outline px-4 py-2">Cancel</button>
-                <button
-                  onClick={() => toast.success('Password updated successfully')}
-                  className="btn-primary px-4 py-2 flex items-center gap-2"
-                >
+                <button onClick={() => toast.success('Password updated successfully')} className="btn-primary px-4 py-2 flex items-center gap-2">
                   <Lock className="w-4 h-4" />
                   Update Password
                 </button>
               </div>
-
               <div className="pt-6 border-t" style={{ borderColor: 'var(--color-border)' }}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                      Two-Factor Authentication
-                    </h3>
-                    <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }} className="mt-1">
-                      Add an extra layer of security to your account
-                    </p>
+                    <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>Two-Factor Authentication</h3>
+                    <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }} className="mt-1">Add an extra layer of security to your account</p>
                   </div>
-                  <button
-                    onClick={() => toast.info('2FA setup coming soon')}
-                    className="btn-outline px-4 py-2"
-                  >
-                    Enable
-                  </button>
+                  <button onClick={() => toast.info('2FA setup coming soon')} className="btn-outline px-4 py-2">Enable</button>
                 </div>
               </div>
             </div>
@@ -276,23 +205,17 @@ export default function Account() {
           {activeTab === 'team' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                  Team Members
-                </h2>
-                <button
-                  onClick={() => toast.info('Invite member modal coming soon')}
-                  className="btn-primary px-4 py-2 flex items-center gap-2"
-                >
+                <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>Team Members</h2>
+                <button onClick={() => toast.info('Invite member modal coming soon')} className="btn-primary px-4 py-2 flex items-center gap-2">
                   <UserPlus className="w-4 h-4" />
                   Invite Member
                 </button>
               </div>
-
               <div className="space-y-3">
                 {[
                   { name: 'John Smith', email: 'john.smith@acmecorp.com', role: 'Admin' },
                   { name: 'Sarah Johnson', email: 'sarah.j@acmecorp.com', role: 'Member' },
-                  { name: 'Michael Chen', email: 'michael.c@acmecorp.com', role: 'Member' }
+                  { name: 'Michael Chen', email: 'michael.c@acmecorp.com', role: 'Member' },
                 ].map((member, i) => (
                   <div key={i} className="flex items-center justify-between p-4 rounded-lg" style={{ background: 'var(--color-border-light)' }}>
                     <div className="flex items-center gap-3">
@@ -300,19 +223,13 @@ export default function Account() {
                         {member.name.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div>
-                        <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                          {member.name}
-                        </div>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                          {member.email}
-                        </div>
+                        <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>{member.name}</div>
+                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>{member.email}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="badge badge-completed">{member.role}</span>
-                      <button className="btn-ghost p-2">
-                        <Edit className="w-4 h-4" />
-                      </button>
+                      <button className="btn-ghost p-2"><Edit className="w-4 h-4" /></button>
                     </div>
                   </div>
                 ))}
@@ -320,44 +237,7 @@ export default function Account() {
             </div>
           )}
 
-          {activeTab === 'notifications' && (
-            <div className="space-y-6">
-              <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                Notification Preferences
-              </h2>
-
-              <div className="space-y-4">
-                {[
-                  { label: 'Email notifications for new leads', checked: true },
-                  { label: 'Campaign performance updates', checked: true },
-                  { label: 'Weekly summary reports', checked: false },
-                  { label: 'Billing and payment updates', checked: true },
-                  { label: 'Marketing and product updates', checked: false }
-                ].map((pref, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-lg" style={{ background: 'var(--color-border-light)' }}>
-                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                      {pref.label}
-                    </span>
-                    <input
-                      type="checkbox"
-                      defaultChecked={pref.checked}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <button className="btn-outline px-4 py-2">Cancel</button>
-                <button
-                  onClick={() => toast.success('Preferences saved')}
-                  className="btn-primary px-4 py-2 flex items-center gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  Save Preferences
-                </button>
-              </div>
-            </div>
-          )}
+          {activeTab === 'notifications' && <NotificationsTabContent />}
         </div>
       </div>
     </AppLayout>

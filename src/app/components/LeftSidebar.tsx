@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, useLocation } from 'react-router';
 import {
@@ -24,12 +24,15 @@ import {
   Plus,
   MessageSquare,
   ClipboardCheck,
+  Bell,
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
 import { getAssignedClients, recentUploadBatches, allClients } from '../data/mockClients';
 import { LeadUploadModal } from './LeadUploadModal';
 import { getPendingSubmissions } from '../mockData';
+import { NotificationPanel } from './NotificationPanel';
+import { useNotifications } from '../context/NotificationContext';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -62,6 +65,11 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
   
   // Feedback jiggle animation — fires every 5s to attract attention
   const [feedbackJiggle, setFeedbackJiggle] = useState(false);
+
+  // Notification bell panel
+  const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+  const notifButtonRef = useRef<HTMLButtonElement>(null);
+  const { unreadCount } = useNotifications();
 
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
   const tooltipTimeoutRef = useRef<NodeJS.Timeout>();
@@ -582,6 +590,82 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
 
       {/* Bottom Section — Logout + User Profile */}
       <div className="border-t border-[#EEECEC] px-3 pt-3 pb-3 space-y-1">
+        {/* Notification Bell — client role only */}
+        {currentUser?.role === 'client' && (
+          <div className="relative">
+            <button
+              ref={notifButtonRef}
+              onClick={() => setNotifPanelOpen(prev => !prev)}
+              onMouseEnter={() => handleItemMouseEnter('Notifications')}
+              onMouseLeave={handleItemMouseLeave}
+              className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 hover:bg-[#F5F5F5] ${
+                isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
+              }`}
+              style={{ fontSize: '14px', fontWeight: 500, color: '#374151' }}
+            >
+              <div className="relative flex-shrink-0">
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-white"
+                    style={{ background: '#BA2027', fontSize: '10px', fontWeight: 700 }}
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.22 }}
+                    className="flex-1 flex items-center justify-between"
+                  >
+                    <span>Notifications</span>
+                    {unreadCount > 0 && (
+                      <span
+                        className="px-1.5 py-0.5 rounded-full text-white"
+                        style={{ background: '#BA2027', fontSize: '10px', fontWeight: 700 }}
+                      >
+                        {unreadCount}
+                      </span>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
+
+            {/* Panel renders via Portal to document.body — no overflow clipping */}
+            <NotificationPanel
+              isOpen={notifPanelOpen}
+              onClose={() => setNotifPanelOpen(false)}
+              anchorRef={notifButtonRef}
+              isMobile={false}
+            />
+            <NotificationPanel
+              isOpen={notifPanelOpen}
+              onClose={() => setNotifPanelOpen(false)}
+              anchorRef={notifButtonRef}
+              isMobile={true}
+            />
+
+            {!isExpanded && showTooltip === 'Notifications' && (
+              <motion.div
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 bg-[#1C1C1E] text-white rounded-lg whitespace-nowrap z-50 pointer-events-none"
+                style={{ fontSize: '12px', fontWeight: 500 }}
+              >
+                Notifications {unreadCount > 0 ? `(${unreadCount})` : ''}
+              </motion.div>
+            )}
+          </div>
+        )}
+
         {/* Logout */}
         <div className="relative">
           <button

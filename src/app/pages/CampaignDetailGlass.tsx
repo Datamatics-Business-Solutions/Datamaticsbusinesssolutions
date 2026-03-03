@@ -10,12 +10,15 @@ import {
   DollarSign,
   ArrowLeft,
   Activity,
-  Package
+  Package,
+  Copy,
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { JobCardModal } from '../components/JobCardModalGlass';
 import { AnimatedDonutChart } from '../components/AnimatedDonutChart';
 import { DeliveryScheduleSection } from '../components/DeliveryScheduleSection';
+import { CloneCampaignModal } from '../components/CloneCampaignModal';
+import { NewCampaignModal, type CampaignFormData } from '../components/NewCampaignModal';
 import { allClients } from '../data/mockClients';
 import { mockActivityUpdates } from '../mockData';
 
@@ -23,6 +26,9 @@ export default function CampaignDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showJobCard, setShowJobCard] = useState(false);
+  const [showCloneModal, setShowCloneModal] = useState(false);
+  const [showNewCampaignModal, setShowNewCampaignModal] = useState(false);
+  const [clonePrefill, setClonePrefill] = useState<Partial<CampaignFormData> | undefined>(undefined);
   
   // Find the campaign across all clients
   let campaign = null;
@@ -112,13 +118,20 @@ export default function CampaignDetail() {
               )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setShowJobCard(true)}
               className="btn-outline px-4 py-2 flex items-center gap-2"
             >
               <FileText className="w-4 h-4" />
               View Job Card
+            </button>
+            <button
+              onClick={() => setShowCloneModal(true)}
+              className="btn-outline px-4 py-2 flex items-center gap-2"
+            >
+              <Copy className="w-4 h-4" />
+              Clone Campaign
             </button>
             <button className="btn-primary px-4 py-2 flex items-center gap-2">
               <Download className="w-4 h-4" />
@@ -284,6 +297,31 @@ export default function CampaignDetail() {
         isOpen={showJobCard}
         onClose={() => setShowJobCard(false)}
         campaign={campaign}
+      />
+
+      {/* Clone Confirmation Modal */}
+      <CloneCampaignModal
+        isOpen={showCloneModal}
+        campaignName={campaign.name}
+        onClose={() => setShowCloneModal(false)}
+        onConfirm={() => {
+          setShowCloneModal(false);
+          setClonePrefill({
+            name: `${campaign.name} — Copy`,
+          });
+          setShowNewCampaignModal(true);
+        }}
+      />
+
+      {/* New Campaign Modal (pre-filled for clone) */}
+      <NewCampaignModal
+        isOpen={showNewCampaignModal}
+        onClose={() => { setShowNewCampaignModal(false); setClonePrefill(undefined); }}
+        onSubmit={() => {
+          setShowNewCampaignModal(false);
+          navigate('/campaigns');
+        }}
+        prefill={clonePrefill}
       />
     </AppLayout>
   );

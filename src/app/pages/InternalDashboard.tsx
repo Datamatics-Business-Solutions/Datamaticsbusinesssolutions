@@ -7,24 +7,31 @@ import {
   Upload, ArrowUpRight, CheckCircle2, Clock, AlertCircle, Eye,
 } from 'lucide-react';
 import { AnimatedCounter } from '../components/AnimatedCounter';
-import { mockCampaigns } from '../mockData';
 import { allClients, recentUploadBatches } from '../data/mockClients';
 
 export default function InternalDashboard() {
   const navigate = useNavigate();
 
-  const totalCampaigns = mockCampaigns.length;
-  const activeCampaigns = mockCampaigns.filter(c => c.status === 'In progress').length;
-  const completedCampaigns = mockCampaigns.filter(c => c.status === 'Completed').length;
-  const totalLeads = mockCampaigns.reduce((sum, c) => sum + c.delivered, 0);
+  // Derive all campaign metrics from allClients (single source of truth)
+  const allCampaigns = allClients.flatMap(c => c.campaigns);
+  const totalCampaigns = allCampaigns.length;
+  const activeCampaigns = allCampaigns.filter(c => c.status === 'active').length;
+  const completedCampaigns = allCampaigns.filter(c => c.status === 'completed').length;
+  const totalLeads = allCampaigns.reduce((sum, c) => sum + (c.delivered ?? c.totalLeads ?? 0), 0);
   const totalClients = allClients.length;
 
   // Upload metrics from recentUploadBatches
   const processingUploads = recentUploadBatches.filter(u => u.status === 'processing').length;
   const failedUploads = recentUploadBatches.filter(u => u.status === 'failed').length;
 
-  // Recent 5 campaigns
-  const recentCampaigns = [...mockCampaigns].slice(0, 5);
+  // Recent 5 campaigns (latest by lastActivity)
+  const recentCampaigns = [...allCampaigns]
+    .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
+    .slice(0, 5)
+    .map(camp => {
+      const client = allClients.find(cl => cl.campaigns.some(c => c.id === camp.id));
+      return { ...camp, clientName: client?.companyName ?? '' };
+    });
 
   // Top clients by leads
   const topClients = [...allClients]
@@ -196,7 +203,7 @@ export default function InternalDashboard() {
                         <div className="flex items-center gap-2" style={{ minWidth: '100px' }}>
                           <div className="progress-bar flex-1">
                             <div
-                              className={`progress-bar__fill ${campaign.status === 'Completed' ? 'progress-bar__fill--completed' : ''}`}
+                              className={`progress-bar__fill ${campaign.status === 'completed' ? 'progress-bar__fill--completed' : ''}`}
                               style={{ width: `${campaign.target > 0 ? Math.min(Math.round((campaign.delivered / campaign.target) * 100), 100) : 0}%` }}
                             />
                           </div>
@@ -207,8 +214,8 @@ export default function InternalDashboard() {
                       </td>
                       <td className="table-td">
                         <span className={`badge ${
-                          campaign.status === 'In progress' ? 'badge-active' :
-                          campaign.status === 'Completed' ? 'badge-completed' :
+                          campaign.status === 'active' ? 'badge-active' :
+                          campaign.status === 'completed' ? 'badge-completed' :
                           'badge-paused'
                         }`}>
                           {campaign.status}

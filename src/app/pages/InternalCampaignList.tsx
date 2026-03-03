@@ -1,9 +1,44 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
-import { Search, ChevronDown, ChevronUp, Upload, Eye } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { mockCampaigns } from '../mockData';
+import { allClients, type Campaign } from '../data/mockClients';
+
+// Flatten all campaigns from allClients into a single array with clientName attached
+type FlatCampaign = Campaign & { clientName: string; clientIndustry: string };
+
+function getAllCampaigns(): FlatCampaign[] {
+  const result: FlatCampaign[] = [];
+  for (const client of allClients) {
+    for (const campaign of client.campaigns) {
+      result.push({ ...campaign, clientName: client.companyName, clientIndustry: client.industry });
+    }
+  }
+  return result;
+}
+
+const ALL_CAMPAIGNS = getAllCampaigns();
+
+function statusLabel(s: string) {
+  switch (s) {
+    case 'active':           return 'Active';
+    case 'completed':        return 'Completed';
+    case 'paused':           return 'Paused';
+    case 'pending_approval': return 'Pending Approval';
+    default:                 return s;
+  }
+}
+
+function statusBadgeClass(s: string) {
+  switch (s) {
+    case 'active':           return 'badge badge-active';
+    case 'completed':        return 'badge badge-completed';
+    case 'paused':           return 'badge badge-paused';
+    case 'pending_approval': return 'badge';
+    default:                 return 'badge';
+  }
+}
 
 export default function InternalCampaignList() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,25 +61,34 @@ export default function InternalCampaignList() {
     return sortOrder === 'asc' ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />;
   };
 
-  const filteredCampaigns = mockCampaigns
-    .filter(campaign => {
-      const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
-      let aVal: any, bVal: any;
-      switch (sortField) {
-        case 'name': aVal = a.name; bVal = b.name; break;
-        case 'progress': aVal = a.delivered / a.target; bVal = b.delivered / b.target; break;
-        case 'status': aVal = a.status; bVal = b.status; break;
-        default: return 0;
-      }
-      if (typeof aVal === 'string') {
-        return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-      }
-      return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
-    });
+  const filteredCampaigns = useMemo(() => {
+    return ALL_CAMPAIGNS
+      .filter(campaign => {
+        const matchesSearch =
+          campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          campaign.clientName.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        let aVal: any, bVal: any;
+        const aTarget = a.target ?? a.totalLeads ?? 0;
+        const bTarget = b.target ?? b.totalLeads ?? 0;
+        const aDelivered = a.delivered ?? a.deliveredLeads ?? 0;
+        const bDelivered = b.delivered ?? b.deliveredLeads ?? 0;
+        switch (sortField) {
+          case 'name':     aVal = a.name;    bVal = b.name;    break;
+          case 'client':   aVal = a.clientName; bVal = b.clientName; break;
+          case 'progress': aVal = aTarget > 0 ? aDelivered / aTarget : 0; bVal = bTarget > 0 ? bDelivered / bTarget : 0; break;
+          case 'status':   aVal = a.status;  bVal = b.status;  break;
+          default:         return 0;
+        }
+        if (typeof aVal === 'string') {
+          return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
+        return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+      });
+  }, [searchQuery, statusFilter, sortField, sortOrder]);
 
   return (
     <AppLayout>
@@ -52,7 +96,7 @@ export default function InternalCampaignList() {
         <div className="mb-6">
           <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">All Campaigns</h1>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-            {filteredCampaigns.length} campaigns found
+            {filteredCampaigns.length} campaign{filteredCampaigns.length !== 1 ? 's' : ''} found
           </p>
         </div>
 
@@ -61,7 +105,7 @@ export default function InternalCampaignList() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
             <input
               type="text"
-              placeholder="Search campaigns..."
+              placeholder="Search campaigns or clients…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-base w-full pl-10 pr-4 py-3"
@@ -75,11 +119,12 @@ export default function InternalCampaignList() {
               className="input-base w-full px-4 py-3"
             >
               <option value="All">All Status</option>
-              <option value="In progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Paused">Paused</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="paused">Paused</option>
+              <option value="pending_approval">Pending Approval</option>
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280] pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
           </div>
         </div>
 
@@ -94,6 +139,13 @@ export default function InternalCampaignList() {
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-1">Campaign <SortIcon field="name" /></div>
+                  </th>
+                  <th
+                    className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors"
+                    style={{ color: sortField === 'client' ? 'var(--color-primary)' : undefined }}
+                    onClick={() => handleSort('client')}
+                  >
+                    <div className="flex items-center gap-1">Client <SortIcon field="client" /></div>
                   </th>
                   <th
                     className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors"
@@ -114,43 +166,48 @@ export default function InternalCampaignList() {
               </thead>
               <tbody>
                 {filteredCampaigns.map((campaign, index) => {
-                  const progress = campaign.target > 0
-                    ? Math.min(Math.round((campaign.delivered / campaign.target) * 100), 100)
+                  const target = campaign.target ?? campaign.totalLeads ?? 0;
+                  const delivered = campaign.delivered ?? campaign.deliveredLeads ?? 0;
+                  const progress = target > 0
+                    ? Math.min(Math.round((delivered / target) * 100), 100)
                     : 0;
+
                   return (
                     <TableRow
                       key={campaign.id}
                       showHoverEffect={true}
-                      animationDelay={index * 50}
+                      animationDelay={index * 40}
                       onClick={() => navigate(`/internal/campaigns/${campaign.id}`)}
                     >
                       <td className="table-td">
                         <div className="t1">{campaign.name}</div>
-                        <div className="t3 mt-0.5">{campaign.startDate} → {campaign.endDate}</div>
+                        {campaign.startDate && campaign.endDate && (
+                          <div className="t3 mt-0.5">{campaign.startDate} → {campaign.endDate}</div>
+                        )}
+                      </td>
+                      <td className="table-td">
+                        <div className="t2">{campaign.clientName}</div>
+                        <div className="t3">{campaign.clientIndustry}</div>
                       </td>
                       <td className="table-td">
                         <div className="space-y-1.5" style={{ minWidth: '160px' }}>
                           <div className="flex items-center gap-3">
                             <div className="progress-bar flex-1">
                               <div
-                                className={`progress-bar__fill ${campaign.status === 'Completed' ? 'progress-bar__fill--completed' : ''}`}
+                                className={`progress-bar__fill ${campaign.status === 'completed' ? 'progress-bar__fill--completed' : ''}`}
                                 style={{ width: `${progress}%` }}
                               />
                             </div>
                             <span className="t2" style={{ minWidth: '30px' }}>{progress}%</span>
                           </div>
                           <div className="t3">
-                            {campaign.delivered.toLocaleString()} / {campaign.target.toLocaleString()} leads
+                            {delivered.toLocaleString()} / {target.toLocaleString()} leads
                           </div>
                         </div>
                       </td>
                       <td className="table-td">
-                        <span className={`badge ${
-                          campaign.status === 'In progress' ? 'badge-active' :
-                          campaign.status === 'Completed' ? 'badge-completed' :
-                          'badge-paused'
-                        }`}>
-                          {campaign.status}
+                        <span className={statusBadgeClass(campaign.status)}>
+                          {statusLabel(campaign.status)}
                         </span>
                       </td>
                       <td className="table-td" onClick={(e) => e.stopPropagation()}>
@@ -170,8 +227,11 @@ export default function InternalCampaignList() {
           </div>
 
           {filteredCampaigns.length === 0 && (
-            <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
-              No campaigns found
+            <div className="text-center py-12">
+              <Search className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-text-muted)' }} />
+              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                No campaigns match your search criteria.
+              </p>
             </div>
           )}
         </div>

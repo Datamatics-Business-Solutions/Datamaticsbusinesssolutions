@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Plus, ChevronDown,
   Clock, CheckCircle2, AlertTriangle, MessageSquareDiff,
+  MoreVertical, Copy, Eye,
 } from 'lucide-react';
 import type { Campaign, CampaignStatus, CampaignSubmission, ServiceType } from '../types';
 import { ProgressBar } from '../components/ProgressBar';
@@ -11,6 +12,7 @@ import { TableRow } from '../components/TableRow';
 import { AppLayout } from '../components/AppLayout';
 import { StatusBadge } from '../components/StatusBadge';
 import { NewCampaignModal, type CampaignFormData } from '../components/NewCampaignModal';
+import { CloneCampaignModal } from '../components/CloneCampaignModal';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // ─── Submission status timeline helper ───────────────────────────────────────
@@ -204,12 +206,43 @@ export default function CampaignList() {
   const [statusFilter, setStatusFilter] = useState<string>(initialStatusFilter);
   const [dateRange, setDateRange] = useState<string>('All time');
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
+  const [clonePrefill, setClonePrefill] = useState<Partial<CampaignFormData> | undefined>(undefined);
   const [campaigns, setCampaigns] = useState(mockCampaigns);
   const [clientSubmissions, setClientSubmissions] = useState<CampaignSubmission[]>(
-    // Show only submissions from the logged-in client (Acme Corp / client_1 for demo)
     mockCampaignSubmissions.filter(s => s.clientId === 'client_1')
   );
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  // Clone modal state
+  const [cloneModalOpen, setCloneModalOpen] = useState(false);
+  const [campaignToClone, setCampaignToClone] = useState<typeof mockCampaigns[0] | null>(null);
+  // Action menu (three-dot) state
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  // Close three-dot menu on outside click
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handler = () => setOpenMenuId(null);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [openMenuId]);
+
+  const handleCloneClick = (campaign: typeof mockCampaigns[0]) => {
+    setCampaignToClone(campaign);
+    setCloneModalOpen(true);
+    setOpenMenuId(null);
+  };
+
+  const handleCloneConfirm = () => {
+    if (!campaignToClone) return;
+    setCloneModalOpen(false);
+    // Build prefill from source campaign
+    const prefill: Partial<CampaignFormData> = {
+      name: `${campaignToClone.name} — Copy`,
+      type: campaignToClone.serviceType as string,
+    };
+    setClonePrefill(prefill);
+    setIsNewCampaignModalOpen(true);
+  };
 
   const handleNewCampaignSubmit = (formData: CampaignFormData) => {
     const newCampaign = {
@@ -388,47 +421,137 @@ export default function CampaignList() {
                 </tr>
               </thead>
               <tbody>
-                {filteredCampaigns.map((campaign, index) => (
-                  <TableRow
-                    key={campaign.id}
-                    showHoverEffect={true}
-                    animationDelay={index * 100}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-[#1F2937]" style={{ fontSize: '14px' }}>{campaign.name}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap table-td">{campaign.serviceType}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={campaign.status} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap table-td">
-                      {new Date(campaign.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap table-td">
-                      {new Date(campaign.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className="whitespace-nowrap table-td">{campaign.delivered} / {campaign.target}</span>
-                        <div className="w-24">
-                          <ProgressBar current={campaign.delivered} target={campaign.target} />
+                {filteredCampaigns.map((campaign, index) => {
+                  const isActive = campaign.status === 'In progress';
+                  const isPaused = campaign.status === 'Paused';
+                  const isCompleted = campaign.status === 'Completed';
+                  const pct = campaign.target > 0 ? Math.min(Math.round((campaign.delivered / campaign.target) * 100), 100) : 0;
+
+                  return (
+                    <TableRow
+                      key={campaign.id}
+                      showHoverEffect={true}
+                      animationDelay={index * 100}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-[#1F2937]" style={{ fontSize: '14px' }}>{campaign.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap table-td">{campaign.serviceType}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge status={campaign.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap table-td">
+                        {new Date(campaign.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap table-td">
+                        {new Date(campaign.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      {/* ── Animated Live Lead Counter ── */}
+                      <td className="px-6 py-4" style={{ minWidth: '200px' }}>
+                        <div className="flex items-center gap-2 mb-1">
+                          {/* Status dot */}
+                          {isActive && (
+                            <span className="relative flex h-2 w-2 flex-shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#22c55e' }} />
+                              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#22c55e' }} />
+                            </span>
+                          )}
+                          {isPaused && (
+                            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#BA2027' }} />
+                          )}
+                          {isCompleted && (
+                            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#6B7280' }} />
+                          )}
+                          {/* Animated count */}
+                          <motion.span
+                            key={campaign.delivered}
+                            initial={{ opacity: 0.6, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                            style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}
+                          >
+                            {campaign.delivered.toLocaleString()}
+                          </motion.span>
+                          <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: 400 }}>
+                            of {campaign.target.toLocaleString()} leads
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap table-td">
-                      {new Date(campaign.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link
-                        to={`/campaigns/${campaign.id}`}
-                        className="btn-outline px-3 py-1.5"
-                        style={{ fontSize: '13px' }}
-                      >
-                        View details
-                      </Link>
-                    </td>
-                  </TableRow>
-                ))}
+                        {/* Progress bar */}
+                        <div className="w-full h-1.5 rounded-full" style={{ background: 'rgba(186,32,39,0.10)' }}>
+                          <motion.div
+                            className="h-1.5 rounded-full"
+                            style={{ background: 'rgba(186,32,39,0.70)' }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 1, ease: 'easeOut', delay: index * 0.05 }}
+                          />
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '3px' }}>
+                          {pct}% delivered
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap table-td">
+                        {new Date(campaign.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </td>
+                      {/* Action cell with three-dot menu */}
+                      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            to={`/campaigns/${campaign.id}`}
+                            className="btn-outline px-3 py-1.5"
+                            style={{ fontSize: '13px' }}
+                          >
+                            View details
+                          </Link>
+                          {/* Three-dot menu */}
+                          <div className="relative">
+                            <button
+                              onClick={() => setOpenMenuId(openMenuId === campaign.id ? null : campaign.id)}
+                              className="btn-ghost p-1.5"
+                              title="More actions"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                            <AnimatePresence>
+                              {openMenuId === campaign.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                  transition={{ duration: 0.14 }}
+                                  className="absolute right-0 top-full mt-1 w-40 rounded-xl overflow-hidden z-50"
+                                  style={{
+                                    background: 'rgba(255,255,255,0.98)',
+                                    border: '1px solid var(--color-border)',
+                                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                                  }}
+                                >
+                                  <Link
+                                    to={`/campaigns/${campaign.id}`}
+                                    className="flex items-center gap-2 px-3 py-2.5 w-full text-left hover:bg-[rgba(186,32,39,0.05)] transition-colors"
+                                    style={{ fontSize: '13px', color: 'var(--color-text-primary)', textDecoration: 'none' }}
+                                    onClick={() => setOpenMenuId(null)}
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    View Details
+                                  </Link>
+                                  <button
+                                    onClick={() => handleCloneClick(campaign)}
+                                    className="flex items-center gap-2 px-3 py-2.5 w-full text-left hover:bg-[rgba(186,32,39,0.05)] transition-colors"
+                                    style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                    Clone Campaign
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </div>
+                      </td>
+                    </TableRow>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -443,8 +566,16 @@ export default function CampaignList() {
 
       <NewCampaignModal
         isOpen={isNewCampaignModalOpen}
-        onClose={() => setIsNewCampaignModalOpen(false)}
+        onClose={() => { setIsNewCampaignModalOpen(false); setClonePrefill(undefined); }}
         onSubmit={handleNewCampaignSubmit}
+        prefill={clonePrefill}
+      />
+
+      <CloneCampaignModal
+        isOpen={cloneModalOpen}
+        campaignName={campaignToClone?.name ?? ''}
+        onClose={() => setCloneModalOpen(false)}
+        onConfirm={handleCloneConfirm}
       />
     </AppLayout>
   );
