@@ -1,11 +1,13 @@
 import { motion } from 'motion/react';
 import { Mail, MessageCircle } from 'lucide-react';
+import { PersonAvatar } from './PersonAvatar';
 
 interface AccountTeamMember {
   name: string;
   role: string;
   email: string;
   initials: string;
+  photo?: string;
 }
 
 interface AccountTeamProps {
@@ -24,10 +26,7 @@ export function AccountTeam({ manager, backup }: AccountTeamProps) {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Campaign Manager Card */}
         <TeamMemberCard member={manager} />
-
-        {/* Campaign Backup Card */}
         <TeamMemberCard member={backup} />
       </div>
     </div>
@@ -42,14 +41,8 @@ function TeamMemberCard({ member }: { member: AccountTeamMember }) {
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-start gap-4">
-        {/* Avatar */}
-        <div className="flex-shrink-0">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#BA2027] to-[#D32F2F] flex items-center justify-center shadow-lg">
-            <span className="font-semibold text-white">
-              {member.initials}
-            </span>
-          </div>
-        </div>
+        {/* Avatar — rounded-square with real photo */}
+        <PersonAvatar name={member.name} photoUrl={member.photo} size={56} />
 
         {/* Info */}
         <div className="flex-1 min-w-0">
@@ -60,7 +53,7 @@ function TeamMemberCard({ member }: { member: AccountTeamMember }) {
             {member.role}
           </p>
           <div className="flex items-center gap-1.5 text-xs text-[#6B7280] dark:text-[#9CA3AF]">
-            <Mail className="w-3.5 h-3.5" />
+            <Mail className="w-3.5 h-3.5 flex-shrink-0" />
             <a
               href={`mailto:${member.email}`}
               className="hover:text-[#BA2027] transition-colors truncate"

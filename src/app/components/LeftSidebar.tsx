@@ -33,6 +33,7 @@ import { LeadUploadModal } from './LeadUploadModal';
 import { getPendingSubmissions } from '../mockData';
 import { NotificationPanel } from './NotificationPanel';
 import { useNotifications } from '../context/NotificationContext';
+import { PersonAvatar } from './PersonAvatar';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -141,6 +142,12 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     const activeCampaigns = allClients.reduce((sum, c) => sum + c.campaigns.filter(camp => camp.status === 'active').length, 0);
     const totalLeads = allClients.reduce((sum, c) => sum + c.totalLeads, 0);
     const pendingApprovals = getPendingSubmissions().length;
+
+    // Client-scoped: only count campaigns belonging to client_1 (Acme Corp)
+    const clientData = allClients.find(c => c.id === 'client_1');
+    const clientActiveCampaigns = clientData?.campaigns.filter(c => c.status === 'active').length ?? 0;
+    const clientTotalLeads = clientData?.totalLeads ?? 0;
+
     return {
       processingUploads,
       failedUploads,
@@ -148,7 +155,9 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
       totalLeads,
       unpaidInvoices: 2,
       pendingApprovals,
-      openSupportTickets: 2, // TKT-001 (In Progress) + TKT-002 (Waiting)
+      openSupportTickets: 2,
+      clientActiveCampaigns,
+      clientTotalLeads,
     };
   }, []); // source arrays are module-level constants — never change at runtime
 
@@ -187,7 +196,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           quickActionIcon: Plus,
           quickActionHandler: () => setShowUploadModal(true)
         },
-        { name: 'Client Assignments', icon: Building2, path: '/internal/client-assignment', section: 'PLATFORM' },
         { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
         { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
@@ -238,7 +246,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         icon: BarChart2, 
         path: '/campaigns', 
         section: 'PLATFORM',
-        badge: 3,
+        badge: badges.clientActiveCampaigns > 0 ? badges.clientActiveCampaigns : undefined,
         badgeColor: 'bg-[#BA2027]'
       },
       { 
@@ -246,7 +254,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         icon: Users, 
         path: '/leads', 
         section: 'PLATFORM',
-        badge: 1234,
+        badge: badges.clientTotalLeads > 0 ? badges.clientTotalLeads : undefined,
         badgeColor: 'bg-[#BA2027]'
       },
       { name: 'Reports', icon: FileBarChart, path: '/reports', section: 'PLATFORM' },
@@ -713,18 +721,8 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
               isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
             }`}
           >
-            {/* Avatar */}
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0"
-              style={{
-                background: 'linear-gradient(135deg, #BA2027 0%, #D32F2F 100%)',
-                boxShadow: '0 2px 8px rgba(186,32,39,0.25)',
-                fontSize: '13px',
-                fontWeight: 700,
-              }}
-            >
-              {userInitials}
-            </div>
+            {/* Avatar — real photo, rounded-square */}
+            <PersonAvatar name={currentUser?.name || ''} size={36} />
             <AnimatePresence>
               {isExpanded && (
                 <motion.div

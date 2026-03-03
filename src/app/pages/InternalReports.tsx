@@ -1,19 +1,9 @@
-import { useState } from 'react';
-import { AppLayout } from '../components/AppLayout';
-import {
-  TrendingUp, Users, Target, DollarSign, Download,
-  BarChart3, Activity, CheckCircle, ArrowUpRight, ArrowDownRight,
-  Bookmark, BookmarkCheck,
-} from 'lucide-react';
-import {
-  AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line,
-} from 'recharts';
 import { mockCampaigns } from '../mockData';
 import { allClients } from '../data/mockClients';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { ExportModal } from '../components/ExportModal';
 import { toast } from 'sonner';
+import { PersonAvatar } from '../components/PersonAvatar';
 
 const CHART_COLORS = ['#BA2027', '#D32F2F', '#E57373', '#0891B2', '#0F9D58', '#F4B400'];
 
@@ -489,12 +479,7 @@ export default function InternalReports() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div
-                            className="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                            style={{ background: CHART_COLORS[index % CHART_COLORS.length], fontSize: '13px', fontWeight: 600 }}
-                          >
-                            {op.name.split(' ').map((n) => n[0]).join('')}
-                          </div>
+                          <PersonAvatar name={op.name} size={36} />
                           <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
                             {op.name}
                           </span>

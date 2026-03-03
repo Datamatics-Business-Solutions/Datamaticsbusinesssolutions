@@ -19,18 +19,18 @@ import {
   Eye,
   AlertCircle,
 } from 'lucide-react';
-import { allClients, type Campaign } from '../data/mockClients';
+import { type Campaign, getAccountTeam, allClients } from '../data/mockClients';
 import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { NewCampaignModal, CampaignFormData } from '../components/NewCampaignModal';
 import { EmptyState } from '../components/EmptyState';
 import { AccountTeam } from '../components/AccountTeam';
-import { getAccountTeam } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { TableSkeleton } from '../components/SkeletonLoader';
+import { getPersonPhoto } from '../data/personPhotos';
 
 // Mock sparkline data for trend visualization
 const generateSparklineData = (baseValue: number, trend: 'up' | 'down' = 'up') => {
@@ -39,20 +39,6 @@ const generateSparklineData = (baseValue: number, trend: 'up' | 'down' = 'up') =
       ? baseValue * (0.7 + (i * 0.025) + Math.random() * 0.1)
       : baseValue * (1.3 - (i * 0.025) + Math.random() * 0.1)
   }));
-};
-
-// Flatten all campaigns from all clients
-const getAllCampaignsFlat = (): Array<Campaign & { clientName: string }> => {
-  const campaigns: Array<Campaign & { clientName: string }> = [];
-  allClients.forEach(client => {
-    client.campaigns.forEach(campaign => {
-      campaigns.push({
-        ...campaign,
-        clientName: client.companyName
-      });
-    });
-  });
-  return campaigns;
 };
 
 export default function Dashboard() {
@@ -73,11 +59,29 @@ export default function Dashboard() {
   const accountTeam = getAccountTeam('client_1');
 
   // Get all campaigns flattened
-  const allCampaignsFlat = useMemo(() => getAllCampaignsFlat(), []);
+  const allCampaignsFlat = useMemo(() => {
+    const campaigns: Array<import('../data/mockClients').Campaign & { clientName: string }> = [];
+    allClients.forEach(client => {
+      client.campaigns.forEach(campaign => {
+        campaigns.push({ ...campaign, clientName: client.companyName });
+      });
+    });
+    return campaigns;
+  }, []);
+  
+  // For client users, only show their own company's campaigns (Acme Corp = client_1)
+  // NOTE: defined BEFORE baseCampaigns so KPI cards are correctly scoped to this client.
+  const isClientRole = currentUser?.role === 'client';
+  const acmeClient = allClients.find(c => c.id === 'client_1');
 
-  // Base data using allClients
-  const baseCampaigns = allCampaignsFlat.filter((c) => c.status === 'active').length;
-  const baseLeadsMonthly = allCampaignsFlat.reduce((sum, c) => sum + (c.delivered || 0), 0);
+  // Base data — scoped to the client's own campaigns when in client role
+  const clientCampaigns = acmeClient?.campaigns ?? [];
+  const baseCampaigns = isClientRole
+    ? clientCampaigns.filter((c) => c.status === 'active').length
+    : allCampaignsFlat.filter((c) => c.status === 'active').length;
+  const baseLeadsMonthly = isClientRole
+    ? clientCampaigns.reduce((sum, c) => sum + (c.delivered || 0), 0)
+    : allCampaignsFlat.reduce((sum, c) => sum + (c.delivered || 0), 0);
   const baseSpendMonthly = 24500;
 
   // Calculate metrics based on period
@@ -99,8 +103,6 @@ export default function Dashboard() {
   const spendData = useMemo(() => generateSparklineData(totalSpend / 12, 'down'), [totalSpend]);
 
   // For client users, only show their own company's campaigns (Acme Corp = client_1)
-  const isClientRole = currentUser?.role === 'client';
-  const acmeClient = allClients.find(c => c.id === 'client_1');
   const visibleCampaigns = isClientRole
     ? (acmeClient?.campaigns.map(c => ({ ...c, clientName: acmeClient.companyName })) ?? [])
     : allCampaignsFlat;
@@ -502,6 +504,7 @@ export default function Dashboard() {
                   .split(' ')
                   .map((n) => n[0])
                   .join(''),
+                photo: getPersonPhoto(accountTeam.manager.name),
               }}
               backup={{
                 name: accountTeam.backup.name,
@@ -511,6 +514,7 @@ export default function Dashboard() {
                   .split(' ')
                   .map((n) => n[0])
                   .join(''),
+                photo: getPersonPhoto(accountTeam.backup.name),
               }}
             />
           </div>

@@ -2,21 +2,9 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
-  TrendingUp,
-  BarChart3,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  FileText,
-  ArrowUpRight,
-  Activity,
-  Layers,
-  Users,
-  PauseCircle,
-  FilePenLine,
-  MessageSquare,
-  FolderOpen,
-  Pause,
+  CheckCircle2, FileText, Layers, Users, TrendingUp,
+  AlertCircle, FilePenLine, Clock, MessageSquare, FolderOpen,
+  Activity, BarChart3, ArrowUpRight, PauseCircle,
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { AnimatedNumber } from '../components/AnimatedNumber';
@@ -24,6 +12,8 @@ import { AccountTeam } from '../components/AccountTeam';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAccountTeam, allClients } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
+import { PersonAvatar } from '../components/PersonAvatar';
+import { getPersonPhoto } from '../data/personPhotos';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function getGreeting() {
@@ -534,8 +524,8 @@ export default function HomePage() {
         {/* ── Account Team ────────────────────────────────────────────────── */}
         {accountTeam && (
           <AccountTeam
-            manager={{ name: accountTeam.manager.name, role: accountTeam.manager.role, email: accountTeam.manager.email, initials: accountTeam.manager.name.split(' ').map(n => n[0]).join('') }}
-            backup={{ name: accountTeam.backup.name, role: accountTeam.backup.role, email: accountTeam.backup.email, initials: accountTeam.backup.name.split(' ').map(n => n[0]).join('') }}
+            manager={{ name: accountTeam.manager.name, role: accountTeam.manager.role, email: accountTeam.manager.email, initials: accountTeam.manager.name.split(' ').map(n => n[0]).join(''), photo: getPersonPhoto(accountTeam.manager.name) }}
+            backup={{ name: accountTeam.backup.name, role: accountTeam.backup.role, email: accountTeam.backup.email, initials: accountTeam.backup.name.split(' ').map(n => n[0]).join(''), photo: getPersonPhoto(accountTeam.backup.name) }}
           />
         )}
       </div>

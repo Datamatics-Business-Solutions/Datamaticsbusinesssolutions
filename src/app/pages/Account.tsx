@@ -1,3 +1,4 @@
+import { PersonAvatar } from '../components/PersonAvatar';
 import { useState } from 'react';
 import {
   User, Mail, Phone, Building2, MapPin, Globe, Lock, Bell, Shield,
@@ -219,9 +220,7 @@ export default function Account() {
                 ].map((member, i) => (
                   <div key={i} className="flex items-center justify-between p-4 rounded-lg" style={{ background: 'var(--color-border-light)' }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--color-primary)', color: 'white', fontWeight: 'var(--font-weight-semibold)' }}>
-                        {member.name.split(' ').map(n => n[0]).join('')}
-                      </div>
+                      <PersonAvatar name={member.name} size={40} />
                       <div>
                         <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>{member.name}</div>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>{member.email}</div>
