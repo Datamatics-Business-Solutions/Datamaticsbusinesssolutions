@@ -624,14 +624,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                     className="flex-1 flex items-center justify-between"
                   >
                     <span>Notifications</span>
-                    {unreadCount > 0 && (
-                      <span
-                        className="px-1.5 py-0.5 rounded-full text-white"
-                        style={{ background: '#BA2027', fontSize: '10px', fontWeight: 700 }}
-                      >
-                        {unreadCount}
-                      </span>
-                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
