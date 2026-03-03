@@ -1,8 +1,12 @@
 import { createBrowserRouter } from 'react-router';
 import { lazy, Suspense } from 'react';
+import { SplashLoader } from './components/SplashLoader';
 
-// Lazy load all pages
-const Login = lazy(() => import('./pages/Login'));
+// Login is eagerly imported — it is the first thing users see,
+// so it must be in the main bundle with zero extra network round-trip.
+import Login from './pages/Login';
+
+// All other pages are lazy-loaded (split into separate chunks).
 const HomePage = lazy(() => import('./pages/HomePage'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const CampaignList = lazy(() => import('./pages/CampaignList'));
@@ -26,39 +30,20 @@ const TeamManagementPage = lazy(() => import('./pages/TeamManagementPage'));
 const ClientAssignmentPage = lazy(() => import('./pages/ClientAssignmentPage'));
 const ErrorBoundary = lazy(() => import('./pages/ErrorBoundary'));
 
-// Loading fallback component
-const LoadingFallback = () => (
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100vh',
-    width: '100%'
-  }}>
-    <div style={{
-      width: '32px',
-      height: '32px',
-      border: '3px solid #F3F4F6',
-      borderTop: '3px solid #BA2027',
-      borderRadius: '50%',
-      animation: 'spin 600ms linear infinite'
-    }} />
-  </div>
-);
-
-// Wrapper component that adds Suspense to each route
+// Wraps every lazy page in a Suspense boundary with the branded splash.
 const withSuspense = (Component: React.LazyExoticComponent<any>) => {
   return () => (
-    <Suspense fallback={<LoadingFallback />}>
+    <Suspense fallback={<SplashLoader />}>
       <Component />
     </Suspense>
   );
 };
 
 export const router = createBrowserRouter([
+  // Login rendered directly — no Suspense needed, no lazy chunk to wait for.
   {
     path: '/',
-    Component: withSuspense(Login),
+    Component: Login,
   },
   {
     path: '/dashboard',

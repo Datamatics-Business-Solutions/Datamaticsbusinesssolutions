@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Calendar, ChevronDown, X } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { Calendar, ChevronDown } from 'lucide-react';
 
 interface DateRangePickerProps {
   value: string;
@@ -21,8 +20,6 @@ const DATE_RANGES = [
 
 export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
 
   const selectedRange = DATE_RANGES.find(r => r.value === value) || DATE_RANGES[3];
 
@@ -30,11 +27,7 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`px-4 py-2.5 rounded-lg border transition-all flex items-center gap-2 text-sm font-medium ${
-          isDark
-            ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
-            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-        }`}
+        className="px-4 py-2.5 rounded-lg border transition-all flex items-center gap-2 text-sm font-medium bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
       >
         <Calendar className="w-4 h-4" />
         <span>{selectedRange.label}</span>
@@ -47,13 +40,7 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div 
-            className={`absolute top-full right-0 mt-2 w-56 rounded-xl shadow-2xl border z-50 overflow-hidden animate-slideInUp ${
-              isDark
-                ? 'bg-[#1A1820] border-white/10'
-                : 'bg-white border-gray-200'
-            }`}
-          >
+          <div className="absolute top-full right-0 mt-2 w-56 rounded-xl shadow-2xl border z-50 overflow-hidden animate-slideInUp bg-white border-gray-200">
             <div className="p-2">
               {DATE_RANGES.map((range) => (
                 <button
@@ -64,12 +51,8 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
                   }}
                   className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
                     value === range.value
-                      ? isDark
-                        ? 'bg-[#E63946] text-white'
-                        : 'bg-[#BA2027] text-white'
-                      : isDark
-                        ? 'text-gray-300 hover:bg-white/5'
-                        : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-[#BA2027] text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   {range.label}

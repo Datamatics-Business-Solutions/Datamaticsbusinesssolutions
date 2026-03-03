@@ -1,14 +1,10 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { useTheme } from '../context/ThemeContext';
 
 interface LeadDistributionChartProps {
   data: Array<{ name: string; value: number; color: string }>;
 }
 
 export function LeadDistributionChart({ data }: LeadDistributionChartProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   const RADIAN = Math.PI / 180;
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -33,7 +29,7 @@ export function LeadDistributionChart({ data }: LeadDistributionChartProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-      {/* Pie Chart - Left side, more compact */}
+      {/* Pie Chart */}
       <div className="flex justify-center">
         <ResponsiveContainer width="100%" height={220}>
           <PieChart>
@@ -55,8 +51,8 @@ export function LeadDistributionChart({ data }: LeadDistributionChartProps) {
             </Pie>
             <Tooltip
               contentStyle={{
-                backgroundColor: isDark ? '#1A1820' : '#FFFFFF',
-                border: `1px solid ${isDark ? '#2A2831' : '#E5E7EB'}`,
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E5E7EB',
                 borderRadius: '8px',
                 fontSize: '13px'
               }}
@@ -65,7 +61,7 @@ export function LeadDistributionChart({ data }: LeadDistributionChartProps) {
         </ResponsiveContainer>
       </div>
 
-      {/* Legend - Right side with stats */}
+      {/* Legend */}
       <div className="space-y-3">
         {data.map((entry, index) => {
           const total = data.reduce((sum, d) => sum + d.value, 0);
@@ -78,15 +74,15 @@ export function LeadDistributionChart({ data }: LeadDistributionChartProps) {
                   className="w-3 h-3 rounded-full flex-shrink-0" 
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                <span className="text-sm font-medium text-gray-700">
                   {entry.name}
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <span className="text-sm font-semibold text-gray-900">
                   {entry.value}
                 </span>
-                <span className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-500'} min-w-[45px] text-right`}>
+                <span className="text-xs font-medium text-gray-500 min-w-[45px] text-right">
                   {percentage}%
                 </span>
               </div>

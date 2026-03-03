@@ -1,26 +1,18 @@
 import { ReactNode } from 'react';
 import { motion } from 'motion/react';
-import { useTheme } from '../context/ThemeContext';
 
 interface TableRowProps {
   children: ReactNode;
   onClick?: () => void;
   animationDelay?: number; // in milliseconds
-  className?: string; // Additional custom classes
-  showHoverEffect?: boolean; // Show hover effects (default: true)
+  className?: string;
+  showHoverEffect?: boolean;
 }
 
 /**
- * 🎯 UNIFIED TableRow Component with iOS-Quality Motion
- * 
- * ANIMATION PATTERN (Matches HomePage Recent Activity):
- * - Slide in from left: x: -10 → 0
- * - Fade in: opacity: 0 → 1
- * - Stagger delay: 100ms per row
- * - Hover: scale 1.01x + subtle background glow
- * - Duration: 300ms smooth transition
- * 
- * Usage (identical on all pages):
+ * Unified TableRow Component with iOS-Quality Motion
+ *
+ * Usage:
  * <TableRow onClick={() => handleClick()} animationDelay={index * 100}>
  *   <td className="px-6 py-4">Content 1</td>
  *   <td className="px-6 py-4">Content 2</td>
@@ -33,9 +25,6 @@ export function TableRow({
   className = '',
   showHoverEffect = true
 }: TableRowProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   return (
     <motion.tr
       onClick={onClick}
@@ -43,14 +32,14 @@ export function TableRow({
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: animationDelay / 1000, duration: 0.3 }}
       whileHover={showHoverEffect ? { 
-        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.025)',
+        backgroundColor: 'rgba(0,0,0,0.025)',
         transition: { duration: 0.15 }
       } : undefined}
       className={`
         group
         border-b
+        border-gray-100
         ${showHoverEffect ? 'cursor-pointer' : ''}
-        ${isDark ? 'border-white/[0.08]' : 'border-gray-100'}
         ${className}
       `}
     >

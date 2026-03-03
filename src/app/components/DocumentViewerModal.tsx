@@ -1,6 +1,5 @@
-import { X, Download, Share2, Trash2, Edit, ZoomIn, ZoomOut, FileText, Pen } from 'lucide-react';
+import { X, Download, Share2, ZoomIn, ZoomOut, FileText, Pen } from 'lucide-react';
 import { useState } from 'react';
-import { useTheme } from '../context/ThemeContext';
 import { toast } from 'sonner';
 
 interface DocumentViewerModalProps {
@@ -10,8 +9,6 @@ interface DocumentViewerModalProps {
 }
 
 export function DocumentViewerModal({ isOpen, onClose, document }: DocumentViewerModalProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const [zoom, setZoom] = useState(100);
 
   if (!isOpen || !document) return null;
@@ -22,22 +19,16 @@ export function DocumentViewerModal({ isOpen, onClose, document }: DocumentViewe
         className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fadeIn"
         onClick={onClose}
       />
-      <div 
-        className={`fixed inset-4 md:inset-8 rounded-2xl shadow-2xl border z-50 flex flex-col animate-scaleIn ${
-          isDark ? 'bg-[#16151A] border-white/10' : 'bg-white border-gray-200'
-        }`}
-      >
+      <div className="fixed inset-4 md:inset-8 rounded-2xl shadow-2xl border z-50 flex flex-col animate-scaleIn bg-white border-gray-200">
         {/* Header */}
-        <div className={`flex items-center justify-between p-4 border-b ${
-          isDark ? 'border-white/10' : 'border-gray-200'
-        }`}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <FileText className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-[#E63946]' : 'text-[#BA2027]'}`} />
+            <FileText className="w-5 h-5 flex-shrink-0 text-[#BA2027]" />
             <div className="min-w-0">
-              <h3 className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <h3 className="text-sm font-semibold truncate text-gray-900">
                 {document.name}
               </h3>
-              <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className="text-xs text-gray-600">
                 {document.size} • Uploaded {new Date(document.uploadDate).toLocaleDateString()}
               </p>
             </div>
@@ -46,63 +37,47 @@ export function DocumentViewerModal({ isOpen, onClose, document }: DocumentViewe
           <div className="flex items-center gap-2 ml-4">
             <button
               onClick={() => setZoom(Math.max(50, zoom - 10))}
-              className={`p-2 rounded-lg transition-colors ${
-                isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-              }`}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
               title="Zoom Out"
             >
               <ZoomOut className="w-4 h-4" />
             </button>
-            <span className={`text-sm font-medium px-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              {zoom}%
-            </span>
+            <span className="text-sm font-medium px-2 text-gray-700">{zoom}%</span>
             <button
               onClick={() => setZoom(Math.min(200, zoom + 10))}
-              className={`p-2 rounded-lg transition-colors ${
-                isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-              }`}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
               title="Zoom In"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
-            <div className={`w-px h-6 mx-2 ${isDark ? 'bg-white/10' : 'bg-gray-300'}`} />
+            <div className="w-px h-6 mx-2 bg-gray-300" />
             <button
               onClick={() => toast.success('Downloading document...')}
-              className={`p-2 rounded-lg transition-colors ${
-                isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-              }`}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
               title="Download"
             >
               <Download className="w-4 h-4" />
             </button>
             <button
               onClick={() => toast.info('Share link copied to clipboard')}
-              className={`p-2 rounded-lg transition-colors ${
-                isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-              }`}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
               title="Share"
             >
               <Share2 className="w-4 h-4" />
             </button>
-            {document.type === 'SOW' || document.type === 'Contract' ? (
+            {(document.type === 'SOW' || document.type === 'Contract') && (
               <button
                 onClick={() => toast.info('DocuSign integration coming soon')}
-                className={`px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-medium ${
-                  isDark
-                    ? 'bg-[#E63946] hover:bg-[#FF4D5A] text-white'
-                    : 'bg-[#BA2027] hover:bg-[#A01C22] text-white'
-                }`}
+                className="px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-medium bg-[#BA2027] hover:bg-[#A01C22] text-white"
                 title="Sign with DocuSign"
               >
                 <Pen className="w-4 h-4" />
                 Sign
               </button>
-            ) : null}
+            )}
             <button
               onClick={onClose}
-              className={`p-2 rounded-lg transition-colors ${
-                isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-              }`}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
             >
               <X className="w-5 h-5" />
             </button>
@@ -110,11 +85,9 @@ export function DocumentViewerModal({ isOpen, onClose, document }: DocumentViewe
         </div>
 
         {/* Document Preview */}
-        <div className={`flex-1 overflow-auto p-8 ${isDark ? 'bg-[#0D0D0F]' : 'bg-gray-50'}`}>
+        <div className="flex-1 overflow-auto p-8 bg-gray-50">
           <div 
-            className={`mx-auto shadow-2xl rounded-lg overflow-hidden ${
-              isDark ? 'bg-white' : 'bg-white'
-            }`}
+            className="mx-auto shadow-2xl rounded-lg overflow-hidden bg-white"
             style={{ 
               width: `${zoom}%`,
               maxWidth: '210mm',
@@ -122,7 +95,6 @@ export function DocumentViewerModal({ isOpen, onClose, document }: DocumentViewe
               transition: 'width 0.2s'
             }}
           >
-            {/* PDF Preview Placeholder */}
             <div className="p-12 text-center text-gray-500">
               <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
               <p className="text-lg font-medium mb-2">Document Preview</p>
@@ -132,10 +104,10 @@ export function DocumentViewerModal({ isOpen, onClose, document }: DocumentViewe
           </div>
         </div>
 
-        {/* Footer with document info */}
-        <div className={`p-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-200">
           <div className="flex items-center justify-between text-sm">
-            <div className={isDark ? 'text-gray-400' : 'text-gray-600'}>
+            <div className="text-gray-600">
               <span>Uploaded by {document.uploadedBy}</span>
               {document.campaign && (
                 <>

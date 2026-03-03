@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
-import { Mail, Lock, Eye, EyeOff, CheckCircle2, Quote, Check, Loader2, ChevronDown } from 'lucide-react';
+import { CheckCircle2, Quote, Loader2, ChevronDown } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useParallax } from '../hooks/useParallax';
 import { useAuth, mockUsers } from '../context/AuthContext';
@@ -44,7 +44,7 @@ export default function Login() {
   useDocumentTitle('Login');
   
   const navigate = useNavigate();
-  const { setCurrentUser, getDefaultRoute } = useAuth();
+  const { setCurrentUser } = useAuth();
   const [selectedUserId, setSelectedUserId] = useState('u1'); // Default to first user
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -128,7 +128,7 @@ export default function Login() {
     <div className="flex min-h-screen overflow-hidden">
       {/* Left Side - Login Form - Always Light Theme */}
       <div 
-        className="flex-1 flex items-center justify-center px-6 py-8 relative bg-white overflow-y-auto"
+        className="flex-1 flex items-start justify-center px-6 py-12 relative bg-white overflow-y-auto"
         style={{
           backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(186, 32, 39, 0.02) 0%, transparent 50%)'
         }}
@@ -336,20 +336,20 @@ export default function Login() {
             <p className="text-center text-[11px] uppercase tracking-wider font-semibold mb-4 text-[#9CA3AF]">
               Certified & Compliant
             </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">
+            <div className="flex items-center justify-center gap-2 flex-nowrap">
+              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide whitespace-nowrap">
                 ISO 27001:2022
               </div>
-              <div className="w-1 h-1 rounded-full bg-[#9CA3AF]"></div>
-              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">
+              <div className="w-1 h-1 rounded-full bg-[#9CA3AF] flex-shrink-0"></div>
+              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide whitespace-nowrap">
                 ISO 9001:2015
               </div>
-              <div className="w-1 h-1 rounded-full bg-[#9CA3AF]"></div>
-              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">
+              <div className="w-1 h-1 rounded-full bg-[#9CA3AF] flex-shrink-0"></div>
+              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide whitespace-nowrap">
                 SOC 1 & 2 Type II
               </div>
-              <div className="w-1 h-1 rounded-full bg-[#9CA3AF]"></div>
-              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">
+              <div className="w-1 h-1 rounded-full bg-[#9CA3AF] flex-shrink-0"></div>
+              <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide whitespace-nowrap">
                 GDPR
               </div>
             </div>
@@ -366,7 +366,7 @@ export default function Login() {
       <div className="hidden lg:block w-px bg-[rgba(0,0,0,0.08)]" />
 
       {/* Right Side - Testimonial Panel - Always Light Theme */}
-      <div className="hidden lg:flex lg:flex-1 items-center justify-center p-12 relative overflow-hidden transition-all duration-1000 bg-gradient-to-br from-[#BA2027] via-[#D32F2F] to-[#BA2027]">
+      <div className="hidden lg:flex lg:flex-1 items-start justify-center p-12 relative overflow-hidden transition-all duration-1000 bg-gradient-to-br from-[#BA2027] via-[#D32F2F] to-[#BA2027]">
         {/* Animated Background Elements */}
         <div 
           className="absolute inset-0 opacity-20"

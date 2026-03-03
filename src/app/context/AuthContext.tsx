@@ -22,7 +22,6 @@ interface AuthContextValue {
   canAccessOps: () => boolean;
   canManageTeam: () => boolean;
   canEditCampaigns: () => boolean;
-  getDefaultRoute: () => string;
 }
 
 // ============================================
@@ -95,19 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return currentUser.role === 'ops_manager' || currentUser.role === 'campaign_manager';
   };
 
-  const getDefaultRoute = () => {
-    switch (currentUser.role) {
-      case 'ops_manager':
-        return '/dashboard/ops';
-      case 'campaign_manager':
-      case 'campaign_backup':
-        return '/dashboard/manager';
-      case 'client':
-      default:
-        return '/dashboard';
-    }
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -117,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         canAccessOps,
         canManageTeam,
         canEditCampaigns,
-        getDefaultRoute,
       }}
     >
       {children}

@@ -1,18 +1,9 @@
-import { useTheme } from '../context/ThemeContext';
-
 interface SkeletonProps {
   className?: string;
   variant?: 'text' | 'circular' | 'rectangular';
 }
 
 export function Skeleton({ className = '', variant = 'rectangular' }: SkeletonProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
-  const baseClasses = isDark
-    ? 'bg-white/[0.08] animate-shimmer'
-    : 'bg-gray-200/80 animate-shimmer';
-
   const variantClasses = {
     text: 'rounded h-4',
     circular: 'rounded-full',
@@ -21,11 +12,9 @@ export function Skeleton({ className = '', variant = 'rectangular' }: SkeletonPr
 
   return (
     <div
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+      className={`bg-gray-200/80 animate-shimmer ${variantClasses[variant]} ${className}`}
       style={{
-        backgroundImage: isDark
-          ? 'linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 100%)'
-          : 'linear-gradient(90deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.08) 100%)',
+        backgroundImage: 'linear-gradient(90deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.08) 100%)',
         backgroundSize: '1000px 100%'
       }}
     />
@@ -34,9 +23,6 @@ export function Skeleton({ className = '', variant = 'rectangular' }: SkeletonPr
 
 // Table skeleton loader
 export function TableSkeleton({ rows = 5, columns = 1 }: { rows?: number; columns?: number }) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   return (
     <>
       {Array.from({ length: rows }).map((_, rowIndex) => (
@@ -54,11 +40,8 @@ export function TableSkeleton({ rows = 5, columns = 1 }: { rows?: number; column
 
 // Card skeleton loader
 export function CardSkeleton() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   return (
-    <div className={`rounded-2xl p-6 border ${isDark ? 'border-[#E63946]/12 bg-[#16151A]' : 'border-[#BA2027]/8 bg-white'}`}>
+    <div className="rounded-2xl p-6 border border-[#BA2027]/8 bg-white">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 space-y-3">
           <Skeleton className="h-4 w-24" variant="text" />

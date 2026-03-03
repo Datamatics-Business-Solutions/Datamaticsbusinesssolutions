@@ -1,5 +1,4 @@
 import { X, Filter, Tag, Calendar, Building2, Award } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
 
 interface AdvancedFiltersPanelProps {
   isOpen: boolean;
@@ -14,9 +13,6 @@ interface AdvancedFiltersPanelProps {
 }
 
 export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange }: AdvancedFiltersPanelProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   if (!isOpen) return null;
 
   const industries = ['Technology', 'Healthcare', 'Finance', 'Manufacturing', 'Retail', 'Education'];
@@ -31,28 +27,18 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
       />
 
       {/* Panel */}
-      <div 
-        className={`fixed right-0 top-0 bottom-0 w-full max-w-md z-50 shadow-2xl animate-slideInRight ${
-          isDark ? 'bg-[#16151A]' : 'bg-white'
-        }`}
-      >
+      <div className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 shadow-2xl animate-slideInRight bg-white">
         {/* Header */}
-        <div className={`flex items-center justify-between p-6 border-b ${
-          isDark ? 'border-white/10' : 'border-gray-200'
-        }`}>
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <Filter className={`w-5 h-5 ${isDark ? 'text-[#E63946]' : 'text-[#BA2027]'}`} />
-            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Advanced Filters
-            </h2>
+            <Filter className="w-5 h-5 text-[#BA2027]" />
+            <h2 className="text-lg font-semibold text-gray-900">Advanced Filters</h2>
           </div>
           <button 
             onClick={onClose}
-            className={`p-2 rounded-lg transition-colors ${
-              isDark ? 'hover:bg-white/5' : 'hover:bg-gray-100'
-            }`}
+            className="p-2 rounded-lg transition-colors hover:bg-gray-100"
           >
-            <X className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+            <X className="w-5 h-5 text-gray-600" />
           </button>
         </div>
 
@@ -60,9 +46,7 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
         <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-140px)]">
           {/* Lead Score Range */}
           <div>
-            <label className={`flex items-center gap-2 text-sm font-medium mb-3 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}>
+            <label className="flex items-center gap-2 text-sm font-medium mb-3 text-gray-700">
               <Award className="w-4 h-4" />
               Lead Score Range
             </label>
@@ -78,9 +62,7 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
                 })}
                 className="w-full"
               />
-              <div className={`flex justify-between text-sm ${
-                isDark ? 'text-gray-400' : 'text-gray-600'
-              }`}>
+              <div className="flex justify-between text-sm text-gray-600">
                 <span>{filters.scoreRange[0]}</span>
                 <span>{filters.scoreRange[1]}</span>
               </div>
@@ -89,20 +71,14 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
 
           {/* Date Range */}
           <div>
-            <label className={`flex items-center gap-2 text-sm font-medium mb-3 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}>
+            <label className="flex items-center gap-2 text-sm font-medium mb-3 text-gray-700">
               <Calendar className="w-4 h-4" />
               Date Range
             </label>
             <select
               value={filters.dateRange}
               onChange={(e) => onFilterChange({ ...filters, dateRange: e.target.value })}
-              className={`w-full px-4 py-2.5 rounded-lg border transition-all ${
-                isDark 
-                  ? 'bg-[#1A1820] border-[#2A2831] text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+              className="w-full px-4 py-2.5 rounded-lg border transition-all bg-white border-gray-300 text-gray-900"
             >
               <option value="all">All Time</option>
               <option value="today">Today</option>
@@ -114,9 +90,7 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
 
           {/* Industry */}
           <div>
-            <label className={`flex items-center gap-2 text-sm font-medium mb-3 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}>
+            <label className="flex items-center gap-2 text-sm font-medium mb-3 text-gray-700">
               <Building2 className="w-4 h-4" />
               Industry
             </label>
@@ -132,12 +106,8 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
                   }}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     filters.industry.includes(industry)
-                      ? isDark
-                        ? 'bg-[#E63946] text-white'
-                        : 'bg-[#BA2027] text-white'
-                      : isDark
-                        ? 'bg-[#1A1820] text-gray-400 border border-[#2A2831]'
-                        : 'bg-gray-100 text-gray-600 border border-gray-300'
+                      ? 'bg-[#BA2027] text-white'
+                      : 'bg-gray-100 text-gray-600 border border-gray-300'
                   }`}
                 >
                   {industry}
@@ -148,9 +118,7 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
 
           {/* Tags */}
           <div>
-            <label className={`flex items-center gap-2 text-sm font-medium mb-3 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}>
+            <label className="flex items-center gap-2 text-sm font-medium mb-3 text-gray-700">
               <Tag className="w-4 h-4" />
               Tags
             </label>
@@ -166,12 +134,8 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
                   }}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     filters.tags.includes(tag)
-                      ? isDark
-                        ? 'bg-[#4285F4] text-white'
-                        : 'bg-[#4285F4] text-white'
-                      : isDark
-                        ? 'bg-[#1A1820] text-gray-400 border border-[#2A2831]'
-                        : 'bg-gray-100 text-gray-600 border border-gray-300'
+                      ? 'bg-[#4285F4] text-white'
+                      : 'bg-gray-100 text-gray-600 border border-gray-300'
                   }`}
                 >
                   {tag}
@@ -182,9 +146,7 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
         </div>
 
         {/* Footer */}
-        <div className={`p-6 border-t ${
-          isDark ? 'border-white/10' : 'border-gray-200'
-        }`}>
+        <div className="p-6 border-t border-gray-200">
           <div className="flex gap-3">
             <button
               onClick={() => {
@@ -195,21 +157,13 @@ export function AdvancedFiltersPanel({ isOpen, onClose, filters, onFilterChange 
                   tags: []
                 });
               }}
-              className={`flex-1 px-4 py-2.5 rounded-lg border transition-all ${
-                isDark 
-                  ? 'border-white/10 text-gray-300 hover:bg-white/5' 
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
+              className="flex-1 px-4 py-2.5 rounded-lg border transition-all border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Clear All
             </button>
             <button
               onClick={onClose}
-              className={`flex-1 px-4 py-2.5 rounded-lg text-white transition-all ${
-                isDark 
-                  ? 'bg-gradient-to-r from-[#E63946] to-[#FF4D5A]' 
-                  : 'bg-gradient-to-r from-[#BA2027] to-[#D32F2F]'
-              }`}
+              className="flex-1 px-4 py-2.5 rounded-lg text-white transition-all bg-gradient-to-r from-[#BA2027] to-[#D32F2F]"
             >
               Apply Filters
             </button>

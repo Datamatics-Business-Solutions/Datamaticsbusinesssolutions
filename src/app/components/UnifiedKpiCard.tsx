@@ -1,7 +1,6 @@
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { memo } from 'react';
-import { useTheme } from '../context/ThemeContext';
 import { AnimatedCounter } from './AnimatedCounter';
 
 interface UnifiedKpiCardProps {
@@ -27,10 +26,8 @@ export const UnifiedKpiCard = memo(function UnifiedKpiCard({
   trendValue = 0,
   index = 0
 }: UnifiedKpiCardProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const isPositive = trendValue >= 0;
-  
+
   // Extract numeric value for animation
   const numericValue = typeof value === 'string' 
     ? parseInt(value.replace(/[^0-9]/g, '')) || 0
@@ -50,11 +47,7 @@ export const UnifiedKpiCard = memo(function UnifiedKpiCard({
         transition: { duration: 0.2 }
       }}
       whileTap={{ scale: 0.98 }}
-      className={`rounded-xl p-5 border flex flex-col gap-3 cursor-default ${
-        isDark
-          ? 'bg-gradient-to-br from-[#1A1820]/90 to-[#16151A]/90 border-[#E63946]/15 backdrop-blur-md shadow-lg hover:shadow-2xl'
-          : 'bg-gradient-to-br from-white to-gray-50/50 border-[#BA2027]/10 shadow-lg hover:shadow-2xl'
-      }`}
+      className="rounded-xl p-5 border flex flex-col gap-3 cursor-default bg-gradient-to-br from-white to-gray-50/50 border-[#BA2027]/10 shadow-lg hover:shadow-2xl"
     >
       <div className="flex items-center justify-between">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${iconBg}`}>
@@ -81,9 +74,7 @@ export const UnifiedKpiCard = memo(function UnifiedKpiCard({
       </div>
 
       <div>
-        <div className={`text-3xl font-bold tracking-tight leading-none ${
-          isDark ? 'text-white' : 'text-[#1E1E1E]'
-        }`}>
+        <div className="text-3xl font-bold tracking-tight leading-none text-[#1E1E1E]">
           {typeof value === 'string' && value.includes('$') ? (
             <>
               $<AnimatedCounter end={numericValue} duration={2000} />
@@ -100,17 +91,13 @@ export const UnifiedKpiCard = memo(function UnifiedKpiCard({
             value
           )}
         </div>
-        <div className={`text-sm font-medium mt-2 ${
-          isDark ? 'text-[#94A3B8]' : 'text-[#64748B]'
-        }`}>
+        <div className="text-sm font-medium mt-2 text-[#64748B]">
           {label}
         </div>
       </div>
 
       {footer && (
-        <div className={`text-xs pt-3 border-t ${
-          isDark ? 'text-[#64748B] border-white/5' : 'text-[#94A3B8] border-gray-200'
-        }`}>
+        <div className="text-xs pt-3 border-t text-[#94A3B8] border-gray-200">
           {footer}
         </div>
       )}

@@ -27,7 +27,6 @@ import { EmptyState } from '../components/EmptyState';
 import { AccountTeam } from '../components/AccountTeam';
 import { getAccountTeam } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
-import { SimpleEmptyState } from '../components/SimpleEmptyState';
 import { useDebounce } from '../hooks/useDebounce';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { TableSkeleton } from '../components/SkeletonLoader';
