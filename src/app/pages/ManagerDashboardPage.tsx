@@ -450,6 +450,9 @@ export default function ManagerDashboardPage() {
           clientId={selectedClient.id}
           clientName={selectedClient.companyName}
           campaignId={uploadCampaignId || undefined}
+          campaignName={uploadCampaignId
+            ? selectedClient.campaigns.find(c => c.id === uploadCampaignId)?.name
+            : undefined}
         />
       )}
     </AppLayout>

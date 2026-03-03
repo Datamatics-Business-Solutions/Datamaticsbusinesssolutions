@@ -228,31 +228,43 @@ export default function OpsOverviewPage() {
   return (
     <AppLayout>
       <div className="max-w-[1600px] mx-auto page-content">
-        {/* Header with Primary CTA */}
-        <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-1">
+            <div
+              className="w-1 h-6 rounded-full"
+              style={{ background: '#BA2027' }}
+            />
+            <h1
+              style={{
+                color: 'var(--color-text-primary)',
+                fontSize: '22px',
+                fontWeight: 700,
+                letterSpacing: '-0.01em',
+              }}
+            >
               Operations Dashboard
             </h1>
-            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              Lead upload management and client oversight
-            </p>
           </div>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="btn-primary px-6 py-3 flex items-center justify-center gap-2 w-full lg:w-auto"
-            style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)' }}
+          <p
+            style={{
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-text-secondary)',
+              paddingLeft: '16px',
+            }}
           >
-            <Upload className="w-5 h-5" />
-            Upload Leads
-          </button>
+            Lead upload management and client oversight
+          </p>
         </div>
 
         {/* Upload Metrics - Priority KPIs */}
         <div className="mb-6">
-          <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-3">
-            Lead Upload Status
-          </h2>
+          <div className="flex items-center gap-2 mb-3">
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#BA2027', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Lead Upload Status
+            </span>
+            <div className="flex-1 h-px" style={{ background: 'var(--color-border)' }} />
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
             <div className="kpi-card animate-slideInUp">
               <div className="flex items-center justify-between mb-3">
@@ -339,9 +351,9 @@ export default function OpsOverviewPage() {
         <div className="glass-card overflow-hidden mb-6">
           <div className="px-6 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
             <div className="flex items-center justify-between">
-              <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
                 Recent Uploads
-              </h2>
+              </span>
               <div className="flex items-center gap-2">
                 <select
                   value={uploadStatusFilter}
@@ -492,9 +504,9 @@ export default function OpsOverviewPage() {
         {/* Clients Table with Quick Upload */}
         <div className="glass-card overflow-hidden">
           <div className="px-6 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
-            <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
               Clients & Campaigns
-            </h2>
+            </span>
           </div>
           
           <div className="overflow-x-auto">

@@ -1,4 +1,3 @@
-import { useParams, useNavigate } from 'react-router';
 import { AppLayout } from '../components/AppLayout';
 import {
   Target, TrendingUp, CheckCircle, DollarSign, ArrowLeft,
@@ -7,11 +6,14 @@ import {
 import { allClients } from '../data/mockClients';
 import { AnimatedDonutChart } from '../components/AnimatedDonutChart';
 import { DeliveryScheduleSection } from '../components/DeliveryScheduleSection';
-import { toast } from 'sonner';
+import { LeadUploadModal } from '../components/LeadUploadModal';
+import { useParams, useNavigate } from 'react-router';
+import { useState } from 'react';
 
 export default function InternalCampaignDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Find campaign across all clients
   let campaign = null;
@@ -88,7 +90,7 @@ export default function InternalCampaignDetail() {
           </div>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => toast.info('Uploading leads for this campaign…')}
+              onClick={() => setShowUploadModal(true)}
               className="btn-primary px-4 py-2 flex items-center gap-2"
             >
               <Upload className="w-4 h-4" />
@@ -264,6 +266,14 @@ export default function InternalCampaignDetail() {
           </div>
         )}
       </div>
+      <LeadUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        clientId={client.id}
+        clientName={client.companyName}
+        campaignId={campaign.id}
+        campaignName={campaign.name}
+      />
     </AppLayout>
   );
 }

@@ -8,9 +8,12 @@ import {
 } from 'lucide-react';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { allClients, recentUploadBatches } from '../data/mockClients';
+import { LeadUploadModal } from '../components/LeadUploadModal';
+import { useState } from 'react';
 
 export default function InternalDashboard() {
   const navigate = useNavigate();
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Derive all campaign metrics from allClients (single source of truth)
   const allCampaigns = allClients.flatMap(c => c.campaigns);
@@ -59,7 +62,7 @@ export default function InternalDashboard() {
             </p>
           </div>
           <button
-            onClick={() => navigate('/internal/leads')}
+            onClick={() => setShowUploadModal(true)}
             className="btn-primary px-5 py-2.5 flex items-center gap-2 w-full sm:w-auto justify-center"
           >
             <Upload className="w-4 h-4" />
@@ -391,6 +394,10 @@ export default function InternalDashboard() {
           </div>
         </div>
       </div>
+      <LeadUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+      />
     </AppLayout>
   );
 }

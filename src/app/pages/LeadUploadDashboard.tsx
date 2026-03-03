@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
 import { LeadUploadModal } from '../components/LeadUploadModal';
+import { AnimatedCounter } from '../components/AnimatedCounter';
 import { allClients, recentUploadBatches, type LeadUploadBatch } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
 
