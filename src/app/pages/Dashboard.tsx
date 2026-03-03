@@ -17,6 +17,7 @@ import {
   X,
   ChevronUp,
   Eye,
+  AlertCircle,
 } from 'lucide-react';
 import { allClients, type Campaign } from '../data/mockClients';
 import { AppLayout } from '../components/AppLayout';
@@ -97,11 +98,21 @@ export default function Dashboard() {
   const leadsData = useMemo(() => generateSparklineData(totalLeadsDelivered / 12, 'up'), [totalLeadsDelivered]);
   const spendData = useMemo(() => generateSparklineData(totalSpend / 12, 'down'), [totalSpend]);
 
-  const filteredCampaigns = allCampaignsFlat.filter((campaign) => {
+  // For client users, only show their own company's campaigns (Acme Corp = client_1)
+  const isClientRole = currentUser?.role === 'client';
+  const acmeClient = allClients.find(c => c.id === 'client_1');
+  const visibleCampaigns = isClientRole
+    ? (acmeClient?.campaigns.map(c => ({ ...c, clientName: acmeClient.companyName })) ?? [])
+    : allCampaignsFlat;
+
+  const filteredCampaigns = visibleCampaigns.filter((campaign) => {
     const matchesSearch = campaign.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Pending approval campaigns for the banner
+  const pendingApprovalCampaigns = visibleCampaigns.filter(c => c.status === 'pending_approval');
 
   const getStatusPill = (status: string) => {
     const config = {
@@ -120,10 +131,32 @@ export default function Dashboard() {
         icon: Pause,
         hasPulse: false,
       },
+      'pending_approval': {
+        classes: 'badge',
+        icon: Clock,
+        hasPulse: true,
+      },
     };
 
     const statusConfig = config[status as keyof typeof config] || config['paused'];
     const Icon = statusConfig.icon;
+
+    if (status === 'pending_approval') {
+      return (
+        <span
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+          style={{
+            background: 'rgba(186,32,39,0.10)',
+            color: '#BA2027',
+            fontSize: '12px',
+            fontWeight: 600,
+          }}
+        >
+          <Icon className="w-3.5 h-3.5 animate-pulse" />
+          Pending Approval
+        </span>
+      );
+    }
 
     return (
       <span className={statusConfig.classes}>
@@ -156,7 +189,7 @@ export default function Dashboard() {
         </div>
 
         {/* KPI Cards - REDESIGNED WITH INTERACTIVITY */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 stagger-children">
+        <div className={`grid grid-cols-1 gap-4 md:gap-6 stagger-children ${pendingApprovalCampaigns.length > 0 ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-3'}`}>
           {/* Active Campaigns Card */}
           <motion.div 
             key={`campaigns-${campaignsPeriod}`}
@@ -290,6 +323,58 @@ export default function Dashboard() {
             </div>
             <p className="text-xs text-[#6B7280]">vs previous period</p>
           </motion.div>
+
+          {/* Awaiting Approval Card — only shown when pending campaigns exist */}
+          {pendingApprovalCampaigns.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35 }}
+              className="glass-card p-6 flex flex-col"
+              style={{ borderColor: 'rgba(186,32,39,0.18)' }}
+            >
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-4">
+                <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">AWAITING APPROVAL</h5>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(186,32,39,0.08)' }}>
+                  <Clock className="w-5 h-5 text-[#BA2027]" />
+                </div>
+              </div>
+
+              {/* Count */}
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-[36px] font-bold tracking-tight leading-none" style={{ color: '#1A1A1A' }}>
+                  {pendingApprovalCampaigns.length}
+                </span>
+                <span className="text-sm font-semibold" style={{ color: '#BA2027' }}>
+                  pending
+                </span>
+              </div>
+              <p className="text-xs text-[#6B7280] mb-5">Under review by your campaign manager</p>
+
+              {/* Campaign list */}
+              <div className="flex-1 space-y-2">
+                {pendingApprovalCampaigns.map(c => (
+                  <div
+                    key={c.id}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                    style={{ background: 'rgba(186,32,39,0.05)', border: '1px solid rgba(186,32,39,0.10)' }}
+                  >
+                    <span
+                      className="relative flex h-2 w-2 flex-shrink-0"
+                    >
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#BA2027' }} />
+                      <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#BA2027' }} />
+                    </span>
+                    <p className="text-xs font-medium text-[#374151] truncate">{c.name}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Submitted date note */}
+              <p className="text-[10px] text-[#9CA3AF] mt-4">Submitted Mar 1, 2026</p>
+            </motion.div>
+          )}
         </div>
 
         {/* Search & Filter */}
@@ -311,6 +396,7 @@ export default function Dashboard() {
               className="input-base px-4 py-3 pr-10 appearance-none cursor-pointer w-full sm:w-auto"
             >
               <option value="All">All Status</option>
+              <option value="pending_approval">Pending Approval</option>
               <option value="active">In Progress</option>
               <option value="completed">Completed</option>
               <option value="paused">Paused</option>

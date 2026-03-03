@@ -1,6 +1,5 @@
-import { mockCampaigns, mockCampaignSubmissions } from '../mockData';
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Plus, ChevronDown,
@@ -18,51 +17,68 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 function SubmissionTracker({ submissions }: { submissions: CampaignSubmission[] }) {
   if (submissions.length === 0) return null;
 
+  const pendingCount = submissions.filter(s => s.status === 'Pending Approval').length;
+  const changesCount = submissions.filter(s => s.status === 'Changes Requested').length;
+
   return (
     <div
       className="mb-6 rounded-2xl overflow-hidden"
       style={{
-        background: 'rgba(255,255,255,0.82)',
+        border: '1.5px solid rgba(186,32,39,0.25)',
+        boxShadow: '0 4px 20px rgba(186,32,39,0.08)',
+        background: 'rgba(255,255,255,0.95)',
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255,255,255,0.6)',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
       }}
     >
-      {/* Header */}
+      {/* Coloured header banner */}
       <div
-        className="flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+        className="px-6 py-4 flex items-center justify-between gap-4 flex-wrap"
+        style={{ background: 'linear-gradient(135deg, #BA2027 0%, #8B1219 100%)' }}
       >
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#BA2027]/10 flex items-center justify-center">
-            <Clock className="w-4 h-4 text-[#BA2027]" />
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="font-semibold text-[#111]" style={{ fontSize: '15px' }}>
+            <p className="font-semibold text-white" style={{ fontSize: '15px' }}>
               Submitted for Approval
             </p>
-            <p className="text-[#6B7280]" style={{ fontSize: '12px' }}>
-              {submissions.length} campaign{submissions.length > 1 ? 's' : ''} awaiting or pending your team's review
+            <p className="text-white/70" style={{ fontSize: '12px' }}>
+              {submissions.length} campaign{submissions.length > 1 ? 's' : ''} awaiting your team's review
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          {submissions.some(s => s.status === 'Pending Approval') && (
-            <span className="flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#BA2027] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#BA2027]" />
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {pendingCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white"
+              style={{ fontSize: '12px', fontWeight: 600 }}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+              </span>
+              {pendingCount} Pending
+            </span>
+          )}
+          {changesCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/30 text-amber-100"
+              style={{ fontSize: '12px', fontWeight: 600 }}
+            >
+              <AlertTriangle className="w-3 h-3" />
+              {changesCount} Needs Action
             </span>
           )}
         </div>
       </div>
 
       {/* Submission rows */}
-      <div className="divide-y divide-black/[0.04]">
+      <div className="divide-y divide-black/[0.05]">
         {submissions.map(sub => {
           const isPending = sub.status === 'Pending Approval';
           const isChanges = sub.status === 'Changes Requested';
 
-          // 3-step timeline
           const steps = [
             { label: 'Submitted', done: true },
             {
@@ -75,25 +91,31 @@ function SubmissionTracker({ submissions }: { submissions: CampaignSubmission[] 
           ];
 
           return (
-            <div key={sub.id} className="px-6 py-4">
+            <div
+              key={sub.id}
+              className="px-6 py-5"
+              style={{
+                background: isChanges ? 'rgba(251,191,36,0.04)' : 'transparent',
+              }}
+            >
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 {/* Campaign info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                     <StatusBadge status={sub.status} />
                     <span className="text-xs text-[#9CA3AF]">
                       {sub.serviceType} · Submitted {new Date(sub.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
-                  <p className="font-semibold text-[#1F2937] truncate" style={{ fontSize: '14px' }}>
+                  <p className="font-semibold text-[#1F2937]" style={{ fontSize: '14px' }}>
                     {sub.campaignName}
                   </p>
                   <p className="text-[#6B7280] mt-0.5" style={{ fontSize: '12px' }}>
-                    Assigned to {sub.assignedManager}
+                    Assigned to <span className="font-medium text-[#374151]">{sub.assignedManager}</span>
                   </p>
                 </div>
 
-                {/* Timeline */}
+                {/* Timeline stepper */}
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   {steps.map((step, i) => (
                     <div key={i} className="flex items-center gap-1.5">
@@ -135,7 +157,7 @@ function SubmissionTracker({ submissions }: { submissions: CampaignSubmission[] 
                       {i < steps.length - 1 && (
                         <div
                           className="w-8 h-px mb-4"
-                          style={{ background: step.done ? '#059669' : 'rgba(0,0,0,0.1)' }}
+                          style={{ background: step.done ? '#D1FAE5' : 'rgba(0,0,0,0.1)' }}
                         />
                       )}
                     </div>
@@ -143,13 +165,13 @@ function SubmissionTracker({ submissions }: { submissions: CampaignSubmission[] 
                 </div>
               </div>
 
-              {/* Changes Requested feedback callout */}
+              {/* Changes Requested manager feedback callout */}
               {isChanges && sub.managerNotes && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   className="mt-3 rounded-xl p-3 flex items-start gap-2.5"
-                  style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}
+                  style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)' }}
                 >
                   <MessageSquareDiff className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
@@ -174,8 +196,12 @@ function SubmissionTracker({ submissions }: { submissions: CampaignSubmission[] 
 export default function CampaignList() {
   useDocumentTitle('Campaigns');
   
+  const location = useLocation();
+  // Deep-link: honour ?statusFilter passed via navigate() state from dashboard cards
+  const initialStatusFilter = (location.state as { statusFilter?: string } | null)?.statusFilter ?? 'All';
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatusFilter);
   const [dateRange, setDateRange] = useState<string>('All time');
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
   const [campaigns, setCampaigns] = useState(mockCampaigns);
@@ -254,7 +280,9 @@ export default function CampaignList() {
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    // Client view: only show Acme Corp campaigns (demo client)
+    const matchesClient = campaign.clientCompany === 'Acme Corp';
+    return matchesSearch && matchesStatus && matchesClient;
   });
 
   // Only show submissions that are still actionable (not yet approved/declined)

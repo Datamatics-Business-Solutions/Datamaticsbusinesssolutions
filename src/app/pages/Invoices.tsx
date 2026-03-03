@@ -287,9 +287,8 @@ export default function Invoices() {
                         </td>
                       </TableRow>
                     );
-                  })
-                )}
-              </tbody>
+                  })}
+                </tbody>
             </table>
           </div>
 

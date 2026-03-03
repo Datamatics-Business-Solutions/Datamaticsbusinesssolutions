@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Upload, Copy, Check, Mail, FileText, Sparkles } from 'lucide-react';
+import { X, Upload, Copy, Check, Mail, FileText, Sparkles, Eye, EyeOff, Info, Wifi, ChevronDown } from 'lucide-react';
 
 interface NewCampaignModalProps {
   isOpen: boolean;
@@ -20,7 +20,21 @@ export interface CampaignFormData {
   titles: string[];
   suppressionList?: File | null;
   additionalInfo: string;
+  deliveryMethod?: string;
+  deliveryConfig?: Record<string, string>;
 }
+
+const DELIVERY_METHODS = [
+  { value: 'email',      label: '📧 Email (CSV attachment)' },
+  { value: 'sheets',     label: '📊 Google Sheets' },
+  { value: 'webhook',    label: '🔗 Custom Webhook' },
+  { value: 'salesforce', label: '☁️ Salesforce CRM' },
+  { value: 'hubspot',    label: '🟠 HubSpot CRM' },
+  { value: 'pipedrive',  label: '🟣 Pipedrive CRM' },
+  { value: 'convertr',   label: '⚡ Convertr' },
+  { value: 'leadbyte',   label: '📦 LeadByte' },
+  { value: 'ftp',        label: '🗂️ FTP / SFTP' },
+];
 
 const US_STATES = [
   'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
@@ -79,6 +93,12 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Delivery preferences state
+  const [deliveryMethod, setDeliveryMethod] = useState('');
+  const [deliveryConfig, setDeliveryConfig] = useState<Record<string, string>>({});
+  const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+  const [deliveryError, setDeliveryError] = useState('');
 
   if (!isOpen) return null;
 
@@ -227,6 +247,13 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
     if (data.locations.length === 0) newErrors.locations = 'At least one location is required';
     if (data.titles.length === 0) newErrors.titles = 'At least one job title is required';
 
+    if (!deliveryMethod) {
+      setDeliveryError('Please select a lead delivery method to continue');
+      newErrors.delivery = 'delivery required';
+    } else {
+      setDeliveryError('');
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -235,7 +262,7 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
     const dataToSubmit = parsedData || formData;
     
     if (validateForm(dataToSubmit)) {
-      onSubmit(dataToSubmit);
+      onSubmit({ ...dataToSubmit, deliveryMethod, deliveryConfig });
       onClose();
       // Reset form
       setFormData({
@@ -252,6 +279,10 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
         suppressionList: null,
         additionalInfo: ''
       });
+      setDeliveryMethod('');
+      setDeliveryConfig({});
+      setShowSecrets({});
+      setDeliveryError('');
       setParsedData(null);
       setPastedEmail('');
     }
@@ -262,6 +293,254 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
       setFormData(parsedData);
       setActiveTab('manual');
       setParsedData(null);
+    }
+  };
+
+  // ── Delivery helpers ────────────────────────────────────────────────────────
+
+  const isDeliveryConfigured = (): boolean => {
+    if (!deliveryMethod) return false;
+    const c = deliveryConfig;
+    switch (deliveryMethod) {
+      case 'email':      return !!(c.email && c.frequency && c.format);
+      case 'sheets':     return !!(c.sheetUrl);
+      case 'webhook':    return !!(c.endpointUrl && c.method);
+      case 'salesforce': return !!(c.instanceUrl && c.clientId && c.clientSecret);
+      case 'hubspot':    return !!(c.hubspotConnected);
+      case 'pipedrive':  return !!(c.apiKey);
+      case 'convertr':   return !!(c.endpointUrl);
+      case 'leadbyte':   return !!(c.postbackUrl);
+      case 'ftp':        return !!(c.host && c.username && c.password && c.frequency);
+      default:           return false;
+    }
+  };
+
+  const setDC = (key: string, val: string) =>
+    setDeliveryConfig(prev => ({ ...prev, [key]: val }));
+
+  const toggleSecret = (key: string) =>
+    setShowSecrets(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const infoBanner = (text: string) => (
+    <div className="flex items-start gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}>
+      <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+      <p className="text-blue-700" style={{ fontSize: '13px' }}>{text}</p>
+    </div>
+  );
+
+  const inputCls = "w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#BA2027] focus:border-transparent outline-none transition-all";
+  const selectCls = "w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#BA2027] focus:border-transparent outline-none transition-all appearance-none cursor-pointer bg-white";
+  const btnPrimary = "px-5 py-2.5 bg-[#BA2027] text-white rounded-xl hover:bg-[#9A1A21] active:bg-[#7A1419] transition-all font-semibold";
+  const btnOutline = "px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-all font-semibold";
+
+  const maskedInput = (fieldKey: string, placeholder: string, label: string, required = false) => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <div className="relative">
+        <input
+          type={showSecrets[fieldKey] ? 'text' : 'password'}
+          value={deliveryConfig[fieldKey] || ''}
+          onChange={e => setDC(fieldKey, e.target.value)}
+          placeholder={placeholder}
+          className={inputCls + ' pr-10'}
+        />
+        <button
+          type="button"
+          onClick={() => toggleSecret(fieldKey)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          {showSecrets[fieldKey] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderDeliveryConfig = () => {
+    switch (deliveryMethod) {
+      case 'email':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Recipient email address(es) <span className="text-red-500">*</span></label>
+              <input type="text" value={deliveryConfig.email || ''} onChange={e => setDC('email', e.target.value)} placeholder="e.g., leads@yourcompany.com" className={inputCls} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Delivery frequency <span className="text-red-500">*</span></label>
+                <select value={deliveryConfig.frequency || ''} onChange={e => setDC('frequency', e.target.value)} className={selectCls}>
+                  <option value="">Select frequency...</option>
+                  <option value="realtime">Real-time</option>
+                  <option value="daily">Daily digest</option>
+                  <option value="weekly">Weekly summary</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-[38px] w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">File format <span className="text-red-500">*</span></label>
+                <select value={deliveryConfig.format || ''} onChange={e => setDC('format', e.target.value)} className={selectCls}>
+                  <option value="">Select format...</option>
+                  <option value="csv">CSV</option>
+                  <option value="xlsx">Excel (.xlsx)</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-[38px] w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'sheets':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Google Sheet URL <span className="text-red-500">*</span></label>
+              <input type="url" value={deliveryConfig.sheetUrl || ''} onChange={e => setDC('sheetUrl', e.target.value)} placeholder="https://docs.google.com/spreadsheets/d/..." className={inputCls} />
+            </div>
+            {infoBanner('Click Connect to authorise access via Google. You will be redirected to complete the OAuth flow.')}
+            <button type="button" className={btnPrimary}>Connect Google Account</button>
+          </div>
+        );
+
+      case 'webhook':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Webhook endpoint URL <span className="text-red-500">*</span></label>
+              <input type="url" value={deliveryConfig.endpointUrl || ''} onChange={e => setDC('endpointUrl', e.target.value)} placeholder="https://your-endpoint.com/leads" className={inputCls} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Method <span className="text-red-500">*</span></label>
+                <select value={deliveryConfig.method || 'POST'} onChange={e => setDC('method', e.target.value)} className={selectCls}>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-[38px] w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Auth header <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input type="text" value={deliveryConfig.authHeader || ''} onChange={e => setDC('authHeader', e.target.value)} placeholder="Bearer token or API key" className={inputCls} />
+              </div>
+            </div>
+            <button type="button" className={btnOutline}>Send Test Ping</button>
+          </div>
+        );
+
+      case 'salesforce':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Salesforce Instance URL <span className="text-red-500">*</span></label>
+              <input type="url" value={deliveryConfig.instanceUrl || ''} onChange={e => setDC('instanceUrl', e.target.value)} placeholder="https://yourorg.salesforce.com" className={inputCls} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Client ID <span className="text-red-500">*</span></label>
+                <input type="text" value={deliveryConfig.clientId || ''} onChange={e => setDC('clientId', e.target.value)} placeholder="Connected App Client ID" className={inputCls} />
+              </div>
+              {maskedInput('clientSecret', 'Connected App Client Secret', 'Client Secret', true)}
+            </div>
+            <button type="button" className={btnPrimary}>Connect Salesforce</button>
+          </div>
+        );
+
+      case 'hubspot':
+        return (
+          <div className="space-y-4">
+            {infoBanner('You will be redirected to HubSpot to authorise the connection via OAuth. No credentials are stored on our servers.')}
+            <button type="button" className={btnPrimary} onClick={() => setDC('hubspotConnected', 'true')}>
+              Connect HubSpot via OAuth
+            </button>
+            {deliveryConfig.hubspotConnected && (
+              <div className="flex items-center gap-2" style={{ color: '#059669', fontSize: '13px', fontWeight: 600 }}>
+                <Wifi className="w-4 h-4" /> HubSpot connected successfully
+              </div>
+            )}
+          </div>
+        );
+
+      case 'pipedrive':
+        return (
+          <div className="space-y-4">
+            {maskedInput('apiKey', 'Your Pipedrive API key', 'Pipedrive API Key', true)}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Pipeline ID <span className="text-gray-400 font-normal">(optional)</span></label>
+              <input type="text" value={deliveryConfig.pipelineId || ''} onChange={e => setDC('pipelineId', e.target.value)} placeholder="e.g., 1" className={inputCls} />
+            </div>
+            <button type="button" className={btnPrimary}>Save & Connect</button>
+          </div>
+        );
+
+      case 'convertr':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Convertr HTTP POST endpoint URL <span className="text-red-500">*</span></label>
+              <input type="url" value={deliveryConfig.endpointUrl || ''} onChange={e => setDC('endpointUrl', e.target.value)} placeholder="https://convertr.io/post/..." className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Auth token <span className="text-gray-400 font-normal">(optional)</span></label>
+              <div className="relative">
+                <input type={showSecrets.convertrToken ? 'text' : 'password'} value={deliveryConfig.convertrToken || ''} onChange={e => setDC('convertrToken', e.target.value)} placeholder="Auth token" className={inputCls + ' pr-10'} />
+                <button type="button" onClick={() => toggleSecret('convertrToken')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  {showSecrets.convertrToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+            <button type="button" className={btnOutline}>Send Test Lead</button>
+          </div>
+        );
+
+      case 'leadbyte':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">LeadByte Postback URL <span className="text-red-500">*</span></label>
+              <input type="url" value={deliveryConfig.postbackUrl || ''} onChange={e => setDC('postbackUrl', e.target.value)} placeholder="https://app.leadbyte.co.uk/api/..." className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Campaign token <span className="text-gray-400 font-normal">(optional)</span></label>
+              <input type="text" value={deliveryConfig.campaignToken || ''} onChange={e => setDC('campaignToken', e.target.value)} placeholder="e.g., lbc_abc123" className={inputCls} />
+            </div>
+            <button type="button" className={btnOutline}>Send Test Lead</button>
+          </div>
+        );
+
+      case 'ftp':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Host / Server address <span className="text-red-500">*</span></label>
+                <input type="text" value={deliveryConfig.host || ''} onChange={e => setDC('host', e.target.value)} placeholder="ftp.yourserver.com" className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Username <span className="text-red-500">*</span></label>
+                <input type="text" value={deliveryConfig.username || ''} onChange={e => setDC('username', e.target.value)} placeholder="ftp_username" className={inputCls} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {maskedInput('password', 'FTP password', 'Password', true)}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Destination folder path</label>
+                <input type="text" value={deliveryConfig.folderPath || ''} onChange={e => setDC('folderPath', e.target.value)} placeholder="/leads/incoming" className={inputCls} />
+              </div>
+            </div>
+            <div className="relative w-full md:w-1/2">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Delivery frequency <span className="text-red-500">*</span></label>
+              <select value={deliveryConfig.frequency || ''} onChange={e => setDC('frequency', e.target.value)} className={selectCls}>
+                <option value="">Select frequency...</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-[38px] w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
     }
   };
 
@@ -319,12 +598,12 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-5">
           {activeTab === 'manual' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Campaign Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Campaign Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -340,9 +619,9 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
               </div>
 
               {/* Campaign Type & CPL */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Campaign Type <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -357,7 +636,7 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Cost Per Lead (CPL) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -378,10 +657,10 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
 
               {/* Geography */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Geography <span className="text-red-500">*</span>
                 </label>
-                <div className="flex gap-4 mb-3">
+                <div className="flex gap-4 mb-2">
                   {(['US', 'APAC', 'EMEA'] as const).map(geo => (
                     <label key={geo} className="flex items-center cursor-pointer">
                       <input
@@ -402,11 +681,11 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
                 </div>
 
                 {/* Location Multi-select */}
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Select {formData.geography === 'US' ? 'States' : 'Countries'} <span className="text-red-500">*</span>
                 </label>
-                <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto bg-gray-50">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="border border-gray-300 rounded-lg p-3 max-h-44 overflow-y-auto bg-gray-50">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5">
                     {getLocationOptions().map(location => (
                       <label key={location} className="flex items-center cursor-pointer hover:bg-white px-2 py-1 rounded">
                         <input
@@ -429,17 +708,17 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
                   </div>
                 </div>
                 {formData.locations.length > 0 && (
-                  <p className="text-sm text-gray-600 mt-2">{formData.locations.length} location(s) selected</p>
+                  <p className="text-sm text-gray-600 mt-1">{formData.locations.length} location(s) selected</p>
                 )}
                 {errors.locations && <p className="text-red-500 text-sm mt-1">{errors.locations}</p>}
               </div>
 
               {/* Employee Size Range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Employee Size Range
                 </label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">Minimum</label>
                     <select
@@ -469,10 +748,10 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
 
               {/* Revenue Size Range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Revenue Size Range
                 </label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">Minimum (e.g., $1M, $50M)</label>
                     <input
@@ -498,10 +777,10 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
 
               {/* Job Titles */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Job Titles <span className="text-red-500">*</span>
                 </label>
-                <div className="flex gap-2 mb-3">
+                <div className="flex gap-2 mb-2">
                   <input
                     type="text"
                     value={titleInput}
@@ -522,9 +801,9 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
                 </div>
                 
                 {/* Suggestions */}
-                <div className="mb-3">
-                  <p className="text-xs text-gray-600 mb-2">Quick add:</p>
-                  <div className="flex flex-wrap gap-2">
+                <div className="mb-2">
+                  <p className="text-xs text-gray-600 mb-1.5">Quick add:</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {JOB_TITLE_SUGGESTIONS.map(title => (
                       <button
                         key={title}
@@ -535,7 +814,7 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
                           }
                         }}
                         disabled={formData.titles.includes(title)}
-                        className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                        className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
                           formData.titles.includes(title)
                             ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                             : 'bg-white text-gray-700 border-gray-300 hover:border-[#BA2027] hover:text-[#BA2027]'
@@ -549,11 +828,11 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
 
                 {/* Selected Titles */}
                 {formData.titles.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {formData.titles.map(title => (
                       <span
                         key={title}
-                        className="inline-flex items-center gap-2 px-3 py-1 bg-[#BA2027] text-white rounded-full text-sm"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#BA2027] text-white rounded-full text-xs"
                       >
                         {title}
                         <button
@@ -572,14 +851,12 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
 
               {/* Suppression List */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Suppression List (Optional)
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Suppression List <span className="text-gray-400 font-normal text-xs">(Optional)</span>
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#BA2027] transition-colors">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 mb-2">
-                    Drag and drop your file here, or click to browse
-                  </p>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#BA2027] transition-colors">
+                  <Upload className="w-5 h-5 text-gray-400 mx-auto mb-1.5" />
+                  <p className="text-xs text-gray-500 mb-2">Drag and drop your file here, or click to browse</p>
                   <input
                     type="file"
                     accept=".csv,.xlsx"
@@ -589,32 +866,111 @@ export function NewCampaignModal({ isOpen, onClose, onSubmit }: NewCampaignModal
                   />
                   <label
                     htmlFor="suppression-upload"
-                    className="inline-block px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                    className="inline-block px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-50 cursor-pointer"
                   >
                     Choose File
                   </label>
-                  <p className="text-xs text-gray-500 mt-2">Accepts CSV or Excel files</p>
+                  <p className="text-xs text-gray-400 mt-1.5">Accepts CSV or Excel files</p>
                   {formData.suppressionList && (
-                    <p className="text-sm text-green-600 mt-2 font-medium">
+                    <p className="text-xs text-green-600 mt-1.5 font-medium">
                       ✓ {formData.suppressionList.name}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Additional Info */}
+              {/* ── Lead Delivery Preferences — placed above Additional Requirements ── */}
+              <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+                {/* Section header */}
+                <div className="px-5 py-3" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f3f4f6 100%)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-900" style={{ fontSize: '14px' }}>
+                        How would you like to receive your leads?
+                      </h3>
+                      <p className="text-gray-500 mt-0.5" style={{ fontSize: '12px' }}>
+                        Choose your preferred delivery method. You can update this at any time.
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {isDeliveryConfigured() ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: 'rgba(5,150,105,0.10)', color: '#059669', fontSize: '12px', fontWeight: 600 }}>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                          Connected
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: 'rgba(186,32,39,0.08)', color: '#BA2027', fontSize: '12px', fontWeight: 600 }}>
+                          <span className="w-2 h-2 rounded-full bg-[#BA2027] inline-block" />
+                          Not configured
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section body */}
+                <div className="px-5 py-4 space-y-4 bg-white">
+                  {/* Delivery method dropdown */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Lead Delivery Method <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={deliveryMethod}
+                        onChange={e => {
+                          setDeliveryMethod(e.target.value);
+                          setDeliveryConfig({});
+                          setShowSecrets({});
+                          if (e.target.value) setDeliveryError('');
+                        }}
+                        className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-[#BA2027] focus:border-transparent outline-none transition-all appearance-none cursor-pointer bg-white ${deliveryError ? 'border-red-400 ring-1 ring-red-300' : 'border-gray-300'}`}
+                      >
+                        <option value="">Select a delivery method...</option>
+                        {DELIVERY_METHODS.map(m => (
+                          <option key={m.value} value={m.value}>{m.label}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    </div>
+                    {deliveryError && (
+                      <p className="text-red-500 mt-1.5" style={{ fontSize: '13px' }}>{deliveryError}</p>
+                    )}
+                  </div>
+
+                  {/* Dynamic config panel */}
+                  {deliveryMethod && (
+                    <div
+                      key={deliveryMethod}
+                      style={{
+                        animation: 'fadeInDelivery 0.22s ease-out',
+                        background: 'rgba(249,250,251,0.9)',
+                        border: '1px solid rgba(0,0,0,0.07)',
+                        borderRadius: '14px',
+                        padding: '16px',
+                      }}
+                    >
+                      {renderDeliveryConfig()}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* ── End Lead Delivery Preferences ─────────────────────────────── */}
+
+              {/* Additional Requirements — now at the bottom */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Additional Requirements
                 </label>
                 <textarea
                   value={formData.additionalInfo}
                   onChange={(e) => setFormData(prev => ({ ...prev, additionalInfo: e.target.value }))}
-                  rows={4}
+                  rows={3}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BA2027] focus:border-transparent"
                   placeholder="Any other specifications or requirements for this campaign..."
                 />
               </div>
+
             </div>
           )}
 
@@ -825,19 +1181,32 @@ Additional Info: Need leads qualified through phone verification. Weekly deliver
 
         {/* Footer */}
         {(activeTab === 'manual' || parsedData) && (
-          <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-2 bg-[#BA2027] text-white rounded-lg hover:bg-[#BA2027]/90 transition-colors"
-            >
-              Submit Campaign
-            </button>
+          <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between gap-3 flex-wrap">
+            {!isDeliveryConfigured() && (
+              <p className="text-gray-400" style={{ fontSize: '12px' }}>
+                Complete the Lead Delivery Preferences section to submit
+              </p>
+            )}
+            <div className="flex gap-3 ml-auto">
+              <button
+                onClick={onClose}
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={!isDeliveryConfigured()}
+                title={!isDeliveryConfigured() ? 'Please configure a lead delivery method first' : ''}
+                className={`px-6 py-2 rounded-lg transition-colors font-semibold ${
+                  isDeliveryConfigured()
+                    ? 'bg-[#BA2027] text-white hover:bg-[#9A1A21] active:bg-[#7A1419] cursor-pointer'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Submit Campaign
+              </button>
+            </div>
           </div>
         )}
       </div>
