@@ -385,8 +385,13 @@ input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  width: 18px;
-  height: 18px;
+  display: block;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px;
+  min-height: 18px;
+  max-width: 18px;
+  max-height: 18px;
   background: #FFFFFF;
   border: 2px solid #D1D5DB;
   border-radius: 4px;
@@ -394,6 +399,7 @@ input[type="checkbox"] {
   transition: all 0.2s ease;
   position: relative;
   flex-shrink: 0;
+  align-self: center;
 }
 
 input[type="checkbox"]:hover {

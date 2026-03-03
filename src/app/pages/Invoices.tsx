@@ -1,3 +1,24 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router';
+import {
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  FileText,
+  Building2,
+  ArrowRightLeft,
+  CreditCard,
+  Search,
+  ChevronDown,
+  Download,
+  DollarSign,
+  Eye,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { AppLayout } from '../components/AppLayout';
+import { TableRow } from '../components/TableRow';
+import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
+import { mockInvoices } from '../mockInvoices';
 import { useDebounce } from '../hooks/useDebounce';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -186,17 +207,23 @@ export default function Invoices() {
             <table className="w-full min-w-[900px]">
               <thead className="table-header">
                 <tr>
-                  <th className="table-th"><input
-                    type="checkbox"
-                    checked={selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedInvoices(filteredInvoices.map(inv => inv.id));
-                      } else {
-                        setSelectedInvoices([]);
-                      }
-                    }}
-                  /></th>
+                  <th className="table-th">
+                    <div className="flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        className="accent-[#BA2027] cursor-pointer"
+                        style={{ width: '18px', height: '18px', minWidth: '18px', minHeight: '18px', maxWidth: '18px', maxHeight: '18px' }}
+                        checked={selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedInvoices(filteredInvoices.map(inv => inv.id));
+                          } else {
+                            setSelectedInvoices([]);
+                          }
+                        }}
+                      />
+                    </div>
+                  </th>
                   <th className="table-th">Invoice</th>
                   <th className="table-th">Campaign</th>
                   <th className="table-th text-right">Amount</th>
@@ -218,17 +245,21 @@ export default function Invoices() {
                         animationDelay={index * 50}
                       >
                         <td className="table-td" onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
-                            checked={selectedInvoices.includes(invoice.id)}
-                            onChange={() => {
-                              if (selectedInvoices.includes(invoice.id)) {
-                                setSelectedInvoices(selectedInvoices.filter(id => id !== invoice.id));
-                              } else {
-                                setSelectedInvoices([...selectedInvoices, invoice.id]);
-                              }
-                            }}
-                          />
+                          <div className="flex items-center justify-center">
+                            <input
+                              type="checkbox"
+                              className="accent-[#BA2027] cursor-pointer"
+                              style={{ width: '18px', height: '18px', minWidth: '18px', minHeight: '18px', maxWidth: '18px', maxHeight: '18px' }}
+                              checked={selectedInvoices.includes(invoice.id)}
+                              onChange={() => {
+                                if (selectedInvoices.includes(invoice.id)) {
+                                  setSelectedInvoices(selectedInvoices.filter(id => id !== invoice.id));
+                                } else {
+                                  setSelectedInvoices([...selectedInvoices, invoice.id]);
+                                }
+                              }}
+                            />
+                          </div>
                         </td>
                         <td className="table-td">
                           <div className="t1">{invoice.invoiceNumber}</div>
