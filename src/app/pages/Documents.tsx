@@ -129,6 +129,7 @@ export default function Documents() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [starred, setStarred] = useState<string[]>([]);
+  const [showStarredOnly, setShowStarredOnly] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [showViewer, setShowViewer] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -141,7 +142,8 @@ export default function Documents() {
       (doc.campaign?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     const matchesType = typeFilter === 'All' || doc.type === typeFilter;
     const matchesStatus = statusFilter === 'All' || doc.status === statusFilter;
-    return matchesSearch && matchesType && matchesStatus;
+    const matchesStarred = !showStarredOnly || starred.includes(doc.id);
+    return matchesSearch && matchesType && matchesStatus && matchesStarred;
   });
 
   const toggleStar = (id: string) => {
@@ -260,6 +262,36 @@ export default function Documents() {
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
             </div>
+
+            {/* Starred Filter */}
+            <button
+              onClick={() => setShowStarredOnly((v) => !v)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all"
+              style={{
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: showStarredOnly ? 600 : 400,
+                borderColor: showStarredOnly ? '#F59E0B' : 'var(--color-border)',
+                background: showStarredOnly ? 'rgba(245,158,11,0.08)' : 'transparent',
+                color: showStarredOnly ? '#B45309' : 'var(--color-text-secondary)',
+              }}
+            >
+              <Star
+                className="w-4 h-4"
+                style={{
+                  color: showStarredOnly ? '#F59E0B' : '#9CA3AF',
+                  fill: showStarredOnly ? '#F59E0B' : 'transparent',
+                }}
+              />
+              Starred
+              {starred.length > 0 && (
+                <span
+                  className="inline-flex items-center justify-center w-4 h-4 rounded-full"
+                  style={{ fontSize: '10px', fontWeight: 700, background: '#F59E0B', color: 'white' }}
+                >
+                  {starred.length}
+                </span>
+              )}
+            </button>
           </div>
 
           {/* View Toggle */}
@@ -340,11 +372,14 @@ export default function Documents() {
                         <TableRow key={doc.id} index={index}>
                           {/* Star */}
                           <td className="px-4 py-3 w-8">
-                            <button onClick={() => toggleStar(doc.id)}>
+                            <button
+                              onClick={() => toggleStar(doc.id)}
+                              title={isStarred ? 'Remove from starred' : 'Star this document'}
+                            >
                               <Star
-                                className="w-4 h-4 transition-colors"
+                                className="w-4 h-4 transition-all"
                                 style={{
-                                  color: isStarred ? '#F59E0B' : 'var(--color-border)',
+                                  color: isStarred ? '#F59E0B' : '#9CA3AF',
                                   fill: isStarred ? '#F59E0B' : 'transparent',
                                 }}
                               />
@@ -354,9 +389,6 @@ export default function Documents() {
                           {/* Name + Campaign */}
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cfg.bg }}>
-                                <DocIcon className="w-4 h-4" style={{ color: cfg.color }} />
-                              </div>
                               <div className="min-w-0">
                                 <div
                                   className="truncate max-w-[260px] cursor-pointer hover:underline"
@@ -507,14 +539,14 @@ export default function Documents() {
                   >
                     {/* Top row */}
                     <div className="flex items-start justify-between">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: cfg.bg }}>
-                        <DocIcon className="w-5 h-5" style={{ color: cfg.color }} />
-                      </div>
-                      <button onClick={() => toggleStar(doc.id)}>
+                      <button
+                        onClick={() => toggleStar(doc.id)}
+                        title={isStarred ? 'Remove from starred' : 'Star this document'}
+                      >
                         <Star
-                          className="w-4 h-4 transition-colors"
+                          className="w-4 h-4 transition-all"
                           style={{
-                            color: isStarred ? '#F59E0B' : 'var(--color-border)',
+                            color: isStarred ? '#F59E0B' : '#9CA3AF',
                             fill: isStarred ? '#F59E0B' : 'transparent',
                           }}
                         />

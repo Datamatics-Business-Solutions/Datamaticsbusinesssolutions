@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import {
@@ -6,9 +6,12 @@ import {
   TrendingUp, Zap, Shield, Users, DollarSign, ChevronDown,
   Rocket, GitBranch, Clock, FilePen, Upload, Receipt,
   ArrowRight, Bot, Brain, BarChart3, CreditCard, Target, Sparkles,
+  Mic, MicOff, Square, FileDown,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import emailjs from '@emailjs/browser';
+import { jsPDF } from 'jspdf';
+import { toast } from 'sonner';
 
 const EMAILJS_SERVICE_ID  = 'service_2cz8e3g';
 const EMAILJS_TEMPLATE_ID = 'template_up5p94g';
@@ -123,6 +126,685 @@ export default function Feedback() {
   const [showComingFeatures, setShowComingFeatures] = useState(false);
   const [expandedAutomation, setExpandedAutomation] = useState<number | null>(null);
 
+  // ── Voice dictation state ──
+  const [isRecording, setIsRecording] = useState(false);
+  const [interimText, setInterimText] = useState('');
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [micError, setMicError] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const committedBaseRef = useRef(''); // snapshot of formData.message when recording starts
+
+  useEffect(() => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setSpeechSupported(!!SpeechRecognition);
+  }, []);
+
+  const startRecording = useCallback(() => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    setMicError(null);
+    setInterimText('');
+
+    // Snapshot the current message so we can append to it
+    committedBaseRef.current = formData.message;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event: any) => {
+      let interim = '';
+      let finalChunk = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalChunk += transcript + ' ';
+        } else {
+          interim += transcript;
+        }
+      }
+      if (finalChunk) {
+        committedBaseRef.current = (committedBaseRef.current + finalChunk).trimStart();
+        setFormData(prev => ({ ...prev, message: committedBaseRef.current }));
+        setInterimText('');
+      } else {
+        setInterimText(interim);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error === 'not-allowed') {
+        setMicError('blocked');
+      } else if (event.error !== 'aborted') {
+        setMicError(`Speech error: ${event.error}`);
+      }
+      setIsRecording(false);
+      setInterimText('');
+    };
+
+    recognition.onend = () => {
+      // Flush any remaining interim as committed text
+      if (interimText) {
+        committedBaseRef.current = (committedBaseRef.current + interimText + ' ').trimStart();
+        setFormData(prev => ({ ...prev, message: committedBaseRef.current }));
+      }
+      setInterimText('');
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsRecording(true);
+  }, [formData.message, interimText]);
+
+  const stopRecording = useCallback(() => {
+    recognitionRef.current?.stop();
+  }, []);
+
+  const toggleRecording = useCallback(() => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }, [isRecording, startRecording, stopRecording]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { recognitionRef.current?.abort(); };
+  }, []);
+
+  // ── PDF download ──────────────────────────────────────────────────────────
+  const handleDownloadPDF = useCallback(() => {
+    // ── ALL text in this function is strict ASCII (no unicode) ────────────
+    // jsPDF's built-in Helvetica covers only Latin-1 (ISO-8859-1).
+    // Characters outside that range (arrows, special bullets, triangles, etc.)
+    // cause the renderer to switch to a wide-spacing glyph mode mid-string,
+    // producing the "s p a c e d  o u t" kerning visible in the old PDF.
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const ML = 52, MR = 52, MT = 52, MB = 52;
+    const CW = pageW - ML - MR;
+    let y = MT;
+
+    // Colour palette
+    const RED:   [number,number,number] = [186, 32,  39];
+    const RED2:  [number,number,number] = [139, 18,  25];
+    const DARK:  [number,number,number] = [22,  22,  22];
+    const BODY:  [number,number,number] = [60,  65,  72];
+    const MID:   [number,number,number] = [100, 110, 120];
+    const LIGHT: [number,number,number] = [170, 176, 183];
+    const PALE:  [number,number,number] = [240, 240, 242];
+    const WHITE: [number,number,number] = [255, 255, 255];
+
+    const newPage = (needed = 20) => {
+      if (y + needed > pageH - MB) { doc.addPage(); y = MT; }
+    };
+    const sf = (w: 'normal'|'bold', sz: number, c: [number,number,number]) => {
+      doc.setFont('helvetica', w); doc.setFontSize(sz); doc.setTextColor(...c);
+    };
+
+    // ── COVER PAGE ──────────────────────────────────────────────────────────
+    doc.setFillColor(...RED);
+    doc.rect(0, 0, pageW, pageH, 'F');
+
+    // Darker bottom band
+    doc.setFillColor(...RED2);
+    doc.rect(0, pageH * 0.66, pageW, pageH * 0.34, 'F');
+
+    // White accent bar (top left)
+    doc.setFillColor(...WHITE);
+    doc.rect(ML, 54, 40, 4, 'F');
+
+    // Company label
+    sf('bold', 9, [255, 200, 200]);
+    doc.text('DATAMATICSBPM', ML, 78);
+
+    // Main title
+    sf('bold', 36, WHITE);
+    doc.text('Client Portal', ML, 132);
+    sf('bold', 36, [255, 160, 160]);
+    doc.text('Feature Reference', ML, 172);
+
+    // Subtitle
+    sf('normal', 11, [255, 220, 220]);
+    doc.text('Complete guide to every page, action, filter,', ML, 210);
+    doc.text('export, modal, and role-based permission.', ML, 226);
+
+    // Stats row in the darker band
+    const stats = [
+      { n: '21', label: 'Pages' },
+      { n: '4',  label: 'User Roles' },
+      { n: '25', label: 'Sections' },
+      { n: '200+', label: 'Features' },
+    ];
+    const statW = CW / stats.length;
+    const statY = pageH * 0.66 + 52;
+    stats.forEach((s, i) => {
+      const sx = ML + i * statW + statW / 2;
+      sf('bold', 24, WHITE);
+      doc.text(s.n, sx, statY, { align: 'center' });
+      sf('normal', 9, [255, 200, 200]);
+      doc.text(s.label, sx, statY + 18, { align: 'center' });
+    });
+
+    // Footer line on cover
+    sf('normal', 8, [255, 190, 190]);
+    doc.text('Version: March 2026  |  DatamaticsBPM Internal Use', ML, pageH - 32);
+    doc.text('Confidential', pageW - MR, pageH - 32, { align: 'right' });
+
+    // ── CONTENT PAGES ────────────────────────────────────────────────────────
+    doc.addPage();
+    y = MT;
+
+    // ALL strings below are strict ASCII -- no unicode arrows, dots, triangles
+    const sections: Array<{
+      num: string;
+      title: string;
+      items: Array<{ heading?: string; bullets: string[] }>;
+    }> = [
+      {
+        num: '01', title: 'Authentication & User Roles',
+        items: [
+          { heading: 'Login', bullets: [
+            'Select from 4 mock user accounts to log in instantly.',
+            'Role switches immediately and redirects to the correct home screen.',
+          ]},
+          { heading: 'User Roles', bullets: [
+            'client - Campaigns, Leads, Reports, Invoices, Payments, Documents, Support, Account, Feedback.',
+            'campaign_manager - All client views + Internal pages, Approvals, Lead Upload, Team, Client Assignment.',
+            'campaign_backup - Same as campaign_manager (read + upload access).',
+            'ops_manager - Full access: Ops Overview, Team Management, Internal Reports, Client Assignment.',
+          ]},
+          { heading: 'Permission Helpers', bullets: [
+            'canUploadLeads() - true for ops_manager and campaign_manager.',
+            'canAccessOps() - true for ops_manager only.',
+            'canManageTeam() - true for ops_manager only.',
+            'canEditCampaigns() - true for ops_manager and campaign_manager.',
+          ]},
+        ],
+      },
+      {
+        num: '02', title: 'Global Navigation & Shell',
+        items: [
+          { heading: 'Left Sidebar', bullets: [
+            'Persistent on every page across all roles.',
+            'Collapses to icon-only on medium screens; hidden on mobile.',
+            'Role-based menu items - ops-only links hidden from clients.',
+            'Shows current user name, role badge, and avatar. Switch Role button for demo.',
+          ]},
+          { heading: 'Mobile Bottom Tab Bar', bullets: [
+            'Fixed bottom navigation on small screens.',
+            '4-5 most relevant shortcuts for the active role; active tab highlighted.',
+          ]},
+          { heading: 'Top Header Bar', bullets: [
+            'Bell icon - opens Notifications panel.',
+            'User avatar / name - navigates to Account Settings.',
+            'Dynamic page titles via useDocumentTitle on every route.',
+            '2 px brand-coloured Route Loader bar during route transitions.',
+          ]},
+          { heading: 'Splash Loader', bullets: [
+            'Full-screen branded loading screen on first application load.',
+            'Animated logo, progress bar, and tagline.',
+          ]},
+        ],
+      },
+      {
+        num: '03', title: 'Notifications',
+        items: [
+          { bullets: [
+            'Unread count badge displayed on the bell icon.',
+            'Clicking the bell opens the Notification Panel as a floating dropdown.',
+            'Mark all as read - clears all unread indicators at once.',
+            'Each notification is clickable and navigates directly to the relevant page.',
+            'Event types: Campaign live, 25% / 50% / 75% / 100% delivery milestones, Invoice generated.',
+          ]},
+        ],
+      },
+      {
+        num: '04', title: 'My Campaigns - Client Dashboard (/campaigns)',
+        items: [
+          { heading: 'KPI Cards', bullets: [
+            'Active Campaigns - time selector: Day / Week / Month / Year (each card is independent).',
+            'Total Leads Delivered - own independent time selector.',
+            'Total Spend - own time selector; values formatted as $XX,XXX.',
+            'Awaiting Approval card - conditionally shown; lists pending campaigns with pulsing dot.',
+          ]},
+          { heading: 'Campaign Table', bullets: [
+            'Columns: Campaign, Type, Status, Progress (animated bar + percentage), Actions.',
+            'Debounced real-time search by campaign name.',
+            'Status filter: All / Pending Approval / In Progress / Completed / Paused.',
+            'Click row or Eye button to navigate to Campaign Detail.',
+            '"Start a Campaign" button opens the New Campaign Modal.',
+            'Empty state shown with "No campaigns found" and a Create Campaign action button.',
+          ]},
+          { heading: 'Account Team Section', bullets: [
+            'Shows Campaign Manager and Campaign Backup: photo, name, role, email.',
+            'Clicking an email address opens the default mail client.',
+          ]},
+        ],
+      },
+      {
+        num: '05', title: 'Campaign List - Client (/campaigns)',
+        items: [
+          { heading: 'Submission Tracker Banner', bullets: [
+            'Shown when Pending Approval or Changes Requested submissions exist.',
+            '3-step timeline stepper per submission: Submitted > Under Review > Goes Live.',
+            'Changes Requested: amber callout box showing manager feedback notes inline.',
+          ]},
+          { heading: 'Filters', bullets: [
+            'Search by campaign name (real-time).',
+            'Status: All / Pending Approval / Changes Requested / Not Started / In Progress / Paused / Completed.',
+            'Date range: All time / This month / Last 3 months / This year.',
+          ]},
+          { heading: 'Campaign Table', bullets: [
+            'Animated progress bar and live pulsing dot for active campaigns.',
+            'Three-dot menu per row: View Details, Clone Campaign.',
+            'Clone: confirmation modal then New Campaign Modal pre-filled with name and type.',
+          ]},
+          { heading: 'New Campaign Modal (3 steps)', bullets: [
+            'Step 1: Campaign name, service type, target geography, locations (multi-select).',
+            'Step 2: Job titles (multi-select), employee size range, revenue size range.',
+            'Step 3: CPL (cost per lead), additional notes.',
+            'Submission instantly adds campaign to list and Submission Tracker; success toast + banner.',
+          ]},
+        ],
+      },
+      {
+        num: '06', title: 'Campaign Detail - Client (/campaigns/:id)',
+        items: [
+          { bullets: [
+            'KPI cards: Target Leads, Delivered, Acceptance Rate, Budget - all animated counters.',
+            'Animated Donut Chart - delivered vs remaining with live animated counter in centre.',
+            'Delivery Schedule Section - historical and upcoming delivery batch timeline.',
+            'Campaign Details panel: geography, locations, industry, revenue, employee size, job titles, pricing.',
+            'Activity Feed - chronological list of updates, uploads, and status changes.',
+            'Download Job Card button - opens Job Card Modal (full document) with Download PDF inside.',
+            'Clone Campaign button - confirmation modal then New Campaign Modal pre-filled.',
+          ]},
+        ],
+      },
+      {
+        num: '07', title: 'Leads (/leads)',
+        items: [
+          { heading: 'Filters', bullets: [
+            'Search by first name, last name, company, or email (real-time).',
+            'Status dropdown: All / Accepted / Pending / Rejected / Under Review.',
+            'Campaign dropdown filter.',
+            'Advanced Filters panel: Score range (0-100), Date range, Industry multi-select, Tags multi-select.',
+            'Apply Filters button and Reset button to clear all advanced filters.',
+          ]},
+          { heading: 'Table & Grid Views', bullets: [
+            'Table view / Grid view toggle buttons.',
+            'Sortable columns: Lead Score, Delivery Date, Company, Status (click header toggles asc/desc).',
+            'Select all checkbox and individual row checkboxes for multi-select.',
+            'Lead Score Ring - animated circular ring, colour-coded from 0 to 100.',
+            'Star / Favourite toggle per lead (amber star when active).',
+            'Three-dot menu: View Details, Tag lead, Export lead.',
+          ]},
+          { heading: 'Lead Detail Drawer', bullets: [
+            'Slides in from the right without leaving the page.',
+            'Full profile: name, company, job title, email, phone, industry.',
+            'Lead score breakdown, status badge, delivery date, campaign, and tags.',
+          ]},
+          { heading: 'Other', bullets: [
+            'Pagination: 10 per page (table), 12 per page (grid); Previous / Next buttons.',
+            'Download button - exports selected or all leads.',
+            'Dismissible alert banner for flagged or rejected leads.',
+          ]},
+        ],
+      },
+      {
+        num: '08', title: 'Reports - Client (/reports)',
+        items: [
+          { bullets: [
+            'KPI cards: Total Leads, Acceptance Rate, Conversions, Revenue, Active Campaigns (animated).',
+            'Campaign selector dropdown - filters all charts and KPIs simultaneously.',
+            'Date Range Picker - presets (7 / 30 / 90 days, this year) and custom range.',
+            'Revenue & Leads Over Time - area chart with dual Y-axis, animated on load.',
+            'Lead Status Distribution - pie chart with coloured segments and legend.',
+            'Campaign Performance Comparison - bar chart across campaigns.',
+            'Lead Title Distribution - horizontal bar (C-Level, VP/Director, Manager, etc.).',
+            'Bookmark icon per chart - toggles saved state (fills amber when bookmarked).',
+            'Export Modal: PDF Report / Excel Workbook / CSV Data; Include Charts toggle; Include Data toggle.',
+            'Share button - toast notification confirming report link is copied.',
+          ]},
+        ],
+      },
+      {
+        num: '09', title: 'Invoices (/invoices)',
+        items: [
+          { bullets: [
+            'KPI cards: Total Revenue, Paid, Pending, Overdue - all $-formatted with commas, animated.',
+            'Search by invoice number or campaign name (debounced).',
+            'Status filter: All / Paid / Pending / Overdue.',
+            'Select all checkbox and per-row checkboxes for multi-select.',
+            'Preview (Eye icon) - opens Invoice Preview Modal: full branded invoice + Download PDF.',
+            'Download icon per row - triggers a download toast notification.',
+            '"Pay Now" button on overdue or pending invoices - links to /payment/:invoiceId.',
+          ]},
+        ],
+      },
+      {
+        num: '10', title: 'Payment Methods (/payment)',
+        items: [
+          { bullets: [
+            'List of saved cards and bank accounts with last 4 digits, brand/bank, and expiry.',
+            'Default badge shown on the currently selected default method.',
+            'Set as Default button - updates default method with toast confirmation.',
+            'Delete (Trash) button - removes payment method with toast confirmation.',
+            '"+ Add Payment Method" modal: card number, name, expiry, CVV or bank/routing number.',
+          ]},
+        ],
+      },
+      {
+        num: '11', title: 'Documents (/documents)',
+        items: [
+          { heading: 'Filters', bullets: [
+            'Search by document name, uploader, or campaign - with inline clear button.',
+            'Type: All / Contract / SOW / NDA / Invoice / Report / Other.',
+            'Status: All / Active / Expired / Pending / Archived.',
+            'Starred filter button - shows only starred documents; amber badge shows live count.',
+          ]},
+          { heading: 'View & Actions', bullets: [
+            'Table view / Grid view toggle buttons.',
+            'Star toggle - grey when unstarred, fills amber when starred.',
+            'Preview (Eye icon) - opens Document Viewer Modal for full-screen preview.',
+            'Download icon - triggers a download toast notification.',
+            'Three-dot menu per document: Download, Delete (with toast confirmation).',
+            'Results count displayed live: "X documents found".',
+            'Upload Document button - drag-and-drop Upload Zone Modal (CSV, PDF, DOCX, XLSX).',
+          ]},
+        ],
+      },
+      {
+        num: '12', title: 'Support & Tickets (/support)',
+        items: [
+          { bullets: [
+            'KPI cards: Open Tickets, In Progress, Resolved, Response Time - all animated.',
+            'List view / Grid view toggle.',
+            'Filters: Search, Status (5 states), Priority (4 levels), Category (5 types).',
+            'Ticket Detail panel: full description, message thread, assigned agent, linked campaign.',
+            'Reply / Send Message input with Attachment (paperclip) button.',
+            '"+ New Ticket" modal: Title, Description, Category, Priority, linked Campaign (optional).',
+            'Star / priority flag toggle per ticket.',
+          ]},
+        ],
+      },
+      {
+        num: '13', title: 'Account Settings (/account)',
+        items: [
+          { heading: '5 Tabs', bullets: [
+            'My Profile - edit name, email, phone, job title; view active sessions list.',
+            'Company Info - edit company name, address, city/state, country, website, contact.',
+            'Team Members - invite member (email + role), edit role, remove member.',
+            'Security - change password (show/hide toggle), 2FA toggle, revoke individual sessions.',
+            'Notifications - Email and In-app toggles per event type; Save Preferences button.',
+          ]},
+        ],
+      },
+      {
+        num: '14', title: 'Feedback (/feedback)',
+        items: [
+          { bullets: [
+            'Download Feature List (PDF) button - right of the "Share Feedback" heading.',
+            'Feedback form: Type (Bug / Feature / Improvement / General), Priority (Low / Medium / High).',
+            'Name and Email pre-filled from logged-in user; Subject and Message fields.',
+            'Voice Dictation (Mic icon) - Web Speech API; live interim transcript; pulsing stop button.',
+            'Submit via EmailJS - loading spinner, success/error states, auto-reset after 3 seconds.',
+            '"Why This Platform Matters" - collapsible: 3 problems, 4 strategic pillars, strategic play.',
+            '"Coming Features" - collapsible: Salesforce, DocuSign, Convertr, Tally, Ask Praful AI.',
+            'Each automation card is individually expandable: capabilities, build time, what it eliminates.',
+          ]},
+        ],
+      },
+      {
+        num: '15', title: 'Internal Dashboard - Ops (/internal/dashboard)',
+        items: [
+          { bullets: [
+            'KPI cards: Total Campaigns, Active, Completed, Total Clients, Total Leads, Processing Uploads.',
+            'Upload Leads quick-action button - opens Lead Upload Modal directly from the dashboard.',
+            'Recent Campaigns table (5 most recently active) - click row to go to Internal Campaign Detail.',
+            'Top 4 Clients by Leads leaderboard with mini progress bars.',
+            'Recent Upload Batches list with status badges (Processing / Completed / Failed).',
+          ]},
+        ],
+      },
+      {
+        num: '16', title: 'Ops Overview (/dashboard/ops)',
+        items: [
+          { bullets: [
+            'KPI cards: Total Clients, Campaigns, Active, Leads, Processing Uploads, Failed Uploads.',
+            'All Clients table - searchable and with sortable columns.',
+            'Per-client: View (Eye) navigates to campaign list; Upload Leads opens Lead Upload Modal pre-selected.',
+            'Upload Status section with progress bars for batches currently processing.',
+          ]},
+        ],
+      },
+      {
+        num: '17', title: 'Internal Campaign List (/internal/campaigns)',
+        items: [
+          { bullets: [
+            'Real-time search by campaign name.',
+            'Status filter: All / Active / Completed / Paused / Pending Approval.',
+            'Sortable columns: Campaign, Client, Status, Leads Delivered, Target, Acceptance Rate.',
+            'Clicking a column header toggles asc/desc order with a chevron indicator.',
+            'View (Eye icon) navigates to Internal Campaign Detail.',
+          ]},
+        ],
+      },
+      {
+        num: '18', title: 'Internal Campaign Detail (/internal/campaigns/:id)',
+        items: [
+          { bullets: [
+            'KPI cards: Target Leads, Delivered, Acceptance Rate, Budget - all animated.',
+            'Animated Donut Chart - delivered vs remaining with live centre counter.',
+            'Delivery Schedule Section - batch timeline with historical and upcoming dates.',
+            'Campaign info panel: geography, locations, job titles, employee size, industry.',
+            'Upload Leads button - opens Lead Upload Modal pre-selected to this campaign.',
+          ]},
+        ],
+      },
+      {
+        num: '19', title: 'Internal Reports (/internal/reports)',
+        items: [
+          { bullets: [
+            'KPI cards: Total Leads, Revenue, Active Campaigns, Avg Acceptance Rate, Total Clients (with trend indicators).',
+            'Monthly Performance area chart - Leads and Revenue over 6 months.',
+            'Campaign Performance bar chart.',
+            'Industry Breakdown pie chart: Technology, Healthcare, Financial, Manufacturing, Other.',
+            'Operator Performance bar chart and table with avatar, leads, acceptance rate, and clients.',
+            'Bookmark icon per chart - saves/unsaves (amber fill when bookmarked).',
+            'Export Modal: PDF / Excel / CSV with chart and data toggles.',
+          ]},
+        ],
+      },
+      {
+        num: '20', title: 'Manager Dashboard (/dashboard/manager)',
+        items: [
+          { bullets: [
+            'Client switcher dropdown - switches between clients assigned to the logged-in manager.',
+            'KPI cards per client: Total Campaigns, Active, Total Leads, Acceptance Rate.',
+            'Sortable campaign table: Name, Status, Total Leads, Acceptance Rate.',
+            'Upload button per campaign row - opens Lead Upload Modal pre-selected.',
+            'Recent Activity timeline of uploads and status changes for the selected client.',
+          ]},
+        ],
+      },
+      {
+        num: '21', title: 'Lead Upload Dashboard (/internal/leads)',
+        items: [
+          { heading: 'Dashboard', bullets: [
+            'KPI cards: Processing, Completed, Failed, Pending, Leads Uploaded Today.',
+            'Dismissible pending uploads alert banner.',
+            'Filter tabs: All / Processing / Completed / Failed / Pending.',
+            'Search by file name, client name, or campaign name.',
+          ]},
+          { heading: 'Upload Batches Table', bullets: [
+            'Columns: File Name, Client, Campaign, Uploaded By, Date/Time, Status, Rows, Success, Errors, Actions.',
+            'Inline progress bar for batches currently processing.',
+            'Retry (Refresh icon) button for failed uploads with toast confirmation.',
+            'Download error report available for failed or partial batches.',
+          ]},
+          { heading: 'Lead Upload Modal (4 steps)', bullets: [
+            'Step 0 - Select Client dropdown and Campaign dropdown (when not pre-selected).',
+            'Step 1 - Drag-and-drop zone or click-to-browse; accepts CSV, XLS, XLSX.',
+            'Step 2 - Column mapping: assign each column to First Name / Last Name / Email / Phone / Company / Job Title / Source / Ignore; with live row preview.',
+            'Step 3 - Animated success state with upload count; "Upload Another" resets; "Done" closes.',
+          ]},
+        ],
+      },
+      {
+        num: '22', title: 'Team Management (/dashboard/ops/team)',
+        items: [
+          { bullets: [
+            'KPI cards: Total Members, Active, Away/On Leave, Inactive - all animated.',
+            'Table view / Grid view toggle.',
+            'Sortable by: Name, Role, Status, Clients Assigned, Leads Uploaded, Acceptance Rate.',
+            'Three-dot menu per member: Edit, View Client Coverage, View Activity Log, Deactivate, Send Email.',
+            'Edit Member Modal: name, email, role, status - Save / Cancel.',
+            'Client Coverage Modal: all clients assigned to member with campaign counts.',
+            'Activity Log Modal: timestamped history of all recent actions.',
+            'Deactivate Modal: warning message with Confirm / Cancel.',
+            '"Add Team Member" button: Name, Email, Role, Assign Clients, Send Invite (with toast).',
+            '"Bulk Reassign" button: select source member, select target member, Confirm.',
+          ]},
+        ],
+      },
+      {
+        num: '23', title: 'Client Assignment (/internal/client-assignment)',
+        items: [
+          { bullets: [
+            'KPI cards: Total Clients, Fully Assigned, Unassigned, Total Managers - all animated.',
+            'Search by client name; Status filter: All / Assigned / Unassigned.',
+            'Table columns: Client, Industry, Current Manager, Current Backup, Campaigns, Actions.',
+            'View (Eye icon) - navigates to Internal Campaign List filtered for that client.',
+            'Assign / Transfer / Revoke modal: manager dropdown, backup dropdown, confirm, send-notification checkbox.',
+          ]},
+        ],
+      },
+      {
+        num: '24', title: 'Campaign Approvals (/internal/approvals)',
+        items: [
+          { bullets: [
+            'Pending submission queue ordered by date; header shows Pending vs Changes Requested count.',
+            'Per submission (expandable): client, company, date, service type, geography, job titles, CPL.',
+            'Approve button - marks as approved, removes from queue with toast.',
+            'Request Changes button - opens modal with free-text notes; sends feedback to client Submission Tracker.',
+            'Decline button - marks as declined, removes from queue with toast.',
+            'Empty state: inbox icon with "No pending approvals" message.',
+          ]},
+        ],
+      },
+      {
+        num: '25', title: 'Coming Integrations (Roadmap)',
+        items: [
+          { bullets: [
+            'Salesforce - Auto-create Opportunities on campaign creation with two-way sync. ETA: Q3 2026.',
+            'DocuSign - Auto-generate and email Job Cards for signature on campaign approval. ETA: Q3 2026.',
+            'Convertr - Auto-deliver leads to client Convertr campaigns in real time. ETA: Q4 2026.',
+            'Tally (TallyPrime) - Auto-post invoices, receipts, credit notes, and new client ledgers. ETA: Q4 2026.',
+            'Ask Praful AI - Campaign intelligence, lead insights, KPI summaries, overdue payment visibility, and automated actions. ETA: TBD.',
+          ]},
+        ],
+      },
+    ];
+
+    // ── Render sections ─────────────────────────────────────────────────────
+    sections.forEach((section, sIdx) => {
+      newPage(48);
+
+      // Section header bar
+      const barH = 26;
+      doc.setFillColor(...RED);
+      doc.roundedRect(ML, y, CW, barH, 4, 4, 'F');
+
+      // Number pill inside header
+      doc.setFillColor(...RED2);
+      doc.roundedRect(ML + 6, y + 4, 28, 18, 3, 3, 'F');
+      sf('bold', 8, [255, 200, 200]);
+      doc.text(section.num, ML + 6 + 14, y + 15.5, { align: 'center' });
+
+      // Section title
+      sf('bold', 11, WHITE);
+      doc.text(section.title, ML + 42, y + 17);
+      y += barH + 10;
+
+      // Items
+      section.items.forEach((item, iIdx) => {
+        if (item.heading) {
+          newPage(22);
+          // Sub-heading with left accent stripe
+          doc.setFillColor(...RED);
+          doc.rect(ML, y, 3, 13, 'F');
+          sf('bold', 9.5, DARK);
+          doc.text(item.heading, ML + 10, y + 10);
+          y += 18;
+        }
+
+        item.bullets.forEach((bullet) => {
+          const lines: string[] = doc.splitTextToSize(bullet, CW - 22);
+          const blockH = lines.length * 13 + 2;
+          newPage(blockH);
+          lines.forEach((ln: string, li: number) => {
+            sf('normal', 9, li === 0 ? BODY : MID);
+            if (li === 0) {
+              // Small filled circle bullet drawn manually (no unicode)
+              doc.setFillColor(...RED);
+              doc.circle(ML + 7, y - 3.5, 1.8, 'F');
+              doc.text(ln, ML + 15, y);
+            } else {
+              doc.text(ln, ML + 15, y);
+            }
+            y += 13;
+          });
+          y += 2;
+        });
+
+        if (iIdx < section.items.length - 1) y += 4;
+      });
+
+      y += 14;
+
+      // Subtle divider between sections (not after last)
+      if (sIdx < sections.length - 1) {
+        newPage(6);
+        doc.setDrawColor(...PALE);
+        doc.setLineWidth(0.4);
+        doc.line(ML, y - 8, pageW - MR, y - 8);
+      }
+    });
+
+    // ── Footer on every content page ────────────────────────────────────────
+    const total = (doc as any).internal.getNumberOfPages();
+    for (let p = 2; p <= total; p++) {
+      doc.setPage(p);
+      // Rule
+      doc.setDrawColor(...PALE);
+      doc.setLineWidth(0.4);
+      doc.line(ML, pageH - MB + 4, pageW - MR, pageH - MB + 4);
+      // Red dot
+      doc.setFillColor(...RED);
+      doc.circle(ML, pageH - MB + 15, 2.5, 'F');
+      // Text
+      sf('normal', 7.5, LIGHT);
+      doc.text(
+        'DatamaticsBPM Client Portal  -  Feature Reference  -  March 2026',
+        ML + 9, pageH - MB + 18
+      );
+      sf('normal', 7.5, MID);
+      doc.text(`Page ${p - 1} of ${total - 1}`, pageW - MR, pageH - MB + 18, { align: 'right' });
+    }
+
+    doc.save('DatamaticsBPM-Feature-Reference.pdf');
+    toast.success('Feature reference PDF downloaded!');
+  }, []);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -185,17 +867,45 @@ export default function Feedback() {
       <div className="max-w-4xl mx-auto page-content">
 
         {/* Page Header */}
-        <div className="mb-6 flex items-center gap-4">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: 'var(--color-primary)' }}
+        <div className="mb-6 flex items-center justify-between gap-4">
+          {/* Left: icon + title — icon aligned to match card icons (pl-5 offset) */}
+          <div className="flex items-center gap-4 pl-5">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'var(--color-primary)' }}
+            >
+              <MessageSquare className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 style={{ color: 'var(--color-text-primary)' }}>Share Feedback</h1>
+              <p className="t2 mt-0.5">Help us improve the DatamaticsBPM Client Portal</p>
+            </div>
+          </div>
+
+          {/* Right: Download PDF button */}
+          <button
+            onClick={handleDownloadPDF}
+            title="Download full feature reference as PDF"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all flex-shrink-0"
+            style={{
+              borderColor: 'var(--color-border)',
+              background: 'white',
+              color: 'var(--color-text-secondary)',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-primary)';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-primary)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-border)';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-secondary)';
+            }}
           >
-            <MessageSquare className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }}>Share Feedback</h1>
-            <p className="t2 mt-0.5">Help us improve the DatamaticsBPM Client Portal</p>
-          </div>
+            <FileDown className="w-4 h-4" />
+            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+              Feature List
+            </span>
+          </button>
         </div>
 
         {/* ── Why This Platform Matters ── */}
@@ -643,6 +1353,23 @@ export default function Feedback() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Agentic AI subscription notice */}
+                  <div
+                    className="mx-4 mb-4 p-4 rounded-xl flex items-start gap-3"
+                    style={{
+                      background: 'rgba(186,32,39,0.04)',
+                      border: '1px solid rgba(186,32,39,0.18)',
+                    }}
+                  >
+                    <Bot className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+                    <p className="t2 leading-relaxed">
+                      <strong style={{ color: 'var(--color-text-primary)' }}>Note:</strong>{' '}
+                      All of the above features — including the Ask Praful resident AI — require a monthly subscription to{' '}
+                      <strong style={{ color: 'var(--color-text-primary)' }}>Agentic AI</strong>.
+                      Once the project is given the green light, these features can be scoped, costed, and added to the roadmap.
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -765,15 +1492,128 @@ export default function Feedback() {
 
             {/* Message */}
             <div>
-              <label htmlFor="message" className="block mb-1.5" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
-                Message
-              </label>
-              <textarea
-                id="message" name="message" value={formData.message}
-                onChange={handleInputChange} required rows={5}
-                placeholder="Please provide as much detail as possible..."
-                className="input-base px-3 py-2.5 resize-none"
-              />
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="message" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                  Message
+                </label>
+
+                {/* Dictate button — inline right of label */}
+                {speechSupported && (
+                  <button
+                    type="button"
+                    onClick={toggleRecording}
+                    title={isRecording ? 'Stop dictating' : 'Dictate your message'}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all"
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      borderColor: isRecording ? '#DC2626' : 'var(--color-primary)',
+                      background: isRecording ? 'rgba(220,38,38,0.06)' : 'rgba(186,32,39,0.06)',
+                      color: isRecording ? '#DC2626' : 'var(--color-primary)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {isRecording ? (
+                      <>
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
+                        </span>
+                        <Square className="w-3 h-3" />
+                        Stop
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-3 h-3" />
+                        Dictate
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              <div className="relative">
+                <textarea
+                  id="message" name="message"
+                  value={formData.message + (interimText ? interimText : '')}
+                  onChange={e => {
+                    // Allow manual edits; keep the committed base in sync
+                    committedBaseRef.current = e.target.value;
+                    setFormData(prev => ({ ...prev, message: e.target.value }));
+                  }}
+                  required rows={5}
+                  placeholder={isRecording ? 'Listening… start speaking.' : 'Please provide as much detail as possible, or use Dictate above to speak your feedback…'}
+                  className="input-base px-3 py-2.5 resize-none w-full"
+                  style={{
+                    borderColor: isRecording ? '#DC2626' : undefined,
+                    outline: isRecording ? '2px solid rgba(220,38,38,0.15)' : undefined,
+                  }}
+                />
+              </div>
+
+              {/* Live interim transcript preview */}
+              <AnimatePresence>
+                {isRecording && (
+                  <motion.div
+                    key="interim"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                    className="mt-1.5 px-3 py-2 rounded-lg flex items-start gap-2"
+                    style={{
+                      background: 'rgba(220,38,38,0.04)',
+                      border: '1px solid rgba(220,38,38,0.15)',
+                    }}
+                  >
+                    <MicOff className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: '#DC2626' }} />
+                    <p style={{ fontSize: '12px', color: '#DC2626', fontStyle: 'italic' }}>
+                      {interimText || 'Listening… speak clearly into your microphone.'}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Mic error */}
+              <AnimatePresence>
+                {micError && (
+                  <motion.div
+                    key="mic-err"
+                    initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                    className="mt-1.5 p-3 rounded-lg"
+                    style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.2)' }}
+                  >
+                    {micError === 'blocked' ? (
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#DC2626' }} />
+                        <div style={{ fontSize: '12px', color: '#DC2626' }}>
+                          <p style={{ fontWeight: 600 }}>Microphone access is unavailable here</p>
+                          <p className="mt-0.5" style={{ color: '#B91C1C' }}>
+                            Voice dictation doesn't work inside the Figma app or embedded previews — the webview doesn't have microphone access.
+                          </p>
+                          <p className="mt-1.5" style={{ color: '#B91C1C' }}>
+                            To use Dictate, open this portal in <strong>Chrome</strong> or <strong>Edge</strong> directly — then click Dictate and allow microphone access when prompted.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2" style={{ fontSize: '12px', color: '#DC2626' }}>
+                        <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                        {micError}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Unsupported notice */}
+              {!speechSupported && (
+                <p className="mt-1.5 flex items-center gap-1.5" style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>
+                  <MicOff className="w-3 h-3 flex-shrink-0" />
+                  Voice dictation isn't supported in this browser. Try Chrome or Edge.
+                </p>
+              )}
             </div>
 
             {/* Submit */}
