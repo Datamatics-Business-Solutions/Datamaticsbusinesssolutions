@@ -1,5 +1,6 @@
 import { X, FileText, Send, Download } from 'lucide-react';
 import { Logo } from './Logo';
+import { toast } from 'sonner';
 
 interface JobCardModalProps {
   campaign: any;
@@ -9,12 +10,12 @@ interface JobCardModalProps {
 
 export function JobCardModal({ campaign, onClose, isOpen = true }: JobCardModalProps) {
   const handleSendForSignature = () => {
-    alert('Job card sent for e-signature!');
+    toast.success('Job card sent for e-signature! Check your inbox.');
     onClose();
   };
 
   const handleDownloadPDF = () => {
-    alert('Downloading PDF...');
+    toast.success('Preparing PDF download…');
   };
 
   // Don't render if not open

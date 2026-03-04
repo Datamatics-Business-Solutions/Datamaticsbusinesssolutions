@@ -1,3 +1,13 @@
+import { useState } from 'react';
+import { AppLayout } from '../components/AppLayout';
+import {
+  BarChart3, Target, DollarSign, Activity, CheckCircle, Users,
+  ArrowUpRight, ArrowDownRight, Download, Bookmark, BookmarkCheck,
+} from 'lucide-react';
+import {
+  AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from 'recharts';
 import { mockCampaigns } from '../mockData';
 import { allClients } from '../data/mockClients';
 import { AnimatedCounter } from '../components/AnimatedCounter';

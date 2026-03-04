@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router';
 import { lazy, Suspense } from 'react';
-import { SplashLoader } from './components/SplashLoader';
+import { RouteLoader } from './components/RouteLoader';
 
 // Login is eagerly imported — it is the first thing users see,
 // so it must be in the main bundle with zero extra network round-trip.
@@ -31,10 +31,13 @@ const ClientAssignmentPage = lazy(() => import('./pages/ClientAssignmentPage'));
 const ErrorBoundary = lazy(() => import('./pages/ErrorBoundary'));
 const CampaignApprovalsPage = lazy(() => import('./pages/CampaignApprovalsPage'));
 
-// Wraps every lazy page in a Suspense boundary with the branded splash.
+// Wraps every lazy page in a Suspense boundary with a slim top-bar loader.
+// The full SplashLoader is intentionally NOT used here — it is too intrusive
+// for route-to-route navigation. RouteLoader is a 2px brand-coloured bar
+// that's barely noticeable and doesn't disrupt the user's context.
 const withSuspense = (Component: React.LazyExoticComponent<any>) => {
   return () => (
-    <Suspense fallback={<SplashLoader />}>
+    <Suspense fallback={<RouteLoader />}>
       <Component />
     </Suspense>
   );

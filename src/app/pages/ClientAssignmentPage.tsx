@@ -45,12 +45,7 @@ export default function ClientAssignmentPage() {
   const navigate = useNavigate();
   const { currentUser, canManageTeam } = useAuth();
 
-  // Redirect if not authorized
-  if (!canManageTeam()) {
-    navigate('/dashboard');
-    return null;
-  }
-
+  // ALL hooks must be declared before any conditional return (Rules of Hooks)
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -58,6 +53,12 @@ export default function ClientAssignmentPage() {
   const [selectedManager, setSelectedManager] = useState('');
   const [selectedBackup, setSelectedBackup] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'assigned' | 'unassigned'>('all');
+
+  // Redirect if not authorized — AFTER all hooks
+  if (!canManageTeam()) {
+    navigate('/dashboard');
+    return null;
+  }
 
   // Filter clients
   const filteredClients = useMemo(() => {

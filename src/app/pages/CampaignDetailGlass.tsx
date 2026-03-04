@@ -21,6 +21,7 @@ import { CloneCampaignModal } from '../components/CloneCampaignModal';
 import { NewCampaignModal, type CampaignFormData } from '../components/NewCampaignModal';
 import { allClients } from '../data/mockClients';
 import { mockActivityUpdates } from '../mockData';
+import { toast } from 'sonner';
 
 export default function CampaignDetail() {
   const { id } = useParams();
@@ -133,7 +134,10 @@ export default function CampaignDetail() {
               <Copy className="w-4 h-4" />
               Clone Campaign
             </button>
-            <button className="btn-primary px-4 py-2 flex items-center gap-2">
+            <button
+              onClick={() => toast.success('Exporting report… your download will begin shortly.')}
+              className="btn-primary px-4 py-2 flex items-center gap-2"
+            >
               <Download className="w-4 h-4" />
               Export Report
             </button>

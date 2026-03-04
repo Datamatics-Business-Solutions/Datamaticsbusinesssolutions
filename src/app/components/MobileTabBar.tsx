@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Layers,
   Upload,
-  Building2,
   UsersRound,
   BarChart2,
   FileBarChart,
@@ -25,8 +24,8 @@ const tabsByRole: Record<string, TabItem[]> = {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/ops' },
     { name: 'Campaigns', icon: Layers, path: '/internal/campaigns' },
     { name: 'Upload', icon: Upload, path: '/internal/leads', primary: true },
-    { name: 'Clients', icon: Building2, path: '/internal/client-assignment' },
     { name: 'Team', icon: UsersRound, path: '/dashboard/ops/team' },
+    { name: 'Reports', icon: FileBarChart, path: '/internal/reports' },
   ],
   campaign_manager: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/manager' },
