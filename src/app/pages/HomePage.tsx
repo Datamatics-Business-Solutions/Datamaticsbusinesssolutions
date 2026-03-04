@@ -52,8 +52,15 @@ export default function HomePage() {
   // ── Business period toggle ──────────────────────────────────────────────────
   const [bizPeriod, setBizPeriod] = useState<'month' | 'year'>('month');
 
-  // ── Fixed leads this month ──────────────────────────────────────────────────
+  // ── Leads period toggle ─────────────────────────────────────────────────────
+  const [leadsPeriod, setLeadsPeriod] = useState<'month' | 'year'>('month');
+
+  // ── Fixed leads values ──────────────────────────────────────────────────────
   const leadsThisMonth = 1265;
+  const leadsThisYear = 14820;
+  const leadsValue = leadsPeriod === 'month' ? leadsThisMonth : leadsThisYear;
+  const leadsTrend = leadsPeriod === 'month' ? '+12%' : '+18%';
+  const leadsLabel = leadsPeriod === 'month' ? 'This month' : 'Year to date';
 
   // ── Campaign stats ──────────────────────────────────────────────────────────
   const campaignStats = useMemo(() => {
@@ -209,13 +216,26 @@ export default function HomePage() {
                   <TrendingUp className="w-4 h-4 text-[#10B981]" />
                 </div>
               </div>
+              {/* Month / Year toggle */}
+              <div className="flex gap-1 mb-3 bg-white/80 p-0.5 rounded-lg" style={{ width: 'fit-content' }}>
+                {(['month', 'year'] as const).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setLeadsPeriod(p)}
+                    className={`px-2.5 py-1 rounded-md transition-all ${leadsPeriod === p ? 'bg-[#BA2027] text-white shadow-sm' : 'text-[#6B7280] hover:text-[#BA2027]'}`}
+                    style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+                  >
+                    {p === 'month' ? 'Month' : 'Year'}
+                  </button>
+                ))}
+              </div>
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="font-bold text-[#1F2937]" style={{ fontSize: '32px', lineHeight: 1 }}>
-                  <AnimatedNumber value={leadsThisMonth} />
+                  <AnimatedNumber value={leadsValue} />
                 </span>
-                <span className="text-sm font-semibold text-[#10B981]">+12%</span>
+                <span className="text-sm font-semibold text-[#10B981]">{leadsTrend}</span>
               </div>
-              <p className="text-xs text-[#9CA3AF]">This month</p>
+              <p className="text-xs text-[#9CA3AF]">{leadsLabel}</p>
             </div>
           </motion.div>
 
