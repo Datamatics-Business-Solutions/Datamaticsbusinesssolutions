@@ -88,7 +88,7 @@ export default function CampaignDetail() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1440px] mx-auto px-6 py-6">
+      <div className="max-w-[1440px] mx-auto px-6 py-6 pb-24 md:pb-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
           <button onClick={() => navigate('/dashboard')} className="hover:text-[var(--color-primary)] transition-colors">

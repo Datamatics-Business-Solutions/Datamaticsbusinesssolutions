@@ -231,7 +231,7 @@ export default function LeadUploadDashboard() {
           <h2 style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
             Upload Status
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 stagger-children">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 stagger-children">
             <div 
               className="kpi-card animate-slideInUp cursor-pointer hover:scale-105 transition-transform"
               onClick={() => setUploadFilter('processing')}

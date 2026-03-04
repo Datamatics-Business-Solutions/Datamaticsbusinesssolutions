@@ -332,7 +332,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Compact KPI Cards - 6 cards in 2 rows on mobile, 6 across on desktop */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-4 stagger-children">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-4 stagger-children">
           <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
             <div className="flex items-center justify-between mb-1">
               <Target className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />

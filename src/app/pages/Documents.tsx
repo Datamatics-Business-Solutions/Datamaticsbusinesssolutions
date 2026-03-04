@@ -127,7 +127,9 @@ export default function Documents() {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('All');
   const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>(() =>
+    typeof window !== 'undefined' && window.innerWidth < 640 ? 'grid' : 'table'
+  );
   const [starred, setStarred] = useState<string[]>([]);
   const [showStarredOnly, setShowStarredOnly] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
@@ -295,7 +297,7 @@ export default function Documents() {
           </div>
 
           {/* View Toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: 'var(--color-border-light)' }}>
+          <div className="hidden sm:flex items-center gap-1 p-1 rounded-lg" style={{ background: 'var(--color-border-light)' }}>
             <button
               onClick={() => setViewMode('table')}
               className="p-2 rounded-md transition-colors"

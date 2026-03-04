@@ -13,8 +13,6 @@ import {
   LogOut,
   Upload,
   UsersRound,
-  Menu,
-  X,
   Pin,
   UserCircle,
   Building2,
@@ -51,7 +49,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     const savedPinned = localStorage.getItem('sidebar-pinned');
     return savedPinned !== null ? savedPinned === 'true' : true;
   });
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
   
@@ -409,7 +406,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                           <motion.button
                             onClick={() => {
                               navigate(item.path);
-                              setMobileOpen(false);
                             }}
                             onMouseEnter={() => handleItemMouseEnter(item.name)}
                             onMouseLeave={handleItemMouseLeave}
@@ -549,7 +545,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                   <motion.button
                     onClick={() => {
                       navigate(`/client/${client.id}`);
-                      setMobileOpen(false);
                     }}
                     onMouseEnter={() => handleItemMouseEnter(client.name)}
                     onMouseLeave={handleItemMouseLeave}
@@ -671,7 +666,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           <button
             onClick={() => {
               navigate('/');
-              setMobileOpen(false);
             }}
             onMouseEnter={() => handleItemMouseEnter('Log Out')}
             onMouseLeave={handleItemMouseLeave}
@@ -713,7 +707,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           <button
             onClick={() => {
               navigate('/account');
-              setMobileOpen(false);
             }}
             onMouseEnter={() => handleItemMouseEnter('Account')}
             onMouseLeave={handleItemMouseLeave}
@@ -790,29 +783,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
 
   return (
     <>
-      {/* Mobile Hamburger Button — hidden on mobile since MobileTabBar handles navigation.
-          Kept only for tablet (md) range if sidebar is collapsed and user wants full nav. */}
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-4 left-4 z-[60] hidden p-2 rounded-lg bg-white shadow-lg text-[#1F2937]"
-        aria-label="Open navigation"
-      >
-        {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
-
-      {/* Mobile Overlay */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 bg-black/40 z-[55] md:hidden"
-          />
-        )}
-      </AnimatePresence>
-
       {/* Sidebar - Desktop */}
       <div
         onMouseEnter={handleMouseEnter}
@@ -833,28 +803,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
       >
         {sidebarContent}
       </div>
-
-      {/* Sidebar - Mobile */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ x: -260 }}
-            animate={{ x: 0 }}
-            exit={{ x: -260 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="md:hidden fixed left-0 top-0 h-screen w-[260px] z-[60] overflow-hidden"
-            style={{
-              background: 'rgba(255, 255, 255, 0.92)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              borderRight: '1px solid rgba(0, 0, 0, 0.06)',
-              boxShadow: '4px 0 24px rgba(0,0,0,0.08)'
-            }}
-          >
-            {sidebarContent}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Lead Upload Modal */}
       <LeadUploadModal

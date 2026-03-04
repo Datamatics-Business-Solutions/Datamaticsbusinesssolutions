@@ -902,7 +902,7 @@ export default function Feedback() {
             }}
           >
             <FileDown className="w-4 h-4" />
-            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+            <span className="hidden sm:inline" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, whiteSpace: 'nowrap' }}>
               Feature List
             </span>
           </button>
