@@ -15,6 +15,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import { AppLayout } from '../components/AppLayout';
 import { allClients, Client } from '../data/mockClients';
 import { AnimatedCounter } from '../components/AnimatedCounter';
@@ -45,6 +46,9 @@ export default function ClientAssignmentPage() {
   const navigate = useNavigate();
   const { currentUser, canManageTeam } = useAuth();
 
+  // Local state so assignment changes are reflected immediately in the table
+  const [clients, setClients] = useState<Client[]>(allClients);
+
   // ALL hooks must be declared before any conditional return (Rules of Hooks)
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -62,7 +66,7 @@ export default function ClientAssignmentPage() {
 
   // Filter clients
   const filteredClients = useMemo(() => {
-    return allClients.filter((client) => {
+    return clients.filter((client) => {
       const matchesSearch =
         client.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         client.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -76,17 +80,17 @@ export default function ClientAssignmentPage() {
 
       return matchesSearch;
     });
-  }, [searchQuery, filterStatus]);
+  }, [clients, searchQuery, filterStatus]);
 
-  // Stats
+  // Stats — derived from live clients state
   const stats = useMemo(() => {
-    const totalClients = allClients.length;
-    const assignedClients = allClients.filter(c => c.campaignManagerEmail && c.backupManagerEmail).length;
-    const activeClients = allClients.filter(c => c.status === 'active').length;
+    const totalClients = clients.length;
+    const assignedClients = clients.filter(c => c.campaignManagerEmail && c.backupManagerEmail).length;
+    const activeClients = clients.filter(c => c.status === 'active').length;
     const unassignedClients = totalClients - assignedClients;
 
     return { totalClients, assignedClients, activeClients, unassignedClients };
-  }, []);
+  }, [clients]);
 
   // Handle assignment actions
   const handleOpenAssignModal = (client: Client, type: 'assign' | 'transfer' | 'revoke') => {
@@ -115,16 +119,37 @@ export default function ClientAssignmentPage() {
   };
 
   const handleSubmitAssignment = () => {
-    // In a real app, this would make an API call
-    console.log('Assignment submitted:', {
-      client: selectedClient?.id,
-      type: assignmentType,
-      manager: selectedManager,
-      backup: selectedBackup,
-    });
-    
-    // Show success message (would use toast in production)
-    alert(`Successfully ${assignmentType === 'revoke' ? 'revoked' : 'updated'} assignment for ${selectedClient?.companyName}`);
+    if (assignmentType === 'revoke') {
+      setClients(prev =>
+        prev.map(c =>
+          c.id === selectedClient?.id
+            ? { ...c, campaignManager: '—', campaignManagerEmail: '', backupManager: '—', backupManagerEmail: '' }
+            : c
+        )
+      );
+      toast.success(`Assignment revoked for ${selectedClient?.companyName}`);
+    } else {
+      const mgr = availableManagers.find(m => m.id === selectedManager);
+      const bak = availableBackups.find(b => b.id === selectedBackup);
+      setClients(prev =>
+        prev.map(c =>
+          c.id === selectedClient?.id
+            ? {
+                ...c,
+                campaignManager:      mgr?.name  ?? c.campaignManager,
+                campaignManagerEmail: mgr?.email ?? c.campaignManagerEmail,
+                backupManager:        bak?.name  ?? c.backupManager,
+                backupManagerEmail:   bak?.email ?? c.backupManagerEmail,
+              }
+            : c
+        )
+      );
+      toast.success(
+        assignmentType === 'assign'
+          ? `Team assigned to ${selectedClient?.companyName}`
+          : `Assignment transferred for ${selectedClient?.companyName}`
+      );
+    }
     handleCloseModal();
   };
 
