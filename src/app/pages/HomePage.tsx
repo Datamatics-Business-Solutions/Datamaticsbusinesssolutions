@@ -178,25 +178,25 @@ export default function HomePage() {
           <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(ellipse 55% 80% at 100% 0%, rgba(186,32,39,0.06) 0%, transparent 70%)' }} />
           <div className="pointer-events-none absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle, #BA2027 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
 
-          <div className="relative z-10 flex items-center justify-between gap-4 w-full">
-            <div className="flex items-center gap-4">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 w-full">
+            <div className="flex items-center gap-4 min-w-0">
               <div
                 className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 select-none"
                 style={{ background: 'linear-gradient(135deg, #BA2027 0%, #D32F2F 100%)', boxShadow: '0 4px 14px rgba(186,32,39,0.28)', color: '#fff', fontSize: '15px', fontWeight: 700 }}
               >
                 {initials}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span style={{ fontSize: '18px', fontWeight: 700, color: '#111', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
                     {greeting}, {currentUser?.name?.split(' ')[0]}
                   </span>
-                  <span className="relative flex h-2 w-2 mt-px">
+                  <span className="relative flex h-2 w-2 mt-px flex-shrink-0">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#BA2027' }} />
                     <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#BA2027' }} />
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span style={{ fontSize: '13px', color: '#6B7280' }}>{currentUser?.company ?? 'Datamatics Business Solutions'}</span>
                   <span style={{ color: '#D1D5DB' }}>·</span>
                   <span style={{ fontSize: '13px', color: '#6B7280' }}>{formattedDate}</span>
