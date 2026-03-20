@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
+import { useNotifications } from '../context/NotificationContext';
 import {
   CheckCircle2,
   XCircle,
@@ -395,6 +397,7 @@ function SubmissionCard({
 export default function CampaignApprovalsPage() {
   useDocumentTitle('Campaign Approvals');
 
+  const { addNotification } = useNotifications();
   const [submissions, setSubmissions] = useState<CampaignSubmission[]>(mockCampaignSubmissions);
   const [filter, setFilter] = useState<SubmissionStatus | 'All'>('All');
   const [changesTarget, setChangesTarget] = useState<CampaignSubmission | null>(null);
@@ -413,6 +416,17 @@ export default function CampaignApprovalsPage() {
           : s
       )
     );
+    toast.success(`Campaign approved — it's now live!`);
+    const approved = submissions.find(s => s.id === id);
+    if (approved) {
+      addNotification({
+        campaignId: approved.id,
+        campaignName: approved.campaignName,
+        event: 'campaign_live',
+        description: `✅ "${approved.campaignName}" has been approved and is now live.`,
+        link: '/campaigns',
+      });
+    }
   };
 
   const handleDecline = (id: string) => {
@@ -423,6 +437,17 @@ export default function CampaignApprovalsPage() {
           : s
       )
     );
+    toast.error('Campaign declined — client has been notified.');
+    const declined = submissions.find(s => s.id === id);
+    if (declined) {
+      addNotification({
+        campaignId: declined.id,
+        campaignName: declined.campaignName,
+        event: 'campaign_live',
+        description: `❌ "${declined.campaignName}" was declined. Please review feedback.`,
+        link: '/campaigns',
+      });
+    }
   };
 
   const handleRequestChanges = (notes: string) => {
@@ -440,6 +465,14 @@ export default function CampaignApprovalsPage() {
           : s
       )
     );
+    toast.info('Feedback sent to client.');
+    addNotification({
+      campaignId: changesTarget.id,
+      campaignName: changesTarget.campaignName,
+      event: 'campaign_live',
+      description: `📝 Changes requested for "${changesTarget.campaignName}". Please review and resubmit.`,
+      link: '/campaigns',
+    });
     setChangesTarget(null);
   };
 

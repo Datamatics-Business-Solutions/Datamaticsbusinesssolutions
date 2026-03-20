@@ -29,11 +29,11 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-center">
             <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
-              © {new Date().getFullYear()} DatamaticsBPM. All rights reserved. Authorised users only.
+              © {new Date().getFullYear()} Datamatics Business Solutions. All rights reserved. Authorised users only.
             </span>
             <span style={{ fontSize: '10px', color: 'var(--color-border)' }}>·</span>
             <a
-              href="mailto:vishalpmehta@gmail.com?subject=DatamaticsBPM Client Portal"
+              href="mailto:vishalpmehta@gmail.com?subject=Datamatics Business Solutions Client Portal"
               style={{ fontSize: '10px', color: '#BA2027', opacity: 0.6, textDecoration: 'none' }}
               onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
               onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}

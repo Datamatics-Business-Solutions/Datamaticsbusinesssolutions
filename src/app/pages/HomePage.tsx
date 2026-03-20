@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
+import { OnboardingTour } from '../components/OnboardingTour';
+import { EmailDigestModal } from '../components/EmailDigestModal';
 import {
   CheckCircle2, FileText, Layers, Users, TrendingUp,
   AlertCircle, FilePenLine, Clock, MessageSquare, FolderOpen,
@@ -48,6 +50,9 @@ export default function HomePage() {
 
   const accountTeam = getAccountTeam('client_1');
   const acmeClient = allClients.find(c => c.id === 'client_1');
+
+  // ── Email digest modal ──────────────────────────────────────────────────────
+  const [showDigest, setShowDigest] = useState(false);
 
   // ── Business period toggle ──────────────────────────────────────────────────
   const [bizPeriod, setBizPeriod] = useState<'month' | 'year'>('month');
@@ -173,38 +178,49 @@ export default function HomePage() {
           <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(ellipse 55% 80% at 100% 0%, rgba(186,32,39,0.06) 0%, transparent 70%)' }} />
           <div className="pointer-events-none absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle, #BA2027 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
 
-          <div className="relative z-10 flex items-center gap-4">
-            <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 select-none"
-              style={{ background: 'linear-gradient(135deg, #BA2027 0%, #D32F2F 100%)', boxShadow: '0 4px 14px rgba(186,32,39,0.28)', color: '#fff', fontSize: '15px', fontWeight: 700 }}
+          <div className="relative z-10 flex items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 select-none"
+                style={{ background: 'linear-gradient(135deg, #BA2027 0%, #D32F2F 100%)', boxShadow: '0 4px 14px rgba(186,32,39,0.28)', color: '#fff', fontSize: '15px', fontWeight: 700 }}
+              >
+                {initials}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span style={{ fontSize: '18px', fontWeight: 700, color: '#111', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                    {greeting}, {currentUser?.name?.split(' ')[0]}
+                  </span>
+                  <span className="relative flex h-2 w-2 mt-px">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#BA2027' }} />
+                    <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#BA2027' }} />
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {currentUser?.logo ? (
+                    <img
+                      src={currentUser.logo}
+                      alt={currentUser.company || 'Client'}
+                      className="h-4 object-contain opacity-75"
+                      style={{ maxWidth: '100px' }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: '13px', color: '#6B7280' }}>{currentUser?.company ?? 'Datamatics Business Solutions'}</span>
+                  )}
+                  <span style={{ color: '#D1D5DB' }}>·</span>
+                  <span style={{ fontSize: '13px', color: '#6B7280' }}>{formattedDate}</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowDigest(true)}
+              className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-colors"
+              style={{ background: '#BA2027', boxShadow: '0 2px 8px rgba(186,32,39,0.25)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#A01C22')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#BA2027')}
             >
-              {initials}
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <span style={{ fontSize: '18px', fontWeight: 700, color: '#111', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-                  {greeting}, {currentUser?.name?.split(' ')[0]}
-                </span>
-                <span className="relative flex h-2 w-2 mt-px">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#BA2027' }} />
-                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#BA2027' }} />
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                {currentUser?.logo ? (
-                  <img
-                    src={currentUser.logo}
-                    alt={currentUser.company || 'Client'}
-                    className="h-4 object-contain opacity-75"
-                    style={{ maxWidth: '100px' }}
-                  />
-                ) : (
-                  <span style={{ fontSize: '13px', color: '#6B7280' }}>{currentUser?.company ?? 'DatamaticsBPM'}</span>
-                )}
-                <span style={{ color: '#D1D5DB' }}>·</span>
-                <span style={{ fontSize: '13px', color: '#6B7280' }}>{formattedDate}</span>
-              </div>
-            </div>
+              📊 Weekly Digest
+            </button>
           </div>
         </motion.div>
 
@@ -558,6 +574,9 @@ export default function HomePage() {
           />
         )}
       </div>
+
+      <EmailDigestModal isOpen={showDigest} onClose={() => setShowDigest(false)} />
+      <OnboardingTour />
     </AppLayout>
   );
 }

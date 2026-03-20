@@ -263,7 +263,7 @@ export default function Feedback() {
 
     // Company label
     sf('bold', 9, [255, 200, 200]);
-    doc.text('DATAMATICSBPM', ML, 78);
+    doc.text('DATAMATICS BUSINESS SOLUTIONS', ML, 78);
 
     // Main title
     sf('bold', 36, WHITE);
@@ -295,7 +295,7 @@ export default function Feedback() {
 
     // Footer line on cover
     sf('normal', 8, [255, 190, 190]);
-    doc.text('Version: March 2026  |  DatamaticsBPM Internal Use', ML, pageH - 32);
+    doc.text('Version: March 2026  |  Datamatics Business Solutions Internal Use', ML, pageH - 32);
     doc.text('Confidential', pageW - MR, pageH - 32, { align: 'right' });
 
     // ── CONTENT PAGES ────────────────────────────────────────────────────────
@@ -794,14 +794,14 @@ export default function Feedback() {
       // Text
       sf('normal', 7.5, LIGHT);
       doc.text(
-        'DatamaticsBPM Client Portal  -  Feature Reference  -  March 2026',
+        'Datamatics Business Solutions Client Portal  -  Feature Reference  -  March 2026',
         ML + 9, pageH - MB + 18
       );
       sf('normal', 7.5, MID);
       doc.text(`Page ${p - 1} of ${total - 1}`, pageW - MR, pageH - MB + 18, { align: 'right' });
     }
 
-    doc.save('DatamaticsBPM-Feature-Reference.pdf');
+    doc.save('Datamatics-Business-Solutions-Feature-Reference.pdf');
     toast.success('Feature reference PDF downloaded!');
   }, []);
 
@@ -878,7 +878,7 @@ export default function Feedback() {
             </div>
             <div>
               <h1 style={{ color: 'var(--color-text-primary)' }}>Share Feedback</h1>
-              <p className="t2 mt-0.5">Help us improve the DatamaticsBPM Client Portal</p>
+              <p className="t2 mt-0.5">Help us improve the Datamatics Business Solutions Client Portal</p>
             </div>
           </div>
 

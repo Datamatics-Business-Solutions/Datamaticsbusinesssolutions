@@ -1,13 +1,16 @@
-import { X, Mail, Phone, Building2, MapPin, Calendar, Award, TrendingUp, MessageSquare, Clock, User, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { X, Mail, Phone, Building2, MapPin, Calendar, Award, TrendingUp, MessageSquare, Clock, User, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { Lead } from '../mockData';
 
 interface LeadDetailDrawerProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
+  onStatusChange?: (id: string, status: string) => void;
 }
 
-export function LeadDetailDrawer({ lead, isOpen, onClose }: LeadDetailDrawerProps) {
+export function LeadDetailDrawer({ lead, isOpen, onClose, onStatusChange }: LeadDetailDrawerProps) {
   if (!lead) return null;
 
   const getScoreColor = (score: number) => {
@@ -34,25 +37,27 @@ export function LeadDetailDrawer({ lead, isOpen, onClose }: LeadDetailDrawerProp
 
   // Mock notes
   const notes = [
-    { date: '2026-02-28', author: 'John Smith', text: 'Very interested in our cybersecurity solutions. Follow up next week.' },
-    { date: '2026-02-26', author: 'Sarah Johnson', text: 'Company matches ICP perfectly. High potential for conversion.' },
+    { date: '2026-02-28', author: 'TJ Leyland', text: 'Very interested in our cybersecurity solutions. Follow up next week.' },
+    { date: '2026-02-26', author: 'Anish Akkoat', text: 'Company matches ICP perfectly. High potential for conversion.' },
   ];
+
+  const isTerminal = lead.status === 'Accepted' || lead.status === 'Rejected';
 
   return (
     <>
       {/* Backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 transition-opacity"
           onClick={onClose}
         />
       )}
 
       {/* Drawer */}
-      <div 
+      <div
         className={`fixed top-0 right-0 h-full w-full sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:max-w-2xl z-50 transform transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
-        } bg-white shadow-2xl overflow-y-auto`}
+        } bg-white shadow-2xl flex flex-col`}
       >
         {/* Header */}
         <div className="sticky top-0 z-10 px-4 py-4 md:px-6 border-b bg-white border-gray-200">
@@ -74,8 +79,8 @@ export function LeadDetailDrawer({ lead, isOpen, onClose }: LeadDetailDrawerProp
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        {/* Content — scrollable */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Lead Score Card */}
           <div className="rounded-xl p-5 bg-gray-50 border border-gray-200">
             <div className="flex items-center justify-between mb-4">
@@ -95,7 +100,7 @@ export function LeadDetailDrawer({ lead, isOpen, onClose }: LeadDetailDrawerProp
               </div>
             </div>
             <div className="mt-3 h-2 bg-black/10 rounded-full overflow-hidden">
-              <div 
+              <div
                 className={`h-full rounded-full transition-all ${
                   lead.leadScore >= 90 ? 'bg-[#0F9D58]' :
                   lead.leadScore >= 75 ? 'bg-[#4285F4]' :
@@ -252,7 +257,7 @@ export function LeadDetailDrawer({ lead, isOpen, onClose }: LeadDetailDrawerProp
                 </div>
               ))}
             </div>
-            
+
             {/* Add Note */}
             <div>
               <textarea
@@ -265,6 +270,56 @@ export function LeadDetailDrawer({ lead, isOpen, onClose }: LeadDetailDrawerProp
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Sticky Action Bar */}
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3">
+          {isTerminal ? (
+            lead.status === 'Accepted' ? (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 border border-green-200 text-green-700 font-medium text-sm">
+                <CheckCircle className="w-4 h-4" />
+                ✓ Accepted
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 font-medium text-sm">
+                <XCircle className="w-4 h-4" />
+                ✗ Rejected
+              </div>
+            )
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  onStatusChange?.(lead.id, 'Accepted');
+                  toast.success('Lead accepted');
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-medium text-sm transition-colors"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Accept Lead
+              </button>
+              <button
+                onClick={() => {
+                  onStatusChange?.(lead.id, 'Rejected');
+                  toast.error('Lead rejected');
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-medium text-sm transition-colors"
+              >
+                <XCircle className="w-4 h-4" />
+                Reject Lead
+              </button>
+              <button
+                onClick={() => {
+                  onStatusChange?.(lead.id, 'Contacted');
+                  toast.success('Lead marked as contacted');
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                Mark Contacted
+              </button>
+            </>
+          )}
         </div>
       </div>
     </>

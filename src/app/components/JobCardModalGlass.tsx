@@ -62,15 +62,15 @@ export function JobCardModal({ campaign, onClose, isOpen = true }: JobCardModalP
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-sm text-gray-600">Company</div>
-                <div className="font-medium">Acme Agency</div>
+                <div className="font-medium">Intentsify</div>
               </div>
               <div>
                 <div className="text-sm text-gray-600">Contact Person</div>
-                <div className="font-medium">John Smith</div>
+                <div className="font-medium">TJ Leyland</div>
               </div>
               <div>
                 <div className="text-sm text-gray-600">Email</div>
-                <div className="font-medium">john.smith@acme.com</div>
+                <div className="font-medium">tj.leyland@intentsify.com</div>
               </div>
               <div>
                 <div className="text-sm text-gray-600">Phone</div>
@@ -169,7 +169,7 @@ export function JobCardModal({ campaign, onClose, isOpen = true }: JobCardModalP
             <div className="bg-gray-50 p-4 rounded-lg text-xs text-gray-600 space-y-2 max-h-32 overflow-y-auto">
               <p>1. Lead Quality: All leads will be verified to meet BANT criteria (Budget, Authority, Need, Timeline) before delivery.</p>
               <p>2. Replacement Policy: Client may reject leads within 30 days of delivery. Rejected leads will be replaced at no additional cost, subject to valid rejection reasons.</p>
-              <p>3. Data Protection: DatamaticsBPM complies with GDPR, CCPA, and other applicable data protection regulations.</p>
+              <p>3. Data Protection: Datamatics Business Solutions complies with GDPR, CCPA, and other applicable data protection regulations.</p>
               <p>4. Confidentiality: All campaign information and deliverables are confidential and protected under mutual NDA.</p>
               <p>5. Payment: Invoices will be issued based on accepted leads. Payment due within 30 days of invoice date.</p>
             </div>
@@ -180,11 +180,11 @@ export function JobCardModal({ campaign, onClose, isOpen = true }: JobCardModalP
             <div className="border-t-2 border-gray-300 pt-4">
               <div className="text-sm text-gray-600 mb-2">Client Signature</div>
               <div className="h-16 border-b-2 border-dashed border-gray-300 mb-2"></div>
-              <div className="text-xs text-gray-500">John Smith</div>
-              <div className="text-xs text-gray-500">Acme Agency</div>
+              <div className="text-xs text-gray-500">TJ Leyland</div>
+              <div className="text-xs text-gray-500">Intentsify</div>
             </div>
             <div className="border-t-2 border-gray-300 pt-4">
-              <div className="text-sm text-gray-600 mb-2">DatamaticsBPM Representative</div>
+              <div className="text-sm text-gray-600 mb-2">Datamatics Business Solutions Representative</div>
               <div className="h-16 border-b-2 border-dashed border-gray-300 mb-2"></div>
               <div className="text-xs text-gray-500">Sarah Johnson</div>
               <div className="text-xs text-gray-500">Account Manager</div>

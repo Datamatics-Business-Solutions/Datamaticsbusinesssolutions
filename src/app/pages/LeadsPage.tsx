@@ -28,6 +28,7 @@ export default function LeadsPage() {
   useDocumentTitle('Leads');
   const { currentUser } = useAuth();
 
+  const [leads, setLeads] = useState(mockLeads);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -55,10 +56,14 @@ export default function LeadsPage() {
     return () => clearTimeout(t);
   }, []);
 
+  const handleStatusChange = (id: string, status: string) => {
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, status: status as Lead['status'] } : l));
+  };
+
   const leadsPerPage = viewMode === 'grid' ? 12 : 10;
 
   // Filter and sort leads
-  const filteredLeads = mockLeads.filter(lead => {
+  const filteredLeads = leads.filter(lead => {
     const matchesSearch = 
       lead.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -146,7 +151,7 @@ export default function LeadsPage() {
     }
   };
 
-  const uniqueCampaigns = Array.from(new Set(mockLeads.map(l => l.campaignId)));
+  const uniqueCampaigns = Array.from(new Set(leads.map(l => l.campaignId)));
 
   const handleLeadSelection = (leadId: string) => {
     if (selectedLeads.includes(leadId)) {
@@ -341,7 +346,7 @@ export default function LeadsPage() {
             >
               <option value="all">All Campaigns</option>
               {uniqueCampaigns.map(campaignId => {
-                const lead = mockLeads.find(l => l.campaignId === campaignId);
+                const lead = leads.find(l => l.campaignId === campaignId);
                 return (
                   <option key={campaignId} value={campaignId}>
                     {lead?.campaignName}
@@ -624,6 +629,7 @@ export default function LeadsPage() {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         lead={selectedLead}
+        onStatusChange={handleStatusChange}
       />
     </AppLayout>
   );

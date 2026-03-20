@@ -80,7 +80,7 @@ export function SplashLoader() {
           margin: '0 0 4px 0',
         }}
       >
-        DatamaticsBPM
+        Datamatics Business Solutions
       </p>
       <p
         style={{

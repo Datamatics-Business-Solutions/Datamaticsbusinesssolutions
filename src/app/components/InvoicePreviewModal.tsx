@@ -71,7 +71,7 @@ export function InvoicePreviewModal({ isOpen, onClose, invoice }: InvoicePreview
                   </p>
                 </div>
                 <div className="text-right text-gray-700">
-                  <p className="font-semibold mb-1">DatamaticsBPM</p>
+                  <p className="font-semibold mb-1">Datamatics Business Solutions</p>
                   <p className="text-sm">123 Business Park</p>
                   <p className="text-sm">Mumbai, India 400001</p>
                 </div>
@@ -82,9 +82,9 @@ export function InvoicePreviewModal({ isOpen, onClose, invoice }: InvoicePreview
                 <div>
                   <h3 className="text-sm font-semibold mb-2 text-gray-600">BILL TO</h3>
                   <div className="text-gray-900">
-                    <p className="font-semibold mb-1">Acme Sales Inc.</p>
-                    <p className="text-sm">456 Client Street</p>
-                    <p className="text-sm">San Francisco, CA 94105</p>
+                    <p className="font-semibold mb-1">Intentsify</p>
+                    <p className="text-sm">222 Third Street, Suite 2240</p>
+                    <p className="text-sm">Cambridge, MA 02142</p>
                   </div>
                 </div>
                 <div>
