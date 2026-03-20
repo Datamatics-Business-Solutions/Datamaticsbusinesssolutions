@@ -44,7 +44,7 @@ export function EmailDigestModal({ isOpen, onClose }: EmailDigestModalProps) {
               <div className="space-y-1" style={{ fontSize: '13px', color: '#374151' }}>
                 <div className="flex gap-2">
                   <span className="font-semibold text-gray-500 w-16">From:</span>
-                  <span>reports@datamatics.com</span>
+                  <span>reports@datamaticsbpm.com</span>
                 </div>
                 <div className="flex gap-2">
                   <span className="font-semibold text-gray-500 w-16">To:</span>

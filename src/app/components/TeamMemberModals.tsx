@@ -511,7 +511,7 @@ export function AddMemberModal({ isOpen, onClose, onSave }: AddMemberModalProps)
               onFocus={() => setFocused('email')}
               onBlur={() => setFocused(null)}
               style={{ ...inputStyle(focused === 'email'), borderColor: errors.email ? '#DC2626' : (focused === 'email' ? 'var(--color-primary)' : 'var(--color-border)') }}
-              placeholder="name@datamatics.com"
+              placeholder="name@datamaticsbpm.com"
             />
             {errors.email && <p style={{ fontSize: '12px', color: '#DC2626', margin: 0 }}>{errors.email}</p>}
           </FormField>

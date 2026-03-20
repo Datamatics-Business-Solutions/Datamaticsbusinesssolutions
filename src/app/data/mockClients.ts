@@ -346,9 +346,9 @@ export const allClients: Client[] = [
     totalLeads: 1087,
     leadsThisMonth: 198,
     campaignManager: 'Michael Chen',
-    campaignManagerEmail: 'michael.chen@datamatics.com',
+    campaignManagerEmail: 'michael.chen@datamaticsbpm.com',
     backupManager: 'Emily Rodriguez',
-    backupManagerEmail: 'emily.rodriguez@datamatics.com',
+    backupManagerEmail: 'emily.rodriguez@datamaticsbpm.com',
     lastActivity: '2026-03-02T11:20:00Z',
     unreadNotifications: 3,
     campaigns: [
@@ -414,9 +414,9 @@ export const allClients: Client[] = [
     totalLeads: 1742,
     leadsThisMonth: 220,
     campaignManager: 'Emily Rodriguez',
-    campaignManagerEmail: 'emily.rodriguez@datamatics.com',
+    campaignManagerEmail: 'emily.rodriguez@datamaticsbpm.com',
     backupManager: 'Michael Chen',
-    backupManagerEmail: 'michael.chen@datamatics.com',
+    backupManagerEmail: 'michael.chen@datamaticsbpm.com',
     lastActivity: '2026-03-02T08:30:00Z',
     unreadNotifications: 0,
     campaigns: [
@@ -510,9 +510,9 @@ export function getClientsForUser(userEmail: string): Client[] {
 export function getAssignedClients(userId: string): Array<{ id: string; name: string; status: string }> {
   const userEmailMap: Record<string, string> = {
     'manager_1': 'anish.akkoat@datamaticsbpm.com',
-    'manager_2': 'michael.chen@datamatics.com',
+    'manager_2': 'michael.chen@datamaticsbpm.com',
     'backup_1': 'arjun.patel@datamaticsbpm.com',
-    'backup_2': 'emily.rodriguez@datamatics.com',
+    'backup_2': 'emily.rodriguez@datamaticsbpm.com',
   };
 
   const userEmail = userEmailMap[userId];

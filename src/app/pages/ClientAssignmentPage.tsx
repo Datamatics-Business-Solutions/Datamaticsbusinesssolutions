@@ -32,14 +32,14 @@ interface TeamMember {
 
 const availableManagers: TeamMember[] = [
   { id: 'mgr_1', name: 'Anish Akkoat', email: 'anish.akkoat@datamaticsbpm.com', role: 'campaign_manager', currentClients: 3 },
-  { id: 'mgr_2', name: 'Michael Chen', email: 'michael.chen@datamatics.com', role: 'campaign_manager', currentClients: 2 },
-  { id: 'mgr_3', name: 'Emily Rodriguez', email: 'emily.rodriguez@datamatics.com', role: 'campaign_manager', currentClients: 1 },
+  { id: 'mgr_2', name: 'Michael Chen', email: 'michael.chen@datamaticsbpm.com', role: 'campaign_manager', currentClients: 2 },
+  { id: 'mgr_3', name: 'Emily Rodriguez', email: 'emily.rodriguez@datamaticsbpm.com', role: 'campaign_manager', currentClients: 1 },
 ];
 
 const availableBackups: TeamMember[] = [
   { id: 'bkp_1', name: 'Arjun Patel', email: 'arjun.patel@datamaticsbpm.com', role: 'campaign_backup', currentClients: 3 },
-  { id: 'bkp_2', name: 'Emily Rodriguez', email: 'emily.rodriguez@datamatics.com', role: 'campaign_backup', currentClients: 1 },
-  { id: 'bkp_3', name: 'Michael Chen', email: 'michael.chen@datamatics.com', role: 'campaign_backup', currentClients: 2 },
+  { id: 'bkp_2', name: 'Emily Rodriguez', email: 'emily.rodriguez@datamaticsbpm.com', role: 'campaign_backup', currentClients: 1 },
+  { id: 'bkp_3', name: 'Michael Chen', email: 'michael.chen@datamaticsbpm.com', role: 'campaign_backup', currentClients: 2 },
 ];
 
 export default function ClientAssignmentPage() {
