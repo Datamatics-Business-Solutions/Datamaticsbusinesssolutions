@@ -200,7 +200,7 @@ export default function Dashboard() {
             initial={{ opacity: 0.8 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="glass-card p-6"
+            className="glass-card p-3 sm:p-6"
           >
             <div className="flex items-center justify-between mb-4">
               <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">ACTIVE CAMPAIGNS</h5>
@@ -210,26 +210,23 @@ export default function Dashboard() {
             </div>
 
             {/* PROMINENT TIME SELECTOR */}
-            <div className="flex items-center gap-1.5 mb-6 p-1.5 bg-[#F3F4F6] rounded-lg">
+            <div className="flex items-center gap-0.5 mb-4 p-1 bg-[#F3F4F6] rounded-lg w-full">
               {(['1d', '1w', '1m', '1y'] as const).map((period) => (
                 <button
                   key={period}
                   onClick={() => {
                     setCampaignsPeriod(period);
                   }}
-                  className={`px-2 py-1 rounded-md text-xs font-bold uppercase transition-all ${ campaignsPeriod === period ? 'bg-[#BA2027] text-white shadow-md' : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white' }`}
-                  style={{
-                    fontSize: '10px',
-                    minWidth: '42px'
-                  }}
+                  className={`flex-1 py-1 rounded-md text-xs font-bold uppercase transition-all text-center ${ campaignsPeriod === period ? 'bg-[#BA2027] text-white shadow-md' : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white' }`}
+                  style={{ fontSize: '9px' }}
                 >
                   {period === '1d' ? 'Day' : period === '1w' ? 'Week' : period === '1m' ? 'Month' : 'Year'}
                 </button>
               ))}
             </div>
             
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none"><AnimatedCounter end={activeCampaigns} duration={1500} /></span>
+            <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mb-2">
+              <span className="font-bold text-[#1A1A1A] tracking-tight leading-none" style={{ fontSize: 'clamp(20px, 5vw, 36px)' }}><AnimatedCounter end={activeCampaigns} duration={1500} /></span>
               <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#059669]">
                 <TrendingUp className="w-4 h-4" />
                 +8%
@@ -244,10 +241,10 @@ export default function Dashboard() {
             initial={{ opacity: 0.8 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="glass-card p-6"
+            className="glass-card p-3 sm:p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
+              <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider truncate mr-2">
                 TOTAL LEADS {getPeriodLabel(leadsPeriod)}
               </h5>
               <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
@@ -256,26 +253,23 @@ export default function Dashboard() {
             </div>
 
             {/* PROMINENT TIME SELECTOR */}
-            <div className="flex items-center gap-1.5 mb-6 p-1.5 bg-[#F3F4F6] rounded-lg">
+            <div className="flex items-center gap-0.5 mb-4 p-1 bg-[#F3F4F6] rounded-lg w-full">
               {(['1d', '1w', '1m', '1y'] as const).map((period) => (
                 <button
                   key={period}
                   onClick={() => {
                     setLeadsPeriod(period);
                   }}
-                  className={`px-2 py-1 rounded-md text-xs font-bold uppercase transition-all ${ leadsPeriod === period ? 'bg-[#BA2027] text-white shadow-md' : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white' }`}
-                  style={{
-                    fontSize: '10px',
-                    minWidth: '42px'
-                  }}
+                  className={`flex-1 py-1 rounded-md text-xs font-bold uppercase transition-all text-center ${ leadsPeriod === period ? 'bg-[#BA2027] text-white shadow-md' : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white' }`}
+                  style={{ fontSize: '9px' }}
                 >
                   {period === '1d' ? 'Day' : period === '1w' ? 'Week' : period === '1m' ? 'Month' : 'Year'}
                 </button>
               ))}
             </div>
             
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none"><AnimatedCounter end={totalLeadsDelivered} duration={2000} /></span>
+            <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mb-2">
+              <span className="font-bold text-[#1A1A1A] tracking-tight leading-none" style={{ fontSize: 'clamp(20px, 5vw, 36px)' }}><AnimatedCounter end={totalLeadsDelivered} duration={2000} /></span>
               <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#059669]">
                 <TrendingUp className="w-4 h-4" />
                 +12%
@@ -290,7 +284,7 @@ export default function Dashboard() {
             initial={{ opacity: 0.8 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="glass-card p-6"
+            className="glass-card p-3 sm:p-6"
           >
             <div className="flex items-center justify-between mb-4">
               <h5 className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">TOTAL SPEND</h5>
@@ -300,26 +294,23 @@ export default function Dashboard() {
             </div>
 
             {/* PROMINENT TIME SELECTOR */}
-            <div className="flex items-center gap-1.5 mb-6 p-1.5 bg-[#F3F4F6] rounded-lg">
+            <div className="flex items-center gap-0.5 mb-4 p-1 bg-[#F3F4F6] rounded-lg w-full">
               {(['1d', '1w', '1m', '1y'] as const).map((period) => (
                 <button
                   key={period}
                   onClick={() => {
                     setSpendPeriod(period);
                   }}
-                  className={`px-2 py-1 rounded-md text-xs font-bold uppercase transition-all ${ spendPeriod === period ? 'bg-[#BA2027] text-white shadow-md' : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white' }`}
-                  style={{
-                    fontSize: '10px',
-                    minWidth: '42px'
-                  }}
+                  className={`flex-1 py-1 rounded-md text-xs font-bold uppercase transition-all text-center ${ spendPeriod === period ? 'bg-[#BA2027] text-white shadow-md' : 'bg-transparent text-[#6B7280] hover:bg-[#BA2027] hover:text-white' }`}
+                  style={{ fontSize: '9px' }}
                 >
                   {period === '1d' ? 'Day' : period === '1w' ? 'Week' : period === '1m' ? 'Month' : 'Year'}
                 </button>
               ))}
             </div>
             
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-[36px] font-bold text-[#1A1A1A] tracking-tight leading-none">$<AnimatedCounter end={totalSpend} duration={1800} /></span>
+            <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mb-2">
+              <span className="font-bold text-[#1A1A1A] tracking-tight leading-none" style={{ fontSize: 'clamp(18px, 4.5vw, 36px)' }}>$<AnimatedCounter end={totalSpend} duration={1800} /></span>
               <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#BA2027]">
                 <TrendingUp className="w-4 h-4 rotate-180" />
                 -3%
@@ -334,7 +325,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.35 }}
-              className="glass-card p-6 flex flex-col"
+              className="glass-card p-3 sm:p-6 flex flex-col"
               style={{ borderColor: 'rgba(186,32,39,0.18)' }}
             >
               {/* Header row */}
@@ -347,7 +338,7 @@ export default function Dashboard() {
 
               {/* Count */}
               <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-[36px] font-bold tracking-tight leading-none" style={{ color: '#1A1A1A' }}>
+                <span className="font-bold tracking-tight leading-none" style={{ color: '#1A1A1A', fontSize: 'clamp(20px, 5vw, 36px)' }}>
                   {pendingApprovalCampaigns.length}
                 </span>
                 <span className="text-sm font-semibold" style={{ color: '#BA2027' }}>
