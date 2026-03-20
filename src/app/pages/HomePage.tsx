@@ -191,7 +191,16 @@ export default function HomePage() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span style={{ fontSize: '13px', color: '#6B7280' }}>{currentUser?.company ?? 'DatamaticsBPM'}</span>
+                {currentUser?.logo ? (
+                  <img
+                    src={currentUser.logo}
+                    alt={currentUser.company || 'Client'}
+                    className="h-4 object-contain opacity-75"
+                    style={{ maxWidth: '100px' }}
+                  />
+                ) : (
+                  <span style={{ fontSize: '13px', color: '#6B7280' }}>{currentUser?.company ?? 'DatamaticsBPM'}</span>
+                )}
                 <span style={{ color: '#D1D5DB' }}>·</span>
                 <span style={{ fontSize: '13px', color: '#6B7280' }}>{formattedDate}</span>
               </div>
@@ -200,7 +209,7 @@ export default function HomePage() {
         </motion.div>
 
         {/* ── 4-Card KPI Row ─────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
           {/* 1 — Total Leads This Month */}
           <motion.div

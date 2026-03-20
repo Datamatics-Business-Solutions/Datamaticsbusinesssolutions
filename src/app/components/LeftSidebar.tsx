@@ -49,7 +49,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     const savedPinned = localStorage.getItem('sidebar-pinned');
     return savedPinned !== null ? savedPinned === 'true' : true;
   });
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
   
   // Collapsible sections
@@ -292,7 +291,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
 
   // Tooltip handlers
   const handleItemMouseEnter = (itemName: string) => {
-    setHoveredItem(itemName);
     if (!isExpanded) {
       tooltipTimeoutRef.current = setTimeout(() => {
         setShowTooltip(itemName);
@@ -301,7 +299,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
   };
 
   const handleItemMouseLeave = () => {
-    setHoveredItem(null);
     setShowTooltip(null);
     if (tooltipTimeoutRef.current) {
       clearTimeout(tooltipTimeoutRef.current);
@@ -353,14 +350,14 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           style={{ background: 'rgba(186,32,39,0.03)' }}
         >
           {isExpanded ? (
-            <div className="flex flex-col gap-1 w-full">
-              <span style={{ fontSize: '9px', fontWeight: 600, color: '#B0B0B0', letterSpacing: '0.08em' }}>
+            <div className="flex flex-col items-center gap-1.5 w-full">
+              <span style={{ fontSize: '9px', fontWeight: 700, color: '#6B7280', letterSpacing: '0.1em' }}>
                 CLIENT PORTAL FOR
               </span>
               <img
                 src={currentUser.logo}
                 alt={currentUser.company || 'Client logo'}
-                className="h-5 object-contain object-left"
+                className="h-5 object-contain"
                 style={{ maxWidth: '160px' }}
               />
             </div>

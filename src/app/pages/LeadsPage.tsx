@@ -588,9 +588,6 @@ export default function LeadsPage() {
         </div>
       )}
 
-      {/* Floating Action Button */}
-      {/* <FloatingActionButton actions={fabActions} /> */}
-
       {/* Advanced Filters Panel */}
       <AdvancedFiltersPanel
         isOpen={showFiltersPanel}

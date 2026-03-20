@@ -31,18 +31,20 @@ export default function Account() {
     <AppLayout>
       <div className="max-w-[1200px] mx-auto page-content animate-fadeIn">
         {/* Header */}
-        <div className="mb-6">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Account Settings</h1>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+              Manage your account preferences and security
+            </p>
+          </div>
           {currentUser?.logo && (
-            <div className="flex items-center gap-4 mb-4 p-4 rounded-2xl border border-[#EEECEC] bg-white/60 backdrop-blur-sm" style={{ maxWidth: 'fit-content' }}>
-              <img src={currentUser.logo} alt={currentUser.company || ''} className="h-8 object-contain" style={{ maxWidth: '160px' }} />
-              <div className="w-px h-8 bg-[#EEECEC]" />
-              <span style={{ fontSize: '12px', fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em' }}>Client Portal</span>
+            <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-[#EEECEC] bg-white/60 backdrop-blur-sm flex-shrink-0">
+              <img src={currentUser.logo} alt={currentUser.company || ''} className="h-7 object-contain" style={{ maxWidth: '140px' }} />
+              <div className="w-px h-6 bg-[#EEECEC]" />
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>Client Portal</span>
             </div>
           )}
-          <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Account Settings</h1>
-          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-            Manage your account preferences and security
-          </p>
         </div>
 
         {/* Tabs */}
@@ -73,9 +75,7 @@ export default function Account() {
               </h2>
 
               <div className="flex items-center gap-4 pb-6" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'var(--color-primary)', color: 'white', fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)' }}>
-                  SM
-                </div>
+                <img src="/1702071415736.jpeg" alt="TJ Leyland" className="w-20 h-20 rounded-full object-cover" />
                 <div className="flex-1">
                   <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
                     Profile Photo
@@ -92,11 +92,11 @@ export default function Account() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">First Name</label>
-                  <input type="text" defaultValue="John" className="input-base w-full px-4 py-3" />
+                  <input type="text" defaultValue="TJ" className="input-base w-full px-4 py-3" />
                 </div>
                 <div>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Last Name</label>
-                  <input type="text" defaultValue="Smith" className="input-base w-full px-4 py-3" />
+                  <input type="text" defaultValue="Leyland" className="input-base w-full px-4 py-3" />
                 </div>
                 <div>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Job Title</label>
@@ -108,7 +108,7 @@ export default function Account() {
                 </div>
                 <div>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Email Address</label>
-                  <input type="email" defaultValue="john.smith@intentsify.com" className="input-base w-full px-4 py-3" />
+                  <input type="email" defaultValue="tj.leyland@intentsify.com" className="input-base w-full px-4 py-3" />
                 </div>
                 <div>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Phone Number</label>

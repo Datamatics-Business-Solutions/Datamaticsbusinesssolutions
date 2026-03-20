@@ -151,7 +151,7 @@ export default function Login() {
 
         {/* Glassmorphism Form Container — slides up on mount via CSS */}
         <div 
-          className="w-full max-w-[440px] relative z-10 p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-black/5 shadow-[0_8px_32px_rgba(186,32,39,0.08)] my-auto animate-slideInUp"
+          className="w-full max-w-[440px] relative z-10 p-5 sm:p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-black/5 shadow-[0_8px_32px_rgba(186,32,39,0.08)] my-auto animate-slideInUp"
         >
           {/* Logo with Glow */}
           <div className="flex justify-center mb-6">
