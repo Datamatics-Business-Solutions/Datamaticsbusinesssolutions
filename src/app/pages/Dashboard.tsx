@@ -225,14 +225,15 @@ export default function Dashboard() {
               ))}
             </div>
             
-            <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mb-2">
-              <span className="font-bold text-[#1A1A1A] tracking-tight leading-none" style={{ fontSize: 'clamp(20px, 5vw, 36px)' }}><AnimatedCounter end={activeCampaigns} duration={1500} /></span>
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#059669]">
-                <TrendingUp className="w-4 h-4" />
-                +8%
-              </span>
+            <div className="font-bold text-[#1A1A1A] tracking-tight leading-none mb-2" style={{ fontSize: 'clamp(22px, 5vw, 36px)' }}>
+              <AnimatedCounter end={activeCampaigns} duration={1500} />
             </div>
-            <p className="text-xs text-[#6B7280]">vs previous period</p>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-[#059669]">
+                <TrendingUp className="w-3 h-3" />+8%
+              </span>
+              <span className="text-xs text-[#6B7280]">vs previous period</span>
+            </div>
           </motion.div>
 
           {/* Total Leads Card - WITH INTERACTIVE BUTTONS */}
@@ -268,14 +269,15 @@ export default function Dashboard() {
               ))}
             </div>
             
-            <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mb-2">
-              <span className="font-bold text-[#1A1A1A] tracking-tight leading-none" style={{ fontSize: 'clamp(20px, 5vw, 36px)' }}><AnimatedCounter end={totalLeadsDelivered} duration={2000} /></span>
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#059669]">
-                <TrendingUp className="w-4 h-4" />
-                +12%
-              </span>
+            <div className="font-bold text-[#1A1A1A] tracking-tight leading-none mb-2" style={{ fontSize: 'clamp(22px, 5vw, 36px)' }}>
+              <AnimatedCounter end={totalLeadsDelivered} duration={2000} />
             </div>
-            <p className="text-xs text-[#6B7280]">vs previous period</p>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-[#059669]">
+                <TrendingUp className="w-3 h-3" />+12%
+              </span>
+              <span className="text-xs text-[#6B7280]">vs previous period</span>
+            </div>
           </motion.div>
 
           {/* Total Spend Card */}
@@ -309,14 +311,15 @@ export default function Dashboard() {
               ))}
             </div>
             
-            <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mb-2">
-              <span className="font-bold text-[#1A1A1A] tracking-tight leading-none" style={{ fontSize: 'clamp(18px, 4.5vw, 36px)' }}>$<AnimatedCounter end={totalSpend} duration={1800} /></span>
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#BA2027]">
-                <TrendingUp className="w-4 h-4 rotate-180" />
-                -3%
-              </span>
+            <div className="font-bold text-[#1A1A1A] tracking-tight leading-none mb-2" style={{ fontSize: 'clamp(22px, 5vw, 36px)' }}>
+              $<AnimatedCounter end={totalSpend} duration={1800} />
             </div>
-            <p className="text-xs text-[#6B7280]">vs previous period</p>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-[#BA2027]">
+                <TrendingUp className="w-3 h-3 rotate-180" />-3%
+              </span>
+              <span className="text-xs text-[#6B7280]">vs previous period</span>
+            </div>
           </motion.div>
 
           {/* Awaiting Approval Card — only shown when pending campaigns exist */}
