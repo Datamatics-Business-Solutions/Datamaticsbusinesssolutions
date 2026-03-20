@@ -205,7 +205,7 @@ export default function HomePage() {
             </div>
             <button
               onClick={() => setShowDigest(true)}
-              className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-colors"
+              className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-colors w-full sm:w-auto justify-center"
               style={{ background: '#BA2027', boxShadow: '0 2px 8px rgba(186,32,39,0.25)' }}
               onMouseEnter={(e) => (e.currentTarget.style.background = '#A01C22')}
               onMouseLeave={(e) => (e.currentTarget.style.background = '#BA2027')}
