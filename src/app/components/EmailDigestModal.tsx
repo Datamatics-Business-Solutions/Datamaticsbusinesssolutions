@@ -113,23 +113,29 @@ export function EmailDigestModal({ isOpen, onClose }: EmailDigestModalProps) {
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
                     Leads by Day
                   </p>
-                  <div className="flex items-end justify-around gap-3 h-24">
+                  {/* bars */}
+                  <div className="flex items-end justify-around gap-3" style={{ height: '80px' }}>
                     {[
-                      { day: 'Mon', height: '60%' },
-                      { day: 'Tue', height: '85%' },
-                      { day: 'Wed', height: '100%' },
-                      { day: 'Thu', height: '70%' },
-                      { day: 'Fri', height: '45%' },
+                      { day: 'Mon', h: 48, count: 152 },
+                      { day: 'Tue', h: 68, count: 214 },
+                      { day: 'Wed', h: 80, count: 251 },
+                      { day: 'Thu', h: 56, count: 176 },
+                      { day: 'Fri', h: 36, count: 54 },
                     ].map((bar) => (
-                      <div key={bar.day} className="flex flex-col items-center gap-2 flex-1">
+                      <div key={bar.day} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-[10px] font-semibold" style={{ color: '#BA2027' }}>{bar.count}</span>
                         <div
-                          className="w-full rounded-t-md transition-all"
-                          style={{ height: bar.height, background: '#BA2027', opacity: 0.8 }}
+                          className="w-full rounded-t-lg"
+                          style={{ height: `${bar.h}px`, background: 'linear-gradient(180deg, #D32F2F 0%, #BA2027 100%)', opacity: 0.85 }}
                         />
-                        <span className="text-xs text-gray-400">{bar.day}</span>
                       </div>
                     ))}
                   </div>
+                  {/* labels */}
+                  <div className="flex justify-around gap-3 mt-2">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => (
+                      <span key={day} className="flex-1 text-center text-xs text-gray-400">{day}</span>
+                    ))}</div>
                 </div>
 
                 {/* View full report link */}
