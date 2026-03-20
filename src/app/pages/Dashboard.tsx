@@ -174,7 +174,17 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
-            <h1 className="mb-2">My Campaigns</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1>My Campaigns</h1>
+              {currentUser?.logo && (
+                <img
+                  src={currentUser.logo}
+                  alt={currentUser.company || 'Client'}
+                  className="h-6 object-contain opacity-80"
+                  style={{ maxWidth: '130px' }}
+                />
+              )}
+            </div>
             <p className="text-sm text-[#6B7280]">
               Track and manage all your active campaigns
             </p>

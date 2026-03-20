@@ -13,6 +13,7 @@ export interface User {
   role: UserRole;
   assignedClients: string[]; // Only relevant for campaign_manager and campaign_backup
   company?: string; // For client role
+  logo?: string; // Client company logo URL
 }
 
 interface AuthContextValue {
@@ -36,6 +37,7 @@ export const mockUsers: User[] = [
     role: 'client',
     assignedClients: [],
     company: 'Intentsify',
+    logo: 'https://intentsify.io/wp-content/uploads/2024/08/Intentsify-logo-full-color.svg',
   },
   {
     id: 'u2',
