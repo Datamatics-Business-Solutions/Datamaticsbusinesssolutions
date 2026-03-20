@@ -225,7 +225,7 @@ export default function HomePage() {
         </motion.div>
 
         {/* ── 4-Card KPI Row ─────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
           {/* 1 — Total Leads This Month */}
           <motion.div

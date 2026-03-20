@@ -88,7 +88,7 @@ export default function Payment() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 stagger-children">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 stagger-children">
           <div className="kpi-card animate-slideInUp">
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-info-bg)' }}>

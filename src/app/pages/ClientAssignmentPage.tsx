@@ -172,7 +172,7 @@ export default function ClientAssignmentPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 stagger-children">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 stagger-children">
           <motion.div
             className="kpi-card animate-slideInUp"
             initial={{ opacity: 0, y: 20 }}
