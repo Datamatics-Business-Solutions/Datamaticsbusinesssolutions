@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LayoutDashboard, BarChart2, Users, Receipt, CheckCircle } from 'lucide-react';
 
-const STORAGE_KEY = 'onboarding_v1_done';
+// const STORAGE_KEY = 'onboarding_v1_done'; // disabled — always show for demos
 
 const steps = [
   {
@@ -42,13 +42,10 @@ export function OnboardingTour() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      setVisible(true);
-    }
+    setVisible(true);
   }, []);
 
   const close = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
     setVisible(false);
   };
 
