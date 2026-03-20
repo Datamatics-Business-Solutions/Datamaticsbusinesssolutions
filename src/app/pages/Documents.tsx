@@ -180,9 +180,6 @@ export default function Documents() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 style={{ color: 'var(--color-text-primary)' }}>Documents</h1>
-              {currentUser?.logo && (
-                <img src={currentUser.logo} alt={currentUser.company || ''} className="h-5 object-contain opacity-80" style={{ maxWidth: '120px' }} />
-              )}
             </div>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               Contracts, SOWs, reports, and campaign documents

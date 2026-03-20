@@ -197,16 +197,7 @@ export default function HomePage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {currentUser?.logo ? (
-                    <img
-                      src={currentUser.logo}
-                      alt={currentUser.company || 'Client'}
-                      className="h-4 object-contain opacity-75"
-                      style={{ maxWidth: '100px' }}
-                    />
-                  ) : (
-                    <span style={{ fontSize: '13px', color: '#6B7280' }}>{currentUser?.company ?? 'Datamatics Business Solutions'}</span>
-                  )}
+                  <span style={{ fontSize: '13px', color: '#6B7280' }}>{currentUser?.company ?? 'Datamatics Business Solutions'}</span>
                   <span style={{ color: '#D1D5DB' }}>·</span>
                   <span style={{ fontSize: '13px', color: '#6B7280' }}>{formattedDate}</span>
                 </div>

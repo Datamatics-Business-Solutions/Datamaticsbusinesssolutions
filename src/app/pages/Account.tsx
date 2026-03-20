@@ -38,13 +38,6 @@ export default function Account() {
               Manage your account preferences and security
             </p>
           </div>
-          {currentUser?.logo && (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-[#EEECEC] bg-white/60 backdrop-blur-sm flex-shrink-0">
-              <img src={currentUser.logo} alt={currentUser.company || ''} className="h-7 object-contain" style={{ maxWidth: '140px' }} />
-              <div className="w-px h-6 bg-[#EEECEC]" />
-              <span style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>Client Portal</span>
-            </div>
-          )}
         </div>
 
         {/* Tabs */}

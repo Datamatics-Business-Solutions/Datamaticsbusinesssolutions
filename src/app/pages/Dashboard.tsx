@@ -176,14 +176,6 @@ export default function Dashboard() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h1>My Campaigns</h1>
-              {currentUser?.logo && (
-                <img
-                  src={currentUser.logo}
-                  alt={currentUser.company || 'Client'}
-                  className="h-6 object-contain opacity-80"
-                  style={{ maxWidth: '130px' }}
-                />
-              )}
             </div>
             <p className="text-sm text-[#6B7280]">
               Track and manage all your active campaigns
