@@ -102,7 +102,7 @@ export function MobileTabBar() {
                     fontSize: 10,
                     fontWeight: 600,
                     marginTop: 2,
-                    color: isActive ? '#BA2027' : '#6B7280',
+                    color: isActive ? '#BA2027' : '#4B5563',
                     letterSpacing: '0.02em',
                   }}
                 >
@@ -122,14 +122,14 @@ export function MobileTabBar() {
             >
               <Icon
                 className="w-5 h-5"
-                style={{ color: isActive ? '#BA2027' : '#9CA3AF' }}
+                style={{ color: isActive ? '#BA2027' : '#4B5563' }}
               />
               <span
                 style={{
                   fontSize: 10,
                   fontWeight: isActive ? 700 : 500,
                   marginTop: 3,
-                  color: isActive ? '#BA2027' : '#9CA3AF',
+                  color: isActive ? '#BA2027' : '#4B5563',
                   letterSpacing: '0.02em',
                 }}
               >

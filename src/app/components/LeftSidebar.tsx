@@ -436,12 +436,12 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                             }}
                             onMouseEnter={() => handleItemMouseEnter(item.name)}
                             onMouseLeave={handleItemMouseLeave}
-                            className={`w-full flex items-center gap-3 rounded-xl relative group transition-all duration-200 ${
+                            className={`w-full flex items-center gap-3 rounded-xl relative group transition-all duration-100 ${
                               isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
                             } ${
                               isActive
-                                ? 'bg-[#BA2027]/[0.07] text-[#BA2027] border-l-2 border-[#BA2027]'
-                                : 'text-[#525252] hover:bg-[#BA2027]/[0.04] hover:text-[#BA2027] border-l-2 border-transparent'
+                                ? 'bg-[#BA2027]/[0.10] text-[#BA2027] border-l-2 border-[#BA2027]'
+                                : 'text-[#525252] hover:bg-[#BA2027]/[0.09] hover:text-[#BA2027] border-l-2 border-transparent'
                             }`}
                             style={{
                               fontSize: '14px',
@@ -464,7 +464,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                               }
                             >
                               <Icon
-                                className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
+                                className={`w-5 h-5 flex-shrink-0 transition-colors duration-100 ${
                                   isActive
                                     ? 'text-[#BA2027]'
                                     : 'text-[#9CA3AF] group-hover:text-[#BA2027]'
@@ -575,7 +575,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                     }}
                     onMouseEnter={() => handleItemMouseEnter(client.name)}
                     onMouseLeave={handleItemMouseLeave}
-                    className={`w-full flex items-center gap-3 rounded-xl text-[14px] text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F5F5F5] transition-all duration-200 ${
+                    className={`w-full flex items-center gap-3 rounded-xl text-[14px] text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F5F5F5] transition-all duration-100 ${
                       isExpanded ? 'px-3 py-3' : 'px-0 py-3 justify-center'
                     }`}
                     style={{ fontWeight: 400 }}
@@ -696,7 +696,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
             }}
             onMouseEnter={() => handleItemMouseEnter('Log Out')}
             onMouseLeave={handleItemMouseLeave}
-            className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 hover:bg-[#BA2027]/[0.06] ${
+            className={`w-full flex items-center gap-3 rounded-xl transition-all duration-100 hover:bg-[#BA2027]/[0.09] ${
               isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
             }`}
             style={{ fontSize: '14px', fontWeight: 500, color: '#BA2027' }}
@@ -737,7 +737,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
             }}
             onMouseEnter={() => handleItemMouseEnter('Account')}
             onMouseLeave={handleItemMouseLeave}
-            className={`w-full flex items-center gap-3 rounded-xl hover:bg-[#F5F5F5] transition-all duration-200 mt-1 pt-3 border-t border-[#F3F4F6] ${
+            className={`w-full flex items-center gap-3 rounded-xl hover:bg-[#F5F5F5] transition-all duration-100 mt-1 pt-3 border-t border-[#F3F4F6] ${
               isExpanded ? 'px-3 py-2.5' : 'px-0 py-2.5 justify-center'
             }`}
           >
@@ -783,28 +783,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         </div>
       </div>
 
-      {/* Footer — disclaimer + credit */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            className="px-5 pb-4 pt-2 border-t border-[#EEECEC] flex flex-col gap-1"
-          >
-            <p className="text-[10px] text-[#B0B0B0] leading-relaxed">
-              © {new Date().getFullYear()} DatamaticsBPM. All rights reserved. This portal is for authorised users only. Unauthorised access is prohibited.
-            </p>
-            <a
-              href="mailto:vishalpmehta@gmail.com?subject=DatamaticsBPM Client Portal"
-              className="text-[10px] text-[#BA2027]/60 hover:text-[#BA2027] transition-colors duration-200 cursor-pointer"
-            >
-              Made with ♥ by Vishal
-            </a>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 

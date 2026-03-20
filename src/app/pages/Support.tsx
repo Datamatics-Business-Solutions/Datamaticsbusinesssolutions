@@ -8,6 +8,7 @@ import {
   Send, Paperclip, Star, X, Activity, TrendingUp, BarChart3, Filter, Grid3x3, List
 } from 'lucide-react';
 import { AnimatedCounter } from '../components/AnimatedCounter';
+import { EmptyState } from '../components/EmptyState';
 import { toast } from 'sonner';
 
 interface Ticket {
@@ -333,9 +334,11 @@ export default function Support() {
           </div>
 
           {filteredTickets.length === 0 && (
-            <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
-              No tickets found
-            </div>
+            <EmptyState
+              icon={MessageSquare}
+              title="No tickets found"
+              description="No support tickets match your current filters. Try adjusting your search or category filters."
+            />
           )}
         </div>
       </div>

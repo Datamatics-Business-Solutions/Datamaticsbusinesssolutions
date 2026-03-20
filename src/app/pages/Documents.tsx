@@ -12,6 +12,7 @@ import { TableRow } from '../components/TableRow';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { toast } from 'sonner';
 import { AnimatedCounter } from '../components/AnimatedCounter';
+import { EmptyState } from '../components/EmptyState';
 
 interface Document {
   id: string;
@@ -365,9 +366,12 @@ export default function Documents() {
                 <tbody>
                   {filteredDocuments.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center" style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                        <FolderOpen className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                        No documents match your filters.
+                      <td colSpan={8}>
+                        <EmptyState
+                          icon={FolderOpen}
+                          title="No documents found"
+                          description="No documents match your current filters. Try adjusting your search or category."
+                        />
                       </td>
                     </tr>
                   ) : (
@@ -527,11 +531,12 @@ export default function Documents() {
         {viewMode === 'grid' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredDocuments.length === 0 ? (
-              <div className="col-span-full glass-card p-12 text-center">
-                <FolderOpen className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                  No documents match your filters.
-                </p>
+              <div className="col-span-full">
+                <EmptyState
+                  icon={FolderOpen}
+                  title="No documents found"
+                  description="No documents match your current filters. Try adjusting your search or category."
+                />
               </div>
             ) : (
               filteredDocuments.map((doc, index) => {

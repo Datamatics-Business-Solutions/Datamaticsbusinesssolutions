@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 import { TableRow } from '../components/TableRow';
-import { 
-  Search, Filter, Download, Mail, Phone, Building2, CheckCircle, XCircle, 
-  Clock, FileText, UserCheck, MoreVertical, Star, Tag, Plus, 
+import {
+  Search, Filter, Download, Mail, Phone, Building2, CheckCircle, XCircle,
+  Clock, FileText, UserCheck, MoreVertical, Star, Tag, Plus,
   TrendingUp, Users, Target, Award, Activity, Eye, AlertTriangle, X
 } from 'lucide-react';
 import { mockLeads, type Lead } from '../mockData';
@@ -14,6 +14,9 @@ import { LeadAvatar } from '../components/LeadAvatar';
 import { LeadDistributionChart } from '../components/LeadDistributionChart';
 import { AdvancedFiltersPanel } from '../components/AdvancedFiltersPanel';
 import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
+import { AnimatedCounter } from '../components/AnimatedCounter';
+import { EmptyState } from '../components/EmptyState';
+import { TableSkeleton } from '../components/SkeletonLoader';
 import { toast } from 'sonner';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -24,7 +27,8 @@ type ViewMode = 'table' | 'grid';
 export default function LeadsPage() {
   useDocumentTitle('Leads');
   const { currentUser } = useAuth();
-  
+
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [campaignFilter, setCampaignFilter] = useState<string>('all');
@@ -45,6 +49,11 @@ export default function LeadsPage() {
     industry: [] as string[],
     tags: [] as string[]
   });
+
+  useEffect(() => {
+    const t = setTimeout(() => setIsLoading(false), 700);
+    return () => clearTimeout(t);
+  }, []);
 
   const leadsPerPage = viewMode === 'grid' ? 12 : 10;
 
@@ -217,7 +226,7 @@ export default function LeadsPage() {
                   <Users className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
                 </div>
               </div>
-              <div className="kpi-card__number">{stats.total}</div>
+              <div className="kpi-card__number"><AnimatedCounter value={stats.total} /></div>
               <div className="kpi-card__label">Total Leads</div>
             </div>
 
@@ -227,7 +236,7 @@ export default function LeadsPage() {
                   <Clock className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
                 </div>
               </div>
-              <div className="kpi-card__number">{stats.pending}</div>
+              <div className="kpi-card__number"><AnimatedCounter value={stats.pending} /></div>
               <div className="kpi-card__label">Pending</div>
             </div>
 
@@ -237,7 +246,7 @@ export default function LeadsPage() {
                   <TrendingUp className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
                 </div>
               </div>
-              <div className="kpi-card__number">{stats.hotLeads}</div>
+              <div className="kpi-card__number"><AnimatedCounter value={stats.hotLeads} /></div>
               <div className="kpi-card__label">Hot Leads</div>
             </div>
 
@@ -247,7 +256,7 @@ export default function LeadsPage() {
                   <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
                 </div>
               </div>
-              <div className="kpi-card__number">{stats.accepted}</div>
+              <div className="kpi-card__number"><AnimatedCounter value={stats.accepted} /></div>
               <div className="kpi-card__label">Accepted</div>
             </div>
 
@@ -257,7 +266,7 @@ export default function LeadsPage() {
                   <Award className="w-5 h-5 text-purple-600" />
                 </div>
               </div>
-              <div className="kpi-card__number">{stats.avgScore}</div>
+              <div className="kpi-card__number"><AnimatedCounter value={stats.avgScore} /></div>
               <div className="kpi-card__label">Avg Score</div>
             </div>
           </div>
@@ -388,7 +397,21 @@ export default function LeadsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedLeads.map((lead, index) => (
+                  {isLoading ? (
+                    <TableSkeleton rows={8} columns={7} />
+                  ) : paginatedLeads.length === 0 ? (
+                    <tr>
+                      <td colSpan={7}>
+                        <EmptyState
+                          icon={Users}
+                          title="No leads found"
+                          description="No leads match your current filters. Try adjusting your search or filter criteria."
+                          actionLabel="Clear Filters"
+                          onAction={() => { setSearchTerm(''); setStatusFilter('all'); setCampaignFilter('all'); }}
+                        />
+                      </td>
+                    </tr>
+                  ) : paginatedLeads.map((lead, index) => (
                     <TableRow
                       key={lead.id}
                       onClick={() => handleLeadDetail(lead)}

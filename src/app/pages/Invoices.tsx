@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -22,11 +22,15 @@ import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
 import { mockInvoices } from '../mockInvoices';
 import { useDebounce } from '../hooks/useDebounce';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { AnimatedCounter } from '../components/AnimatedCounter';
+import { EmptyState } from '../components/EmptyState';
+import { TableSkeleton } from '../components/SkeletonLoader';
 
 export default function Invoices() {
   useDocumentTitle('Invoices');
   const { currentUser } = useAuth();
-  
+
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,6 +38,11 @@ export default function Invoices() {
   const [previewInvoice, setPreviewInvoice] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
   
+  useEffect(() => {
+    const t = setTimeout(() => setIsLoading(false), 700);
+    return () => clearTimeout(t);
+  }, []);
+
   const debouncedSearch = useDebounce(searchTerm, 300);
 
   const filteredInvoices = mockInvoices.filter(invoice => {
@@ -146,7 +155,7 @@ export default function Invoices() {
                 <FileText className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
               </div>
             </div>
-            <div className="kpi-card__number">${totalAmount.toLocaleString()}</div>
+            <div className="kpi-card__number"><AnimatedCounter value={totalAmount} prefix="$" /></div>
             <div className="kpi-card__label">Total Amount</div>
           </div>
 
@@ -156,7 +165,7 @@ export default function Invoices() {
                 <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
               </div>
             </div>
-            <div className="kpi-card__number">${totalPaid.toLocaleString()}</div>
+            <div className="kpi-card__number"><AnimatedCounter value={totalPaid} prefix="$" /></div>
             <div className="kpi-card__label">Paid ({paidCount})</div>
           </div>
 
@@ -166,7 +175,7 @@ export default function Invoices() {
                 <Clock className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
               </div>
             </div>
-            <div className="kpi-card__number">${totalPending.toLocaleString()}</div>
+            <div className="kpi-card__number"><AnimatedCounter value={totalPending} prefix="$" /></div>
             <div className="kpi-card__label">Pending ({pendingCount})</div>
           </div>
 
@@ -176,7 +185,7 @@ export default function Invoices() {
                 <AlertCircle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />
               </div>
             </div>
-            <div className="kpi-card__number">${totalOverdue.toLocaleString()}</div>
+            <div className="kpi-card__number"><AnimatedCounter value={totalOverdue} prefix="$" /></div>
             <div className="kpi-card__label">Overdue ({overdueCount})</div>
           </div>
         </div>
@@ -240,7 +249,21 @@ export default function Invoices() {
                 </tr>
               </thead>
               <tbody>
-                {filteredInvoices.map((invoice, index) => {
+                {isLoading ? (
+                  <TableSkeleton rows={6} columns={7} />
+                ) : filteredInvoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={7}>
+                      <EmptyState
+                        icon={FileText}
+                        title="No invoices found"
+                        description="No invoices match your current filters. Try adjusting your search or status filter."
+                        actionLabel="Clear Filters"
+                        onAction={() => { setSearchTerm(''); setStatusFilter('All'); }}
+                      />
+                    </td>
+                  </tr>
+                ) : filteredInvoices.map((invoice, index) => {
                     const daysUntil = getDaysUntilDue(invoice.dueDate);
                     const paymentInfo = getPaymentMethod(invoice.status);
                     const PaymentIcon = paymentInfo.icon;
@@ -330,11 +353,6 @@ export default function Invoices() {
             </table>
           </div>
 
-          {filteredInvoices.length === 0 && (
-            <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
-              No invoices found
-            </div>
-          )}
         </div>
       </div>
 
