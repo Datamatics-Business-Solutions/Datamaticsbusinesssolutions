@@ -220,7 +220,7 @@ export default function HomePage() {
 
           {/* 1 — Total Leads This Month */}
           <motion.div
-            className="relative overflow-hidden rounded-2xl p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
+            className="relative overflow-hidden rounded-2xl p-3 sm:p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -3, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
             transition={{ duration: 0.2 }}
           >
@@ -245,8 +245,8 @@ export default function HomePage() {
                   </button>
                 ))}
               </div>
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-bold text-[#1F2937]" style={{ fontSize: '32px', lineHeight: 1 }}>
+              <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mb-1">
+                <span className="font-bold text-[#1F2937]" style={{ fontSize: 'clamp(20px, 5vw, 32px)', lineHeight: 1 }}>
                   <AnimatedNumber value={leadsValue} />
                 </span>
                 <span className="text-sm font-semibold text-[#10B981]">{leadsTrend}</span>
@@ -257,7 +257,7 @@ export default function HomePage() {
 
           {/* 2 — Total Business */}
           <motion.div
-            className="relative overflow-hidden rounded-2xl p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
+            className="relative overflow-hidden rounded-2xl p-3 sm:p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -3, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
             transition={{ duration: 0.2 }}
           >
@@ -282,17 +282,17 @@ export default function HomePage() {
                   </button>
                 ))}
               </div>
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-bold text-[#1F2937]" style={{ fontSize: '32px', lineHeight: 1 }}>{formatBusinessValue(bizValue)}</span>
+              <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mb-1">
+                <span className="font-bold text-[#1F2937]" style={{ fontSize: 'clamp(20px, 5vw, 32px)', lineHeight: 1 }}>{formatBusinessValue(bizValue)}</span>
                 <span className="text-sm font-semibold text-[#8B5CF6]">{bizTrend}</span>
               </div>
-              <p className="text-xs text-[#9CA3AF]">{bizLabel} · accepted × CPL</p>
+              <p className="text-xs text-[#9CA3AF] leading-snug">{bizLabel} · accepted × CPL</p>
             </div>
           </motion.div>
 
           {/* 3 — Campaigns */}
           <motion.div
-            className="relative overflow-hidden rounded-2xl p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
+            className="relative overflow-hidden rounded-2xl p-3 sm:p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -3, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
             transition={{ duration: 0.2 }}
           >
@@ -302,7 +302,7 @@ export default function HomePage() {
                 <div>
                   <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">Campaigns</p>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="font-bold text-[#1F2937]" style={{ fontSize: '32px', lineHeight: 1 }}>
+                    <span className="font-bold text-[#1F2937]" style={{ fontSize: 'clamp(20px, 5vw, 32px)', lineHeight: 1 }}>
                       <AnimatedNumber value={campaignStats.total} />
                     </span>
                     <span className="text-sm text-[#6B7280]">total</span>
@@ -398,7 +398,7 @@ export default function HomePage() {
 
           {/* 4 — Pending Invoices & Signatures */}
           <motion.div
-            className="relative overflow-hidden rounded-2xl p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
+            className="relative overflow-hidden rounded-2xl p-3 sm:p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -3, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
             transition={{ duration: 0.2 }}
           >

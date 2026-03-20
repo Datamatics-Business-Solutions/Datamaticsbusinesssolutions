@@ -85,11 +85,15 @@
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
 }
 
-/* Reduce blur on mobile */
+/* Reduce blur and tighten layout on mobile */
 @media (max-width: 767px) {
   .kpi-card {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    padding: var(--space-4);
+  }
+  .kpi-card__number {
+    font-size: 22px;
   }
 }
 
