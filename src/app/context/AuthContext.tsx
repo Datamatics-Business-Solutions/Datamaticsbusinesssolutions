@@ -37,7 +37,7 @@ export const mockUsers: User[] = [
     role: 'client',
     assignedClients: [],
     company: 'Intentsify',
-    logo: 'https://intentsify.io/wp-content/uploads/2024/08/Intentsify-logo-full-color.svg',
+    logo: 'https://intentsify.io/wp-content/uploads/2024/08/Intentsify-logo-dark.svg',
   },
   {
     id: 'u2',
