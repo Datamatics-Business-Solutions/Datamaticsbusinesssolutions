@@ -66,7 +66,7 @@ export default function CampaignDetail() {
   const deliveredLeads = campaign.deliveredLeads || campaign.delivered || campaign.totalLeads || 0;
   
   const progressPercentage = targetLeads > 0
-    ? Math.round((deliveredLeads / targetLeads) * 100)
+    ? Math.min(100, Math.round((deliveredLeads / targetLeads) * 100))
     : 0;
 
   const getStatusColor = (status: string) => {
