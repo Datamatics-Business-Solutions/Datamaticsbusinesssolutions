@@ -39,8 +39,8 @@ interface UploadStatus {
 const mockUploads: UploadStatus[] = [
   {
     id: 'up_1',
-    fileName: 'acme_leads_march.csv',
-    clientName: 'Acme Corp',
+    fileName: 'intentsify_leads_march.csv',
+    clientName: 'Intentsify',
     campaignName: 'Q1 2026 Lead Generation',
     uploadedBy: 'Anish Akkoat',
     uploadedAt: '2026-03-02T10:30:00Z',

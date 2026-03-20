@@ -47,10 +47,10 @@ export interface Campaign {
 
 // ─── 5 Clients with multiple campaigns each ───────────────────────────────────
 export const allClients: Client[] = [
-  // ── Client 1: Acme Corp (Technology) ─────────────────────────────────────
+  // ── Client 1: Intentsify (Technology) ─────────────────────────────────────
   {
     id: 'client_1',
-    companyName: 'Acme Corp',
+    companyName: 'Intentsify',
     industry: 'Technology',
     status: 'active',
     totalLeads: 1594,
@@ -595,11 +595,11 @@ export const recentUploadBatches: LeadUploadBatch[] = [
     campaignId: 'camp_1a',
     campaignName: 'Enterprise IT Security – US Q1 2026',
     clientId: 'client_1',
-    clientName: 'Acme Corp',
+    clientName: 'Intentsify',
     uploadedBy: 'Anish Akkoat',
     uploadedAt: '2026-03-02T10:30:00Z',
     status: 'processing',
-    fileName: 'acme_security_march_batch1.csv',
+    fileName: 'intentsify_security_march_batch1.csv',
     totalRows: 450,
     processedRows: 287,
     successCount: 285,

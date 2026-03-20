@@ -140,7 +140,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     const totalLeads = allClients.reduce((sum, c) => sum + c.totalLeads, 0);
     const pendingApprovals = getPendingSubmissions().length;
 
-    // Client-scoped: only count campaigns belonging to client_1 (Acme Corp)
+    // Client-scoped: only count campaigns belonging to client_1 (Intentsify)
     const clientData = allClients.find(c => c.id === 'client_1');
     const clientActiveCampaigns = clientData?.campaigns.filter(c => c.status === 'active').length ?? 0;
     const clientTotalLeads = clientData?.totalLeads ?? 0;

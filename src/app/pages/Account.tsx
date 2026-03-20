@@ -95,11 +95,11 @@ export default function Account() {
                 </div>
                 <div>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Company</label>
-                  <input type="text" defaultValue="Acme Corp" className="input-base w-full px-4 py-3" disabled style={{ background: '#F5F5F5' }} />
+                  <input type="text" defaultValue="Intentsify" className="input-base w-full px-4 py-3" disabled style={{ background: '#F5F5F5' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Email Address</label>
-                  <input type="email" defaultValue="john.smith@acmecorp.com" className="input-base w-full px-4 py-3" />
+                  <input type="email" defaultValue="john.smith@intentsify.com" className="input-base w-full px-4 py-3" />
                 </div>
                 <div>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Phone Number</label>
@@ -125,7 +125,7 @@ export default function Account() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Company Name</label>
-                  <input type="text" defaultValue="Acme Corporation" className="input-base w-full px-4 py-3" />
+                  <input type="text" defaultValue="Intentsify" className="input-base w-full px-4 py-3" />
                 </div>
                 <div>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Industry</label>
@@ -147,7 +147,7 @@ export default function Account() {
                 </div>
                 <div className="md:col-span-2">
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }} className="block mb-2">Website</label>
-                  <input type="url" defaultValue="https://acmecorp.com" className="input-base w-full px-4 py-3" />
+                  <input type="url" defaultValue="https://intentsify.com" className="input-base w-full px-4 py-3" />
                 </div>
               </div>
               <div className="flex justify-end gap-2">
@@ -214,9 +214,9 @@ export default function Account() {
               </div>
               <div className="space-y-3">
                 {[
-                  { name: 'John Smith', email: 'john.smith@acmecorp.com', role: 'Admin' },
-                  { name: 'Sarah Johnson', email: 'sarah.j@acmecorp.com', role: 'Member' },
-                  { name: 'Michael Chen', email: 'michael.c@acmecorp.com', role: 'Member' },
+                  { name: 'John Smith', email: 'john.smith@intentsify.com', role: 'Admin' },
+                  { name: 'Sarah Johnson', email: 'sarah.j@intentsify.com', role: 'Member' },
+                  { name: 'Michael Chen', email: 'michael.c@intentsify.com', role: 'Member' },
                 ].map((member, i) => (
                   <div key={i} className="flex items-center justify-between p-4 rounded-lg" style={{ background: 'var(--color-border-light)' }}>
                     <div className="flex items-center gap-3">

@@ -31,11 +31,11 @@ interface AuthContextValue {
 export const mockUsers: User[] = [
   {
     id: 'u1',
-    name: 'Sarah Mitchell',
+    name: 'TJ Leyland',
     email: 'vishalpmehta@gmail.com',
     role: 'client',
     assignedClients: [],
-    company: 'Acme Corp',
+    company: 'Intentsify',
   },
   {
     id: 'u2',

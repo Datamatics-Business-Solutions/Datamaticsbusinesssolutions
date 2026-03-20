@@ -248,7 +248,7 @@ export default function CampaignList() {
     const newCampaign = {
       id: `${campaigns.length + 1}`,
       name: formData.name,
-      clientCompany: 'Acme Corp',
+      clientCompany: 'Intentsify',
       serviceType: formData.type as ServiceType,
       status: 'Pending Approval' as CampaignStatus,
       startDate: new Date().toISOString().split('T')[0],
@@ -266,9 +266,9 @@ export default function CampaignList() {
       jobTitles: formData.titles.join(', '),
       pricingModel: `Per lead ($${formData.cpl}/lead)`,
       clientDetails: {
-        name: 'Acme Corp',
+        name: 'Intentsify',
         address: '123 Market Street, San Francisco, CA 94105',
-        contact: 'Sarah Mitchell, sarah.mitchell@acmecorp.com, +1 415-555-0123',
+        contact: 'TJ Leyland, tj.leyland@intentsify.com, +1 415-555-0123',
       },
       scopeOfWork: [
         `Campaign type: ${formData.type}`,
@@ -288,8 +288,8 @@ export default function CampaignList() {
       id: `sub_new_${Date.now()}`,
       campaignName: formData.name,
       clientId: 'client_1',
-      clientCompany: 'Acme Corp',
-      submittedBy: 'Sarah Mitchell',
+      clientCompany: 'Intentsify',
+      submittedBy: 'TJ Leyland',
       submittedAt: new Date().toISOString(),
       assignedManager: 'Anish Akkoat',
       assignedManagerEmail: 'anish.akkoat@datamaticsbpm.com',
@@ -313,8 +313,8 @@ export default function CampaignList() {
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
-    // Client view: only show Acme Corp campaigns (demo client)
-    const matchesClient = campaign.clientCompany === 'Acme Corp';
+    // Client view: only show Intentsify campaigns (demo client)
+    const matchesClient = campaign.clientCompany === 'Intentsify';
     return matchesSearch && matchesStatus && matchesClient;
   });
 

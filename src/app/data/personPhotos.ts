@@ -12,7 +12,7 @@ export const PERSON_PHOTOS: Record<string, string> = {
   'Praful Sanil':    'https://images.unsplash.com/photo-1584940120505-117038d90b05?crop=faces&fit=crop&w=200&h=200',
 
   // Client-side users
-  'Sarah Mitchell':  'https://images.unsplash.com/photo-1762522921456-cdfe882d36c3?crop=faces&fit=crop&w=200&h=200',
+  'TJ Leyland':      'https://images.unsplash.com/photo-1762522921456-cdfe882d36c3?crop=faces&fit=crop&w=200&h=200',
   'John Smith':      'https://images.unsplash.com/photo-1758876204244-930299843f07?crop=faces&fit=crop&w=200&h=200',
   'Sarah Johnson':   'https://images.unsplash.com/photo-1736939666660-d4c776e0532c?crop=faces&fit=crop&w=200&h=200',
   'Michael Chen (client)': 'https://images.unsplash.com/photo-1549320710-0f17830d27bd?crop=faces&fit=crop&w=200&h=200',

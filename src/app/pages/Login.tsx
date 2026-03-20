@@ -11,8 +11,8 @@ const testimonials = [
   {
     id: 1,
     quote: "Datamatics increased our lead acceptance rate by 34% in the first quarter. Absolutely transformed how we manage our pipeline.",
-    author: "Sarah Mitchell",
-    role: "VP of Sales, TechCorp",
+    author: "TJ Leyland",
+    role: "VP of Sales, Intentsify",
     initials: "SM",
     image: "https://images.unsplash.com/photo-1758518727888-ffa196002e59?w=400&h=400&fit=crop",
     headline: "Transforming Business with Data",
