@@ -85,16 +85,36 @@
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
 }
 
-/* Reduce blur and tighten layout on mobile */
+/* Reduce blur on mobile */
 @media (max-width: 767px) {
   .kpi-card {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: var(--space-4);
   }
   .kpi-card__number {
-    font-size: 22px;
+    font-size: 24px;
   }
+}
+
+/* Flat horizontal variant — icon left, number+label right */
+.kpi-card--flat {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+.kpi-card--flat .kpi-card__icon {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+.kpi-card--flat .kpi-card__number {
+  font-size: 22px;
+  line-height: 1;
+}
+.kpi-card--flat .kpi-card__label {
+  margin-top: 2px;
+  font-size: 10px;
 }
 
 .kpi-card__number {

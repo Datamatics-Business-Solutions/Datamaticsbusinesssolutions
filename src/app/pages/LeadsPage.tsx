@@ -221,56 +221,24 @@ export default function LeadsPage() {
           </div>
 
           {/* Quick Stats Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6 stagger-children">
-            <div className="kpi-card animate-slideInUp">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-info-bg)' }}>
-                  <Users className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6 stagger-children">
+            {[
+              { icon: <Users className="w-5 h-5" style={{ color: 'var(--color-info)' }} />, bg: 'var(--color-info-bg)', value: stats.total, label: 'Total Leads' },
+              { icon: <Clock className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />, bg: 'var(--color-warning-bg)', value: stats.pending, label: 'Pending' },
+              { icon: <TrendingUp className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />, bg: 'var(--color-primary-tint)', value: stats.hotLeads, label: 'Hot Leads' },
+              { icon: <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />, bg: 'var(--color-success-bg)', value: stats.accepted, label: 'Accepted' },
+              { icon: <Award className="w-5 h-5 text-purple-600" />, bg: 'rgba(142,68,173,0.1)', value: stats.avgScore, label: 'Avg Score' },
+            ].map(({ icon, bg, value, label }) => (
+              <div key={label} className="kpi-card kpi-card--flat animate-slideInUp">
+                <div className="kpi-card__icon w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: bg }}>
+                  {icon}
+                </div>
+                <div>
+                  <div className="kpi-card__number"><AnimatedCounter value={value} /></div>
+                  <div className="kpi-card__label">{label}</div>
                 </div>
               </div>
-              <div className="kpi-card__number"><AnimatedCounter value={stats.total} /></div>
-              <div className="kpi-card__label">Total Leads</div>
-            </div>
-
-            <div className="kpi-card animate-slideInUp">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-warning-bg)' }}>
-                  <Clock className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
-                </div>
-              </div>
-              <div className="kpi-card__number"><AnimatedCounter value={stats.pending} /></div>
-              <div className="kpi-card__label">Pending</div>
-            </div>
-
-            <div className="kpi-card animate-slideInUp">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-primary-tint)' }}>
-                  <TrendingUp className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
-                </div>
-              </div>
-              <div className="kpi-card__number"><AnimatedCounter value={stats.hotLeads} /></div>
-              <div className="kpi-card__label">Hot Leads</div>
-            </div>
-
-            <div className="kpi-card animate-slideInUp">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-success-bg)' }}>
-                  <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
-                </div>
-              </div>
-              <div className="kpi-card__number"><AnimatedCounter value={stats.accepted} /></div>
-              <div className="kpi-card__label">Accepted</div>
-            </div>
-
-            <div className="kpi-card animate-slideInUp">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(142, 68, 173, 0.1)' }}>
-                  <Award className="w-5 h-5 text-purple-600" />
-                </div>
-              </div>
-              <div className="kpi-card__number"><AnimatedCounter value={stats.avgScore} /></div>
-              <div className="kpi-card__label">Avg Score</div>
-            </div>
+            ))}
           </div>
         </div>
 
