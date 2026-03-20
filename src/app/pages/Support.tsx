@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
+import { useAuth } from '../context/AuthContext';
 import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
 import { 
@@ -67,6 +68,7 @@ const mockTickets: Ticket[] = [
 ];
 
 export default function Support() {
+  const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [priorityFilter, setPriorityFilter] = useState<string>('All');
@@ -156,7 +158,12 @@ export default function Support() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Support Tickets</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 style={{ color: 'var(--color-text-primary)' }}>Support Tickets</h1>
+              {currentUser?.logo && (
+                <img src={currentUser.logo} alt={currentUser.company || ''} className="h-5 object-contain opacity-80" style={{ maxWidth: '120px' }} />
+              )}
+            </div>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               Get help with your campaigns and account
             </p>

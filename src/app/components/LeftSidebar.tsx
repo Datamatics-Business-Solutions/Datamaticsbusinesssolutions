@@ -353,17 +353,17 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           style={{ background: 'rgba(186,32,39,0.03)' }}
         >
           {isExpanded ? (
-            <>
-              <span style={{ fontSize: '10px', fontWeight: 600, color: '#B0B0B0', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+            <div className="flex flex-col gap-1 w-full">
+              <span style={{ fontSize: '9px', fontWeight: 600, color: '#B0B0B0', letterSpacing: '0.08em' }}>
                 CLIENT PORTAL FOR
               </span>
               <img
                 src={currentUser.logo}
                 alt={currentUser.company || 'Client logo'}
-                className="h-5 object-contain"
-                style={{ maxWidth: '120px' }}
+                className="h-5 object-contain object-left"
+                style={{ maxWidth: '160px' }}
               />
-            </>
+            </div>
           ) : (
             <img
               src={currentUser.logo}

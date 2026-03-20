@@ -6,6 +6,7 @@ import {
   Key, Activity, Chrome, Calendar, CreditCard, Eye, EyeOff, Save
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
+import { useAuth } from '../context/AuthContext';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { toast } from 'sonner';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -13,6 +14,7 @@ import { NotificationsTabContent } from '../components/NotificationsTabContent';
 
 export default function Account() {
   useDocumentTitle('Account Settings');
+  const { currentUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'company' | 'team' | 'security' | 'notifications'>('profile');
   const [showPassword, setShowPassword] = useState(false);
@@ -30,6 +32,13 @@ export default function Account() {
       <div className="max-w-[1200px] mx-auto page-content animate-fadeIn">
         {/* Header */}
         <div className="mb-6">
+          {currentUser?.logo && (
+            <div className="flex items-center gap-4 mb-4 p-4 rounded-2xl border border-[#EEECEC] bg-white/60 backdrop-blur-sm" style={{ maxWidth: 'fit-content' }}>
+              <img src={currentUser.logo} alt={currentUser.company || ''} className="h-8 object-contain" style={{ maxWidth: '160px' }} />
+              <div className="w-px h-8 bg-[#EEECEC]" />
+              <span style={{ fontSize: '12px', fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em' }}>Client Portal</span>
+            </div>
+          )}
           <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Account Settings</h1>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
             Manage your account preferences and security

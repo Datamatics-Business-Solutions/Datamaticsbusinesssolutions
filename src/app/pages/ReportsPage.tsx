@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
+import { useAuth } from '../context/AuthContext';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, Target, CheckCircle, Download,
   Share2, Bookmark, BookmarkCheck, BarChart3, Activity, Zap, Filter
@@ -45,6 +46,7 @@ function ChartCard({ title, children, actions }: any) {
 }
 
 export default function ReportsPage() {
+  const { currentUser } = useAuth();
   const [dateRange, setDateRange] = useState('30days');
   const [showExportModal, setShowExportModal] = useState(false);
   const [savedReports, setSavedReports] = useState<string[]>([]);
@@ -214,9 +216,12 @@ export default function ReportsPage() {
         {/* Compact Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-1">
-              Reports & Analytics
-            </h1>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 style={{ color: 'var(--color-text-primary)' }}>Reports & Analytics</h1>
+              {currentUser?.logo && (
+                <img src={currentUser.logo} alt={currentUser.company || ''} className="h-5 object-contain opacity-80" style={{ maxWidth: '120px' }} />
+              )}
+            </div>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               Performance insights and data visualizations
             </p>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
+import { useAuth } from '../context/AuthContext';
 import {
   CheckCircle,
   Clock,
@@ -24,6 +25,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function Invoices() {
   useDocumentTitle('Invoices');
+  const { currentUser } = useAuth();
   
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>('All');
@@ -111,7 +113,12 @@ export default function Invoices() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2 text-2xl md:text-3xl lg:text-4xl">Invoices & Billing</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 style={{ color: 'var(--color-text-primary)' }} className="text-2xl md:text-3xl lg:text-4xl">Invoices & Billing</h1>
+              {currentUser?.logo && (
+                <img src={currentUser.logo} alt={currentUser.company || ''} className="h-5 object-contain opacity-80" style={{ maxWidth: '120px' }} />
+              )}
+            </div>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               Manage your invoices and payment history
             </p>

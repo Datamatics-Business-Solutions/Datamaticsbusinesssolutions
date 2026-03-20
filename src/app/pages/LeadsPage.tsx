@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
+import { useAuth } from '../context/AuthContext';
 import { TableRow } from '../components/TableRow';
 import { 
   Search, Filter, Download, Mail, Phone, Building2, CheckCircle, XCircle, 
@@ -22,6 +23,7 @@ type ViewMode = 'table' | 'grid';
 
 export default function LeadsPage() {
   useDocumentTitle('Leads');
+  const { currentUser } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -195,9 +197,12 @@ export default function LeadsPage() {
         <div className="mb-4 md:mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">
             <div>
-              <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">
-                Lead Management
-              </h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 style={{ color: 'var(--color-text-primary)' }}>Lead Management</h1>
+                {currentUser?.logo && (
+                  <img src={currentUser.logo} alt={currentUser.company || ''} className="h-5 object-contain opacity-80" style={{ maxWidth: '120px' }} />
+                )}
+              </div>
               <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                 {stats.total} leads • {stats.pending} pending review • {stats.hotLeads} hot leads
               </p>

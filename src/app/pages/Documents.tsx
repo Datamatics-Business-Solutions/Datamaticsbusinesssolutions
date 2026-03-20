@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
   Search, Plus, FileText, Filter, Grid3x3, List, Download, Trash2,
   Eye, Star, Calendar, User, FolderOpen, Upload, X, Check,
@@ -123,6 +124,7 @@ function formatDate(dateStr: string) {
 
 export default function Documents() {
   useDocumentTitle('Documents');
+  const { currentUser } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('All');
@@ -175,7 +177,12 @@ export default function Documents() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>
-            <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-1">Documents</h1>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 style={{ color: 'var(--color-text-primary)' }}>Documents</h1>
+              {currentUser?.logo && (
+                <img src={currentUser.logo} alt={currentUser.company || ''} className="h-5 object-contain opacity-80" style={{ maxWidth: '120px' }} />
+              )}
+            </div>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               Contracts, SOWs, reports, and campaign documents
             </p>
