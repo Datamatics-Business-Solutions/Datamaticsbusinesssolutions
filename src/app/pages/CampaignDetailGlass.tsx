@@ -119,24 +119,24 @@ export default function CampaignDetail() {
               )}
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowJobCard(true)}
-              className="btn-outline px-4 py-2 flex items-center gap-2"
+              className="btn-outline px-4 py-2.5 flex items-center justify-center gap-2"
             >
               <FileText className="w-4 h-4" />
               View Job Card
             </button>
             <button
               onClick={() => setShowCloneModal(true)}
-              className="btn-outline px-4 py-2 flex items-center gap-2"
+              className="btn-outline px-4 py-2.5 flex items-center justify-center gap-2"
             >
               <Copy className="w-4 h-4" />
               Clone Campaign
             </button>
             <button
               onClick={() => toast.success('Exporting report… your download will begin shortly.')}
-              className="btn-primary px-4 py-2 flex items-center gap-2"
+              className="btn-primary px-4 py-2.5 flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />
               Export Report

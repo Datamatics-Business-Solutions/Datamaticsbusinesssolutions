@@ -18,6 +18,8 @@ import { ProgressBar } from '../components/ProgressBar';
 import { toast } from 'sonner';
 
 const CHART_COLORS = ['#BA2027', '#D32F2F', '#E57373', '#0891B2', '#0F9D58', '#F4B400'];
+const CHART_H = typeof window !== 'undefined' && window.innerWidth < 640 ? 160 : 240;
+const CHART_H_SM = typeof window !== 'undefined' && window.innerWidth < 640 ? 140 : 220;
 
 const TOOLTIP_STYLE = {
   backgroundColor: '#FFFFFF',
@@ -388,7 +390,7 @@ export default function ReportsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           {/* Lead Performance Trend */}
           <ChartCard title="Lead Performance Trend">
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={CHART_H}>
               <AreaChart data={currentMetrics.monthlyData}>
                 <defs>
                   <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
@@ -424,7 +426,7 @@ export default function ReportsPage() {
 
           {/* Monthly Revenue Trend */}
           <ChartCard title="Monthly Revenue Trend">
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={CHART_H}>
               <BarChart data={currentMetrics.monthlyData} barCategoryGap="20%">
                 <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
                 <XAxis 
@@ -462,7 +464,7 @@ export default function ReportsPage() {
               <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
                 Title Distribution
               </h3>
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={CHART_H_SM}>
                 <PieChart>
                   <Pie
                     data={currentMetrics.titleDistribution}
@@ -495,7 +497,7 @@ export default function ReportsPage() {
               <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
                 Company Size
               </h3>
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={CHART_H_SM}>
                 <PieChart>
                   <Pie
                     data={currentMetrics.companySizeData}
@@ -528,7 +530,7 @@ export default function ReportsPage() {
               <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
                 Conversion Trend
               </h3>
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={CHART_H_SM}>
                 <AreaChart data={currentMetrics.monthlyData}>
                   <defs>
                     <linearGradient id="colorConversions" x1="0" y1="0" x2="0" y2="1">

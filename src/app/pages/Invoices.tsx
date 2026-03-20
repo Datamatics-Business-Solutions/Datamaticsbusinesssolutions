@@ -214,8 +214,8 @@ export default function Invoices() {
           </div>
         </div>
 
-        {/* Invoices Table */}
-        <div className="glass-card overflow-hidden">
+        {/* Invoices Table — desktop (sm+) */}
+        <div className="glass-card overflow-hidden hidden sm:block">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px]">
               <thead className="table-header">
@@ -349,7 +349,96 @@ export default function Invoices() {
                 </tbody>
             </table>
           </div>
+        </div>
 
+        {/* Invoices Card List — mobile (below sm) */}
+        <div className="sm:hidden flex flex-col gap-3">
+          {isLoading ? (
+            <div className="glass-card p-4">
+              <TableSkeleton rows={4} columns={1} />
+            </div>
+          ) : filteredInvoices.length === 0 ? (
+            <div className="glass-card p-4">
+              <EmptyState
+                icon={FileText}
+                title="No invoices found"
+                description="No invoices match your current filters. Try adjusting your search or status filter."
+                actionLabel="Clear Filters"
+                onAction={() => { setSearchTerm(''); setStatusFilter('All'); }}
+              />
+            </div>
+          ) : filteredInvoices.map((invoice) => {
+            const daysUntil = getDaysUntilDue(invoice.dueDate);
+            const paymentInfo = getPaymentMethod(invoice.status);
+            const PaymentIcon = paymentInfo.icon;
+
+            return (
+              <div key={invoice.id} className="glass-card p-4 flex flex-col gap-3">
+                {/* Row 1: Invoice number + payment method */}
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold t1">{invoice.invoiceNumber}</span>
+                  <div className="flex items-center gap-1">
+                    <PaymentIcon className="w-3.5 h-3.5 t3" />
+                    <span className="t3 text-sm">{paymentInfo.method}</span>
+                  </div>
+                </div>
+
+                {/* Row 2: Campaign name */}
+                <div className="t3 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                  {invoice.campaignName}
+                </div>
+
+                {/* Row 3: Amount + status badge */}
+                <div className="flex items-center justify-between">
+                  <span className="font-bold t1 text-base">${invoice.amount.toLocaleString()}</span>
+                  <div className={getStatusColor(invoice.status)}>
+                    {getStatusIcon(invoice.status)}
+                    <span>{invoice.status}</span>
+                  </div>
+                </div>
+
+                {/* Row 4: Due date + overdue/days remaining */}
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="t1">
+                    {new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  {invoice.status !== 'Paid' && (
+                    <span className="t3" style={{ color: daysUntil < 0 ? 'var(--color-error)' : undefined }}>
+                      {daysUntil < 0 ? `${Math.abs(daysUntil)} days overdue` : `Due in ${daysUntil} days`}
+                    </span>
+                  )}
+                </div>
+
+                {/* Row 5: Action buttons */}
+                <div className="flex gap-2 pt-1">
+                  {(invoice.status === 'Pending' || invoice.status === 'Overdue') ? (
+                    <button
+                      onClick={() => navigate(`/payment/${invoice.id}`)}
+                      className="btn-primary flex-1 flex items-center justify-center gap-2 py-2"
+                    >
+                      <DollarSign className="w-4 h-4" />
+                      <span>Pay Now</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleViewInvoice(invoice)}
+                      className="btn-outline flex-1 flex items-center justify-center gap-2 py-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>View</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}...`)}
+                    className="btn-outline flex-1 flex items-center justify-center gap-2 py-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -20,8 +20,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="flex-1">
           {children}
         </div>
-        {/* Footer watermark + disclaimer */}
-        <div className="flex flex-col items-center justify-center py-3 gap-1 flex-shrink-0" style={{ borderTop: '1px solid var(--color-border-light)' }}>
+        {/* Footer watermark + disclaimer — hidden on mobile */}
+        <div className="hidden sm:flex flex-col items-center justify-center py-3 gap-1 flex-shrink-0" style={{ borderTop: '1px solid var(--color-border-light)' }}>
           <div className="flex items-center gap-1.5">
             <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', letterSpacing: '0.02em' }}>Powered by</span>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#BA2027', letterSpacing: '0.04em' }}>Datamatics</span>

@@ -255,7 +255,8 @@ export default function Support() {
 
         {/* Tickets Table */}
         <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Desktop table — hidden on mobile */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full min-w-[900px]">
               <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
                 <tr>
@@ -328,6 +329,49 @@ export default function Support() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile card list — visible only below sm */}
+          <div className="sm:hidden divide-y" style={{ borderColor: 'var(--color-border)' }}>
+            {filteredTickets.map((ticket) => (
+              <div key={ticket.id} className="p-4 flex flex-col gap-3">
+                {/* Title + meta */}
+                <div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                    {ticket.title}
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }} className="mt-0.5">
+                    {ticket.id} • {ticket.messages} messages
+                  </div>
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="badge badge-completed">{ticket.category}</span>
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full ${getPriorityColor(ticket.priority)}`} style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', letterSpacing: 'var(--letter-spacing-wide)' }}>
+                    {ticket.priority}
+                  </span>
+                  <div className={getStatusColor(ticket.status)}>
+                    {getStatusIcon(ticket.status)}
+                    <span>{ticket.status}</span>
+                  </div>
+                </div>
+
+                {/* Last updated */}
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                  Updated {new Date(ticket.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+
+                {/* Full-width View button */}
+                <button
+                  onClick={() => toast.info('Opening ticket...')}
+                  className="btn-outline w-full py-2.5"
+                  style={{ fontSize: 'var(--font-size-sm)' }}
+                >
+                  View
+                </button>
+              </div>
+            ))}
           </div>
 
           {filteredTickets.length === 0 && (
