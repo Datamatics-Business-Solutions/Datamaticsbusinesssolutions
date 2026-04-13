@@ -12,6 +12,7 @@ import {
   Activity,
   Package,
   Copy,
+  Clock,
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { JobCardModal } from '../components/JobCardModalGlass';
@@ -19,8 +20,12 @@ import { AnimatedDonutChart } from '../components/AnimatedDonutChart';
 import { DeliveryScheduleSection } from '../components/DeliveryScheduleSection';
 import { CloneCampaignModal } from '../components/CloneCampaignModal';
 import { NewCampaignModal, type CampaignFormData } from '../components/NewCampaignModal';
+import { CampaignHealthBadge, ReplacementTracker } from '../components/CampaignHealthBadge';
+import { CampaignActivityTimeline } from '../components/CampaignActivityTimeline';
+import { ConvertrQAStats } from '../components/ConvertrQAStatus';
 import { allClients } from '../data/mockClients';
-import { mockActivityUpdates } from '../mockData';
+import { getActivitiesForCampaign, getReplacementStats } from '../data/campaignActivities';
+import { getCampaignHealth } from '../utils/campaignHealth';
 import { toast } from 'sonner';
 
 export default function CampaignDetail() {
@@ -69,6 +74,19 @@ export default function CampaignDetail() {
     ? Math.min(100, Math.round((deliveredLeads / targetLeads) * 100))
     : 0;
 
+  const health = getCampaignHealth(campaign);
+  const activities = getActivitiesForCampaign(campaign.id);
+  const replacementStats = getReplacementStats(campaign.id);
+  const isConvertr = client?.leadAcceptanceMethod === 'convertr';
+
+  // Mock Convertr QA stats based on campaign data
+  const convertrStats = {
+    totalProcessed: deliveredLeads + 18,
+    valid: deliveredLeads,
+    caution: 12,
+    invalid: 6,
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -112,6 +130,7 @@ export default function CampaignDetail() {
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <span className={getStatusColor(campaign.status)}>{formatStatus(campaign.status)}</span>
+              <CampaignHealthBadge health={health} showDetails />
               {campaign.startDate && campaign.endDate && (
                 <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                   {campaign.startDate} - {campaign.endDate}
@@ -268,27 +287,77 @@ export default function CampaignDetail() {
           </div>
         </div>
 
-        {/* Recent Activity */}
-        <div className="glass-card p-6 mt-6">
-          <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-4">
-            Recent Activity
-          </h2>
+        {/* Convertr QA Stats (only for Convertr clients) */}
+        {isConvertr && (
+          <div className="mt-6">
+            <ConvertrQAStats {...convertrStats} />
+          </div>
+        )}
+
+        {/* Lead Replacement Tracker + Campaign Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          {/* Activity Timeline */}
+          <div className="lg:col-span-2 glass-card p-6">
+            <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-4">
+              Campaign Activity
+            </h2>
+            <CampaignActivityTimeline activities={activities} />
+          </div>
+
+          {/* Side panel: Replacement tracker + Campaign details */}
           <div className="space-y-4">
-            {mockActivityUpdates.slice(0, 5).map((activity, index) => (
-              <div key={index} className="flex items-start gap-3 pb-4" style={{ borderBottom: index < 4 ? '1px solid var(--color-border)' : 'none' }}>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--color-primary-tint)' }}>
-                  <Activity className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
+            <ReplacementTracker
+              totalRejected={replacementStats.totalRejected}
+              totalReplaced={replacementStats.totalReplaced}
+              remaining={replacementStats.remaining}
+            />
+
+            <div className="glass-card p-5">
+              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-3">
+                Delivery Pace
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between" style={{ fontSize: 'var(--font-size-xs)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Time elapsed</span>
+                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-semibold)' }}>{health.timeElapsedPercent}%</span>
                 </div>
-                <div className="flex-1">
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                    {activity.message}
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }} className="mt-1">
-                    {activity.timestamp}
-                  </div>
+                <div className="w-full h-2 rounded-full" style={{ background: 'var(--color-bg-secondary)' }}>
+                  <div className="h-full rounded-full" style={{ width: `${health.timeElapsedPercent}%`, background: 'var(--color-text-muted)' }} />
+                </div>
+                <div className="flex justify-between" style={{ fontSize: 'var(--font-size-xs)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Leads delivered</span>
+                  <span style={{ color: health.color, fontWeight: 'var(--font-weight-semibold)' }}>{health.progressPercent}%</span>
+                </div>
+                <div className="w-full h-2 rounded-full" style={{ background: 'var(--color-bg-secondary)' }}>
+                  <div className="h-full rounded-full" style={{ width: `${health.progressPercent}%`, background: health.color }} />
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Lead Acceptance Method */}
+            <div className="glass-card p-5">
+              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-2">
+                Lead Acceptance
+              </h3>
+              <div className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                {isConvertr ? (
+                  <>
+                    <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                    <span>Automated via Convertr</span>
+                  </>
+                ) : client?.leadAcceptanceMethod === 'csv_manual' ? (
+                  <>
+                    <div className="w-2 h-2 rounded-full" style={{ background: 'var(--color-warning)' }} />
+                    <span>Manual CSV review</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-2 h-2 rounded-full" style={{ background: 'var(--color-success)' }} />
+                    <span>Portal review</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

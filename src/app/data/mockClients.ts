@@ -2,6 +2,8 @@
 // MOCK CLIENT DATA - Used across all roles
 // ============================================
 
+export type LeadAcceptanceMethod = 'convertr' | 'csv_manual' | 'portal_review';
+
 export interface Client {
   id: string;
   companyName: string;
@@ -15,6 +17,7 @@ export interface Client {
   backupManagerEmail: string;
   lastActivity: string; // ISO date string
   unreadNotifications: number;
+  leadAcceptanceMethod: LeadAcceptanceMethod;
   campaigns: Campaign[];
 }
 
@@ -61,6 +64,7 @@ export const allClients: Client[] = [
     backupManagerEmail: 'arjun.patel@datamaticsbpm.com',
     lastActivity: '2026-03-02T14:30:00Z',
     unreadNotifications: 4,
+    leadAcceptanceMethod: 'convertr',
     campaigns: [
       {
         id: 'camp_1a',
@@ -174,6 +178,7 @@ export const allClients: Client[] = [
     backupManagerEmail: 'arjun.patel@datamaticsbpm.com',
     lastActivity: '2026-03-02T09:15:00Z',
     unreadNotifications: 2,
+    leadAcceptanceMethod: 'csv_manual',
     campaigns: [
       {
         id: 'camp_2a',
@@ -263,6 +268,7 @@ export const allClients: Client[] = [
     backupManagerEmail: 'arjun.patel@datamaticsbpm.com',
     lastActivity: '2026-03-01T16:45:00Z',
     unreadNotifications: 1,
+    leadAcceptanceMethod: 'portal_review',
     campaigns: [
       {
         id: 'camp_3a',
@@ -351,6 +357,7 @@ export const allClients: Client[] = [
     backupManagerEmail: 'emily.rodriguez@datamaticsbpm.com',
     lastActivity: '2026-03-02T11:20:00Z',
     unreadNotifications: 3,
+    leadAcceptanceMethod: 'convertr',
     campaigns: [
       {
         id: 'camp_4a',
@@ -419,6 +426,7 @@ export const allClients: Client[] = [
     backupManagerEmail: 'michael.chen@datamaticsbpm.com',
     lastActivity: '2026-03-02T08:30:00Z',
     unreadNotifications: 0,
+    leadAcceptanceMethod: 'csv_manual',
     campaigns: [
       {
         id: 'camp_5a',

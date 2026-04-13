@@ -26,6 +26,8 @@ import { AnimatedCounter } from '../components/AnimatedCounter';
 import { NewCampaignModal, CampaignFormData } from '../components/NewCampaignModal';
 import { EmptyState } from '../components/EmptyState';
 import { AccountTeam } from '../components/AccountTeam';
+import { CampaignHealthBadge } from '../components/CampaignHealthBadge';
+import { getCampaignHealth } from '../utils/campaignHealth';
 import { useAuth } from '../context/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -437,7 +439,14 @@ export default function Dashboard() {
                       <td className="table-td">
                         <span className="t2">Leads</span>
                       </td>
-                      <td className="table-td">{getStatusPill(campaign.status)}</td>
+                      <td className="table-td">
+                        <div className="flex flex-col gap-1.5">
+                          {getStatusPill(campaign.status)}
+                          {campaign.status === 'active' && (
+                            <CampaignHealthBadge health={getCampaignHealth(campaign)} />
+                          )}
+                        </div>
+                      </td>
                       <td className="table-td">
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-3">

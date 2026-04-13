@@ -20,6 +20,7 @@ import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
 import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
 import { mockInvoices } from '../mockInvoices';
+import { generateInvoicePDF, exportInvoicesToCSV } from '../utils/exportUtils';
 import { useDebounce } from '../hooks/useDebounce';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { AnimatedCounter } from '../components/AnimatedCounter';
@@ -93,7 +94,14 @@ export default function Invoices() {
       toast.error('Please select invoices first');
       return;
     }
-    toast.success(`Downloading ${selectedInvoices.length} invoices...`);
+    const selected = mockInvoices.filter(inv => selectedInvoices.includes(inv.id));
+    exportInvoicesToCSV(selected);
+    toast.success(`Exported ${selected.length} invoices to CSV`);
+  };
+
+  const handleDownloadInvoice = (invoice: any) => {
+    generateInvoicePDF(invoice);
+    toast.success(`Downloading ${invoice.invoiceNumber}...`);
   };
 
   const handleViewInvoice = (invoice: any) => {
@@ -335,7 +343,7 @@ export default function Invoices() {
                               </button>
                             )}
                             <button
-                              onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}...`)}
+                              onClick={() => handleDownloadInvoice(invoice)}
                               className="btn-ghost p-2"
                               title="Download invoice"
                             >
@@ -429,7 +437,7 @@ export default function Invoices() {
                     </button>
                   )}
                   <button
-                    onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}...`)}
+                    onClick={() => handleDownloadInvoice(invoice)}
                     className="btn-outline flex-1 flex items-center justify-center gap-2 py-2"
                   >
                     <Download className="w-4 h-4" />

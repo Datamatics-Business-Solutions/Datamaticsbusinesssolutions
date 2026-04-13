@@ -5,7 +5,8 @@ import { TableRow } from '../components/TableRow';
 import {
   Search, Filter, Download, Mail, Phone, Building2, CheckCircle, XCircle,
   Clock, FileText, UserCheck, MoreVertical, Star, Tag, Plus,
-  TrendingUp, Users, Target, Award, Activity, Eye, AlertTriangle, X
+  TrendingUp, Users, Target, Award, Activity, Eye, AlertTriangle, X,
+  ThumbsUp, ThumbsDown, Shield,
 } from 'lucide-react';
 import { mockLeads, type Lead } from '../mockData';
 import { LeadDetailDrawer } from '../components/LeadDetailDrawer';
@@ -17,6 +18,9 @@ import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { EmptyState } from '../components/EmptyState';
 import { TableSkeleton } from '../components/SkeletonLoader';
+import { ConvertrBadge, ConvertrQAStats } from '../components/ConvertrQAStatus';
+import { exportLeadsToCSV } from '../utils/exportUtils';
+import { allClients } from '../data/mockClients';
 import { toast } from 'sonner';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -43,6 +47,8 @@ export default function LeadsPage() {
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [starred, setStarred] = useState<string[]>([]);
   const [showAlert, setShowAlert] = useState(true);
+  const [rejectingLeadId, setRejectingLeadId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
   
   const [advancedFilters, setAdvancedFilters] = useState({
     scoreRange: [0, 100] as [number, number],
@@ -50,6 +56,67 @@ export default function LeadsPage() {
     industry: [] as string[],
     tags: [] as string[]
   });
+
+  // Determine lead acceptance method from the client
+  const clientData = allClients.find(c => c.id === 'client_1'); // Current client
+  const acceptanceMethod = clientData?.leadAcceptanceMethod || 'csv_manual';
+  const isConvertr = acceptanceMethod === 'convertr';
+  const showManualReview = acceptanceMethod === 'csv_manual' || acceptanceMethod === 'portal_review';
+
+  // Convertr mock QA stats
+  const convertrQAStats = {
+    totalProcessed: leads.length + 6,
+    valid: leads.filter(l => l.status === 'Accepted' || l.status === 'Contacted').length,
+    caution: 4,
+    invalid: 2,
+  };
+
+  const rejectionReasons = [
+    'Wrong job title',
+    'Out of target geography',
+    'Company size below threshold',
+    'Duplicate — already in CRM',
+    'Invalid contact information',
+    'Not in target industry',
+    'Insufficient BANT criteria',
+    'Other',
+  ];
+
+  const handleAcceptLead = (id: string) => {
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, status: 'Accepted' as Lead['status'] } : l));
+    toast.success('Lead accepted');
+  };
+
+  const handleRejectLead = (id: string) => {
+    if (!rejectionReason) {
+      toast.error('Please select a rejection reason');
+      return;
+    }
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, status: 'Rejected' as Lead['status'], rejectionReason } : l));
+    setRejectingLeadId(null);
+    setRejectionReason('');
+    toast.success('Lead rejected');
+  };
+
+  const handleBulkAccept = () => {
+    setLeads(prev => prev.map(l => selectedLeads.includes(l.id) ? { ...l, status: 'Accepted' as Lead['status'] } : l));
+    toast.success(`${selectedLeads.length} leads accepted`);
+    setSelectedLeads([]);
+  };
+
+  const handleBulkReject = () => {
+    setLeads(prev => prev.map(l => selectedLeads.includes(l.id) ? { ...l, status: 'Rejected' as Lead['status'], rejectionReason: 'Bulk rejection' } : l));
+    toast.success(`${selectedLeads.length} leads rejected`);
+    setSelectedLeads([]);
+  };
+
+  const handleExportLeads = () => {
+    const leadsToExport = selectedLeads.length > 0
+      ? leads.filter(l => selectedLeads.includes(l.id))
+      : filteredLeads;
+    exportLeadsToCSV(leadsToExport);
+    toast.success(`Exported ${leadsToExport.length} leads to CSV`);
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setIsLoading(false), 700);
@@ -193,13 +260,7 @@ export default function LeadsPage() {
     {
       icon: <Download className="w-5 h-5 text-white" />,
       label: 'Export my leads',
-      onClick: () => {
-        if (selectedLeads.length > 0) {
-          toast.success(`Exporting ${selectedLeads.length} leads`);
-        } else {
-          toast.error('Please select leads first');
-        }
-      },
+      onClick: handleExportLeads,
       color: '#1E3A5F'
     }
   ];
@@ -213,12 +274,27 @@ export default function LeadsPage() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 style={{ color: 'var(--color-text-primary)' }}>Lead Management</h1>
+                {isConvertr && <ConvertrBadge />}
               </div>
               <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                 {stats.total} leads • {stats.pending} pending review • {stats.hotLeads} hot leads
               </p>
             </div>
+            <button
+              onClick={handleExportLeads}
+              className="btn-primary px-4 py-2.5 flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export Leads (CSV)
+            </button>
           </div>
+
+          {/* Convertr QA Stats (only for Convertr clients) */}
+          {isConvertr && (
+            <div className="mb-6">
+              <ConvertrQAStats {...convertrQAStats} />
+            </div>
+          )}
 
           {/* Quick Stats Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6 stagger-children">
@@ -436,6 +512,25 @@ export default function LeadsPage() {
                       </td>
                       <td className="table-td" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-1">
+                          {/* Accept/Reject buttons — only for manual review clients with pending leads */}
+                          {showManualReview && lead.status === 'Pending Review' && (
+                            <>
+                              <button
+                                onClick={() => handleAcceptLead(lead.id)}
+                                className="btn-ghost p-2"
+                                title="Accept lead"
+                              >
+                                <ThumbsUp className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+                              </button>
+                              <button
+                                onClick={() => setRejectingLeadId(lead.id)}
+                                className="btn-ghost p-2"
+                                title="Reject lead"
+                              >
+                                <ThumbsDown className="w-4 h-4" style={{ color: 'var(--color-error)' }} />
+                              </button>
+                            </>
+                          )}
                           <button onClick={(e) => toggleStar(lead.id, e)} className="btn-ghost p-2" title="Star">
                             <Star className={`w-4 h-4 ${starred.includes(lead.id) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                           </button>
@@ -443,6 +538,35 @@ export default function LeadsPage() {
                             <Eye className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
                           </button>
                         </div>
+                        {/* Inline rejection reason dropdown */}
+                        {rejectingLeadId === lead.id && (
+                          <div className="mt-2 p-3 rounded-lg" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
+                            <select
+                              value={rejectionReason}
+                              onChange={(e) => setRejectionReason(e.target.value)}
+                              className="input-base w-full mb-2 text-sm"
+                            >
+                              <option value="">Select reason...</option>
+                              {rejectionReasons.map(r => (
+                                <option key={r} value={r}>{r}</option>
+                              ))}
+                            </select>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleRejectLead(lead.id)}
+                                className="btn-primary px-3 py-1.5 text-xs flex-1"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => { setRejectingLeadId(null); setRejectionReason(''); }}
+                                className="btn-outline px-3 py-1.5 text-xs flex-1"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </td>
                     </TableRow>
                   ))}
@@ -557,25 +681,38 @@ export default function LeadsPage() {
             </span>
             <div className="h-6 w-px" style={{ background: 'var(--color-border)' }} />
             <button 
-              onClick={() => toast.success(`Exporting ${selectedLeads.length} leads`)}
+              onClick={handleExportLeads}
               className="btn-outline px-4 py-2 flex items-center gap-2"
             >
               <Download className="w-4 h-4" />
               Export
             </button>
+            {showManualReview && (
+              <>
+                <button 
+                  onClick={handleBulkAccept}
+                  className="btn-outline px-4 py-2 flex items-center gap-2"
+                  style={{ borderColor: 'var(--color-success)', color: 'var(--color-success)' }}
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                  Accept All
+                </button>
+                <button 
+                  onClick={handleBulkReject}
+                  className="btn-outline px-4 py-2 flex items-center gap-2"
+                  style={{ borderColor: 'var(--color-error)', color: 'var(--color-error)' }}
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                  Reject All
+                </button>
+              </>
+            )}
             <button 
-              onClick={() => toast.info('Status change modal coming soon')}
-              className="btn-outline px-4 py-2 flex items-center gap-2"
+              onClick={() => setSelectedLeads([])}
+              className="btn-ghost p-2"
+              title="Clear selection"
             >
-              <FileText className="w-4 h-4" />
-              Change Status
-            </button>
-            <button 
-              onClick={() => toast.info('Assignment modal coming soon')}
-              className="btn-outline px-4 py-2 flex items-center gap-2"
-            >
-              <UserCheck className="w-4 h-4" />
-              Assign
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
