@@ -46,6 +46,17 @@ export interface Campaign {
   deliverySchedule?: DeliverySchedule[];
   deliveryDays?: string[];
   leadsPerDelivery?: number;
+  outreachMetrics?: {
+    emailsSent: number;
+    emailsOpened: number;
+    emailsClicked: number;
+    openRate: number;
+    clickRate: number;
+  };
+  convertrMetrics?: {
+    uploadedLeads: number;
+    acceptedLeads: number;
+  };
 }
 
 // ─── 5 Clients with multiple campaigns each ───────────────────────────────────
@@ -93,6 +104,13 @@ export const allClients: Client[] = [
         ],
         deliveryDays: ['Monday', 'Thursday'],
         leadsPerDelivery: 150,
+        outreachMetrics: {
+          emailsSent: 24350,
+          emailsOpened: 6939,
+          emailsClicked: 1022,
+          openRate: 28.5,
+          clickRate: 4.2,
+        },
       },
       {
         id: 'camp_1b',
@@ -118,6 +136,13 @@ export const allClients: Client[] = [
         ],
         deliveryDays: ['Tuesday'],
         leadsPerDelivery: 125,
+        outreachMetrics: {
+          emailsSent: 14500,
+          emailsOpened: 3480,
+          emailsClicked: 507,
+          openRate: 24.0,
+          clickRate: 3.5,
+        },
       },
       {
         id: 'camp_1c',
@@ -204,6 +229,13 @@ export const allClients: Client[] = [
         ],
         deliveryDays: ['Monday'],
         leadsPerDelivery: 300,
+        outreachMetrics: {
+          emailsSent: 38200,
+          emailsOpened: 11842,
+          emailsClicked: 1719,
+          openRate: 31.0,
+          clickRate: 4.5,
+        },
       },
       {
         id: 'camp_2b',
@@ -700,4 +732,98 @@ export function getPendingUploads(): LeadUploadBatch[] {
 // Helper: Get failed uploads (for ops to retry)
 export function getFailedUploads(): LeadUploadBatch[] {
   return recentUploadBatches.filter(u => u.status === 'failed');
+}
+
+// ============================================
+// CAMPAIGN OVERRIDES PERSISTENCE (localStorage)
+// ============================================
+
+export function applyCampaignOverrides() {
+  try {
+    const saved = localStorage.getItem('datamatics-campaign-overrides');
+    if (saved) {
+      const overrides = JSON.parse(saved); // key: campaignId -> override fields
+      allClients.forEach(client => {
+        client.campaigns.forEach(campaign => {
+          const o = overrides[campaign.id];
+          if (o) {
+            // Update base metrics
+            if (o.deliveredLeads !== undefined) {
+              campaign.delivered = o.deliveredLeads;
+              campaign.deliveredLeads = o.deliveredLeads;
+              campaign.totalLeads = o.deliveredLeads; // keep sync
+            }
+            if (o.targetLeads !== undefined) {
+              campaign.target = o.targetLeads;
+              campaign.goalLeads = o.targetLeads;
+            }
+            if (o.acceptanceRate !== undefined) {
+              campaign.acceptanceRate = o.acceptanceRate;
+            }
+            
+            // Update outreach metrics if they exist
+            if (o.outreachMetrics) {
+              campaign.outreachMetrics = {
+                emailsSent: o.outreachMetrics.emailsSent,
+                emailsOpened: o.outreachMetrics.emailsOpened,
+                emailsClicked: o.outreachMetrics.emailsClicked,
+                openRate: o.outreachMetrics.openRate,
+                clickRate: o.outreachMetrics.clickRate,
+              };
+            }
+            
+            // Update convertr metrics
+            if (o.convertrMetrics) {
+              campaign.convertrMetrics = {
+                uploadedLeads: o.convertrMetrics.uploadedLeads,
+                acceptedLeads: o.convertrMetrics.acceptedLeads,
+              };
+            }
+          }
+        });
+        
+        // Recalculate client-level aggregate metrics based on campaigns
+        client.totalLeads = client.campaigns.reduce((sum, camp) => sum + (camp.deliveredLeads || camp.delivered || camp.totalLeads || 0), 0);
+      });
+    }
+  } catch (e) {
+    console.error("Failed to apply campaign overrides:", e);
+  }
+}
+
+export function saveCampaignOverride(campaignId: string, data: {
+  deliveredLeads?: number;
+  targetLeads?: number;
+  acceptanceRate?: number;
+  outreachMetrics?: {
+    emailsSent: number;
+    emailsOpened: number;
+    emailsClicked: number;
+    openRate: number;
+    clickRate: number;
+  };
+  convertrMetrics?: {
+    uploadedLeads: number;
+    acceptedLeads: number;
+  };
+}) {
+  try {
+    const saved = localStorage.getItem('datamatics-campaign-overrides');
+    const overrides = saved ? JSON.parse(saved) : {};
+    overrides[campaignId] = {
+      ...overrides[campaignId],
+      ...data,
+    };
+    localStorage.setItem('datamatics-campaign-overrides', JSON.stringify(overrides));
+    
+    // Apply immediately to the in-memory array
+    applyCampaignOverrides();
+  } catch (e) {
+    console.error("Failed to save campaign override:", e);
+  }
+}
+
+// Automatically apply overrides on load if in browser environment
+if (typeof window !== 'undefined') {
+  applyCampaignOverrides();
 }

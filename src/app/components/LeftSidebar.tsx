@@ -193,6 +193,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           quickActionHandler: () => setShowUploadModal(true)
         },
         { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
+        { name: 'Metrics Override', icon: BarChart2, path: '/internal/ops-override', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
         { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
       ];
@@ -229,6 +230,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           quickActionHandler: () => setShowUploadModal(true)
         },
         { name: 'Reports', icon: FileBarChart, path: '/internal/reports', section: 'PLATFORM' },
+        { name: 'Metrics Override', icon: BarChart2, path: '/internal/ops-override', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
         { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
       ];
