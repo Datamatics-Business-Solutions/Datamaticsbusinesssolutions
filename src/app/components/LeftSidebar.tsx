@@ -309,30 +309,12 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      {/* Logo + Pin — single unified header row */}
+      {/* Logo + Pulse branding + Pin */}
       <div
-        className={`flex-shrink-0 flex items-center border-b border-[#EEECEC] ${
-          isExpanded ? 'justify-between px-5' : 'justify-center px-3'
-        }`}
-        style={{ paddingTop: '28px', paddingBottom: '20px' }}
+        className="flex-shrink-0 border-b border-[#EEECEC] relative"
+        style={{ paddingTop: '24px', paddingBottom: '20px' }}
       >
-        {isExpanded ? (
-          <div className="flex flex-col items-start gap-1">
-            <Logo className="h-8" collapsed={false} />
-            <div className="flex items-center gap-1.5 mt-1 px-2.5 py-0.5 rounded-full bg-[#BA2027]/10 border border-[#BA2027]/15">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#BA2027] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#BA2027]"></span>
-              </span>
-              <span className="text-[9px] font-extrabold text-[#BA2027] uppercase tracking-[0.2em] leading-none" style={{ fontFamily: 'Outfit, Inter, sans-serif' }}>
-                P U L S E
-              </span>
-            </div>
-          </div>
-        ) : (
-          <Logo className="h-9" collapsed={true} />
-        )}
-
+        {/* Pin button — top right */}
         <AnimatePresence>
           {isExpanded && (
             <motion.button
@@ -341,7 +323,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.15 }}
               onClick={togglePin}
-              className="p-1.5 rounded-lg hover:bg-[#F3F4F6] transition-colors flex-shrink-0 ml-3"
+              className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-[#F3F4F6] transition-colors z-10"
               title={isPinned ? 'Collapse sidebar' : 'Keep sidebar expanded'}
             >
               <Pin
@@ -356,6 +338,42 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
             </motion.button>
           )}
         </AnimatePresence>
+
+        {/* Centered logo + Pulse */}
+        <div className={`flex flex-col items-center gap-2 ${isExpanded ? 'px-5' : 'px-3'}`}>
+          <Logo className={isExpanded ? 'h-9' : 'h-9'} collapsed={!isExpanded} />
+
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="flex items-center gap-2 px-4 py-1.5 rounded-full"
+                style={{
+                  background: 'rgba(186, 32, 39, 0.08)',
+                  border: '1px solid rgba(186, 32, 39, 0.15)',
+                }}
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#BA2027] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#BA2027]"></span>
+                </span>
+                <span
+                  className="font-extrabold text-[#BA2027] uppercase leading-none"
+                  style={{
+                    fontSize: '13px',
+                    letterSpacing: '0.25em',
+                    fontFamily: 'Outfit, Inter, sans-serif',
+                  }}
+                >
+                  PULSE
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Navigation */}
