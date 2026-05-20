@@ -39,6 +39,13 @@ export interface Campaign {
   };
   scopeOfWork: string[];
   terms: string;
+  outreachMetrics?: {
+    emailsSent: number;
+    emailsOpened: number;
+    emailsClicked: number;
+    openRate: number;
+    clickRate: number;
+  };
 }
 
 // ─── Campaign Approval Workflow ───────────────────────────────────────────────

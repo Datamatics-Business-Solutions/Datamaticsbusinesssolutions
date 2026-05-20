@@ -46,6 +46,13 @@ export interface Campaign {
   deliverySchedule?: DeliverySchedule[];
   deliveryDays?: string[];
   leadsPerDelivery?: number;
+  outreachMetrics?: {
+    emailsSent: number;
+    emailsOpened: number;
+    emailsClicked: number;
+    openRate: number;
+    clickRate: number;
+  };
 }
 
 // ─── 5 Clients with multiple campaigns each ───────────────────────────────────
@@ -93,6 +100,13 @@ export const allClients: Client[] = [
         ],
         deliveryDays: ['Monday', 'Thursday'],
         leadsPerDelivery: 150,
+        outreachMetrics: {
+          emailsSent: 24350,
+          emailsOpened: 6939,
+          emailsClicked: 1022,
+          openRate: 28.5,
+          clickRate: 4.2,
+        },
       },
       {
         id: 'camp_1b',
@@ -118,6 +132,13 @@ export const allClients: Client[] = [
         ],
         deliveryDays: ['Tuesday'],
         leadsPerDelivery: 125,
+        outreachMetrics: {
+          emailsSent: 14500,
+          emailsOpened: 3480,
+          emailsClicked: 507,
+          openRate: 24.0,
+          clickRate: 3.5,
+        },
       },
       {
         id: 'camp_1c',
@@ -204,6 +225,13 @@ export const allClients: Client[] = [
         ],
         deliveryDays: ['Monday'],
         leadsPerDelivery: 300,
+        outreachMetrics: {
+          emailsSent: 38200,
+          emailsOpened: 11842,
+          emailsClicked: 1719,
+          openRate: 31.0,
+          clickRate: 4.5,
+        },
       },
       {
         id: 'camp_2b',

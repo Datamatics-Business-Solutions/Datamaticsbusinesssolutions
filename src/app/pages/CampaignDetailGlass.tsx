@@ -13,6 +13,7 @@ import {
   Package,
   Copy,
   Clock,
+  Mail,
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { JobCardModal } from '../components/JobCardModalGlass';
@@ -242,6 +243,129 @@ export default function CampaignDetail() {
               </div>
             </div>
           </div>
+
+          {/* Outreach Funnel Analytics */}
+          {campaign.outreachMetrics && (
+            <div className="lg:col-span-2 glass-card p-6 animate-slideInUp">
+              <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }} className="mb-6 flex items-center gap-2">
+                <Mail className="w-5 h-5 text-[var(--color-primary)]" />
+                Outreach Funnel Analytics
+              </h2>
+
+              <div className="space-y-5">
+                {/* Emails Sent */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>Emails Sent</span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                      {campaign.outreachMetrics.emailsSent.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full overflow-hidden border border-[var(--border)]" style={{ background: 'var(--background-muted)' }}>
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500" 
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Opened Emails */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>Opened Emails</span>
+                    <div className="flex items-center gap-2">
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'var(--font-weight-medium)' }}>
+                        {campaign.outreachMetrics.emailsOpened.toLocaleString()}
+                      </span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: '#6366F1' }}>
+                        {campaign.outreachMetrics.openRate}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-full h-2 rounded-full overflow-hidden border border-[var(--border)]" style={{ background: 'var(--background-muted)' }}>
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-purple-500" 
+                      style={{ width: `${campaign.outreachMetrics.openRate}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Clicked Emails */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>Clicks (CTR)</span>
+                    <div className="flex items-center gap-2">
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'var(--font-weight-medium)' }}>
+                        {campaign.outreachMetrics.emailsClicked.toLocaleString()}
+                      </span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: '#10B981' }}>
+                        {campaign.outreachMetrics.clickRate}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-full h-2 rounded-full overflow-hidden border border-[var(--border)]" style={{ background: 'var(--background-muted)' }}>
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" 
+                      style={{ width: `${campaign.outreachMetrics.clickRate * 5}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Delivered Leads */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>Delivered Leads</span>
+                    <div className="flex items-center gap-2">
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'var(--font-weight-medium)' }}>
+                        {(campaign.delivered || campaign.totalLeads).toLocaleString()}
+                      </span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-primary)' }}>
+                        {Math.round(((campaign.delivered || campaign.totalLeads) / campaign.outreachMetrics.emailsSent) * 1000) / 10}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-full h-2 rounded-full overflow-hidden border border-[var(--border)]" style={{ background: 'var(--background-muted)' }}>
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--brand-red-light)]" 
+                      style={{ width: `${Math.max(2, Math.round(((campaign.delivered || campaign.totalLeads) / campaign.outreachMetrics.emailsSent) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Conversion Metrics Footer */}
+              <div className="mt-6 pt-5 border-t border-[var(--border)] grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="text-center p-3 rounded-xl border border-[var(--border)]" style={{ background: 'var(--background-muted)' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-0.5">CTOR</div>
+                  <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                    {Math.round((campaign.outreachMetrics.emailsClicked / campaign.outreachMetrics.emailsOpened) * 1000) / 10}%
+                  </div>
+                  <div style={{ fontSize: '9px', fontWeight: 'var(--font-weight-semibold)', color: '#10B981' }} className="mt-0.5">Excellent</div>
+                </div>
+                <div className="text-center p-3 rounded-xl border border-[var(--border)]" style={{ background: 'var(--background-muted)' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-0.5">Open to Lead</div>
+                  <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                    {Math.round(((campaign.delivered || campaign.totalLeads) / campaign.outreachMetrics.emailsOpened) * 1000) / 10}%
+                  </div>
+                  <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)' }} className="mt-0.5">Conversion</div>
+                </div>
+                <div className="text-center p-3 rounded-xl border border-[var(--border)]" style={{ background: 'var(--background-muted)' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-0.5">Click to Lead</div>
+                  <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                    {Math.round(((campaign.delivered || campaign.totalLeads) / campaign.outreachMetrics.emailsClicked) * 1000) / 10}%
+                  </div>
+                  <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)' }} className="mt-0.5">Action Rate</div>
+                </div>
+                <div className="text-center p-3 rounded-xl border border-[var(--border)]" style={{ background: 'var(--background-muted)' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 'var(--letter-spacing-wide)' }} className="mb-0.5">Bounce Rate</div>
+                  <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                    0.8%
+                  </div>
+                  <div style={{ fontSize: '9px', fontWeight: 'var(--font-weight-semibold)', color: '#10B981' }} className="mt-0.5">Healthy (&lt;2%)</div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Campaign Details */}
           <div className="glass-card p-6">
