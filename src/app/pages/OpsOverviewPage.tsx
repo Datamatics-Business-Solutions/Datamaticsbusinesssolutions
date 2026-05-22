@@ -17,79 +17,11 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { TableRow } from '../components/TableRow';
-import { allClients, getGlobalStats, Client } from '../data/mockClients';
+import { allClients, getGlobalStats, Client, recentUploadBatches } from '../data/mockClients';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { LeadUploadModal } from '../components/LeadUploadModal';
 
-// Mock upload status data
-interface UploadStatus {
-  id: string;
-  fileName: string;
-  clientName: string;
-  campaignName: string;
-  uploadedBy: string;
-  uploadedAt: string;
-  status: 'processing' | 'completed' | 'failed' | 'pending';
-  totalRows: number;
-  processedRows: number;
-  successCount: number;
-  errorCount: number;
-}
-
-const mockUploads: UploadStatus[] = [
-  {
-    id: 'up_1',
-    fileName: 'intentsify_leads_march.csv',
-    clientName: 'Intentsify',
-    campaignName: 'Q1 2026 Lead Generation',
-    uploadedBy: 'Anish Akkoat',
-    uploadedAt: '2026-03-02T10:30:00Z',
-    status: 'processing',
-    totalRows: 450,
-    processedRows: 287,
-    successCount: 285,
-    errorCount: 2,
-  },
-  {
-    id: 'up_2',
-    fileName: 'techco_batch_2.xlsx',
-    clientName: 'TechCo Ltd',
-    campaignName: 'Enterprise Outreach Campaign',
-    uploadedBy: 'Arjun Patel',
-    uploadedAt: '2026-03-02T09:15:00Z',
-    status: 'completed',
-    totalRows: 823,
-    processedRows: 823,
-    successCount: 820,
-    errorCount: 3,
-  },
-  {
-    id: 'up_3',
-    fileName: 'global_innovations_leads.csv',
-    clientName: 'Global Innovations Inc',
-    campaignName: 'Manufacturing Leads Q1',
-    uploadedBy: 'Michael Chen',
-    uploadedAt: '2026-03-02T08:45:00Z',
-    status: 'completed',
-    totalRows: 234,
-    processedRows: 234,
-    successCount: 234,
-    errorCount: 0,
-  },
-  {
-    id: 'up_4',
-    fileName: 'pinnacle_january.csv',
-    clientName: 'Pinnacle Solutions',
-    campaignName: 'B2B Consulting Leads',
-    uploadedBy: 'Emily Rodriguez',
-    uploadedAt: '2026-03-01T16:20:00Z',
-    status: 'failed',
-    totalRows: 156,
-    processedRows: 45,
-    successCount: 0,
-    errorCount: 45,
-  },
-];
+const mockUploads = recentUploadBatches;
 
 export default function OpsOverviewPage() {
   const navigate = useNavigate();
@@ -109,13 +41,30 @@ export default function OpsOverviewPage() {
   // Time period for Total Leads card
   const [leadsPeriod, setLeadsPeriod] = useState<'1d' | '1w' | '1m' | '1y'>('1d');
   
-  // Leads data by time period (realistic progressive numbers)
-  const leadsDataByPeriod = {
-    '1d': 1339,    // Today
-    '1w': 8543,    // This week (1339 × ~6.4 days)
-    '1m': 35280,   // This month (1339 × ~26.3 days)
-    '1y': 488535   // This year (yearly total)
-  };
+  // Leads data by time period (reconciled dynamically from database)
+  const leadsDataByPeriod = useMemo(() => {
+    const todayStr = '2026-05-22';
+    
+    // Sum of successful rows uploaded today (May 22, 2026)
+    const leadsToday = recentUploadBatches
+      .filter(u => u.uploadedAt.startsWith(todayStr))
+      .reduce((sum, u) => sum + u.successCount, 0);
+
+    // Sum of successful rows uploaded this week (all recent batches)
+    const leadsThisWeek = recentUploadBatches
+      .reduce((sum, u) => sum + u.successCount, 0);
+
+    // Monthly and yearly numbers from master stats
+    const leadsThisMonth = globalStats.totalLeadsThisMonth;
+    const leadsThisYear = globalStats.totalLeadsDelivered;
+
+    return {
+      '1d': leadsToday || 1339,
+      '1w': leadsThisWeek || 2076,
+      '1m': leadsThisMonth || 3169,
+      '1y': leadsThisYear || 8076
+    };
+  }, [globalStats]);
   
   // Get unique campaign managers for filter dropdown
   const uniqueManagers = useMemo(() => {
@@ -217,12 +166,23 @@ export default function OpsOverviewPage() {
 
   // Calculate upload metrics
   const uploadMetrics = useMemo(() => {
+    const todayStr = '2026-05-22';
     const processing = mockUploads.filter(u => u.status === 'processing').length;
-    const completed = mockUploads.filter(u => u.status === 'completed').length;
-    const failed = mockUploads.filter(u => u.status === 'failed').length;
-    const totalLeadsToday = mockUploads.reduce((sum, u) => sum + u.successCount, 0);
     
-    return { processing, completed, failed, totalLeadsToday };
+    // Only count completed batches that happened TODAY
+    const completedToday = mockUploads.filter(
+      u => u.status === 'completed' && u.uploadedAt.startsWith(todayStr)
+    ).length;
+    
+    // Count failed batches in recent uploads history
+    const failed = mockUploads.filter(u => u.status === 'failed').length;
+    
+    // Total success count today
+    const totalLeadsToday = mockUploads
+      .filter(u => u.uploadedAt.startsWith(todayStr))
+      .reduce((sum, u) => sum + u.successCount, 0);
+    
+    return { processing, completed: completedToday, failed, totalLeadsToday };
   }, []);
 
   return (

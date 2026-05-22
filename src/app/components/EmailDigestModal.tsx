@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import { allClients } from '../data/mockClients';
 
 interface EmailDigestModalProps {
   isOpen: boolean;
@@ -11,9 +12,49 @@ function getCurrentMonthYear() {
 }
 
 export function EmailDigestModal({ isOpen, onClose }: EmailDigestModalProps) {
+  const acmeClient = allClients.find(c => c.id === 'client_1');
+  const campaigns = acmeClient?.campaigns ?? [];
+  const activeCampaigns = campaigns.filter(c => c.status === 'active' || c.status === 'Live');
+
+  // Compute live active metrics dynamically for consistency with the dashboard
+  const leadsDelivered = activeCampaigns.reduce((sum, c) => sum + (c.delivered || c.deliveredLeads || 0), 0);
+  
+  const avgAcceptanceRate = activeCampaigns.length > 0
+    ? Math.round(activeCampaigns.reduce((sum, c) => sum + (c.acceptanceRate || 0), 0) / activeCampaigns.length)
+    : 94;
+
+  const pipelineValue = activeCampaigns.reduce((sum, c) => {
+    const budget = c.budget || 0;
+    const goal = c.goalLeads || c.target || 1;
+    const delivered = c.delivered || c.deliveredLeads || 0;
+    const rate = (c.acceptanceRate || 100) / 100;
+    const cpl = budget / goal;
+    return sum + Math.round(delivered * rate * cpl);
+  }, 0) || 127500;
+
   const handleSend = () => {
     toast.success('Digest sent to tj.leyland@intentsify.com!');
     onClose();
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      const { generateWeeklyDigestPDF } = await import('../utils/exportUtils');
+      await generateWeeklyDigestPDF(
+        acmeClient?.companyName || 'Intentsify',
+        {
+          leadsDelivered,
+          acceptanceRate: avgAcceptanceRate,
+          pipelineValue,
+        },
+        campaigns
+      );
+      toast.success('Weekly performance digest downloaded successfully!');
+      onClose();
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to generate PDF. Please try again.');
+    }
   };
 
   return (
@@ -85,9 +126,9 @@ export function EmailDigestModal({ isOpen, onClose }: EmailDigestModalProps) {
                   {/* 3 stat boxes */}
                   <div className="grid grid-cols-3 gap-3 mt-5">
                     {[
-                      { label: 'Leads Delivered', value: '847' },
-                      { label: 'Acceptance Rate', value: '94%' },
-                      { label: 'Pipeline Value', value: '$127,500' },
+                      { label: 'Leads Delivered', value: String(leadsDelivered) },
+                      { label: 'Acceptance Rate', value: `${avgAcceptanceRate}%` },
+                      { label: 'Pipeline Value', value: `$${pipelineValue.toLocaleString()}` },
                     ].map((stat) => (
                       <div
                         key={stat.label}
@@ -96,11 +137,11 @@ export function EmailDigestModal({ isOpen, onClose }: EmailDigestModalProps) {
                       >
                         <p
                           className="font-bold mb-1"
-                          style={{ fontSize: '20px', color: '#BA2027', lineHeight: 1 }}
+                          style={{ fontSize: '18px', color: '#BA2027', lineHeight: 1 }}
                         >
                           {stat.value}
                         </p>
-                        <p className="text-gray-500" style={{ fontSize: '11px' }}>
+                        <p className="text-gray-500" style={{ fontSize: '10px' }}>
                           {stat.label}
                         </p>
                       </div>
@@ -165,13 +206,20 @@ export function EmailDigestModal({ isOpen, onClose }: EmailDigestModalProps) {
                 onClick={onClose}
                 className="btn-outline px-5 py-2 text-sm font-medium"
               >
-                Cancel
+                Close
               </button>
               <button
                 onClick={handleSend}
-                className="btn-primary px-5 py-2 text-sm font-semibold"
+                className="btn-outline px-5 py-2 text-sm font-medium flex items-center gap-1.5"
               >
-                Send Digest Now
+                ✉️ Send via Email
+              </button>
+              <button
+                onClick={handleDownloadPDF}
+                className="btn-primary px-5 py-2 text-sm font-semibold flex items-center gap-1.5"
+                style={{ background: '#BA2027' }}
+              >
+                📥 Download PDF Digest
               </button>
             </div>
           </motion.div>
