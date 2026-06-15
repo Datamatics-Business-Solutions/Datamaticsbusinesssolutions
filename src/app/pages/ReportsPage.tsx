@@ -6,10 +6,11 @@ import {
   Share2, Bookmark, BookmarkCheck, BarChart3, Activity, Zap, Filter
 } from 'lucide-react';
 import {
-  AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar,
+  AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar, LabelList,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { mockAnalytics, mockCampaigns } from '../mockData';
+import { getCampaignDemographics } from '../data/demographics';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { DateRangePicker } from '../components/DateRangePicker';
@@ -206,6 +207,10 @@ export default function ReportsPage() {
   const currentMetrics = campaignMetrics[selectedCampaign] || campaignMetrics['all'];
   const isSaved = savedReports.includes(dateRange);
 
+  // Geo + Industry breakdowns — manually entered via the Demographics module,
+  // computed (and aggregated for 'all') from the demographics store.
+  const demographics = getCampaignDemographics(selectedCampaign);
+
   // Get active and completed counts
   const activeCampaigns = currentMetrics.activeCampaigns;
   const completedCount = currentMetrics.completedCampaigns;
@@ -388,40 +393,44 @@ export default function ReportsPage() {
 
         {/* Lead Performance & Revenue Charts - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          {/* Lead Performance Trend */}
-          <ChartCard title="Lead Performance Trend">
-            <ResponsiveContainer width="100%" height={CHART_H}>
-              <AreaChart data={currentMetrics.monthlyData}>
-                <defs>
-                  <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="rgba(186,32,39,0.08)" stopOpacity={1} />
-                    <stop offset="95%" stopColor="rgba(186,32,39,0.08)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
-                <XAxis 
-                  dataKey="month" 
-                  style={{ fontSize: 10, fill: '#9CA3AF' }} 
-                  stroke="none"
-                  tickLine={false}
-                />
-                <YAxis 
-                  style={{ fontSize: 10, fill: '#9CA3AF' }} 
-                  stroke="none"
-                  tickLine={false}
-                />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Area 
-                  type="monotone" 
-                  dataKey="leads" 
-                  stroke="#BA2027" 
-                  strokeWidth={2}
-                  fillOpacity={1} 
-                  fill="url(#colorLeads)"
-                  dot={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          {/* Geographic Distribution (manually entered via Demographics module) */}
+          <ChartCard title="Geographic Distribution">
+            {demographics.geo.length === 0 ? (
+              <div className="flex items-center justify-center text-sm" style={{ height: CHART_H, color: 'var(--color-text-secondary)' }}>
+                No geo data entered yet.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={CHART_H}>
+                <BarChart layout="vertical" data={demographics.geo} margin={{ top: 4, right: 48, bottom: 4, left: 8 }}>
+                  <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" horizontal={false} />
+                  <XAxis type="number" hide domain={[0, 'dataMax']} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={104}
+                    style={{ fontSize: 11, fill: '#6B7280' }}
+                    stroke="none"
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={TOOLTIP_STYLE}
+                    formatter={(v: any, _n: any, p: any) => [`${v}% · ${p.payload.count.toLocaleString()} leads`, 'Share']}
+                  />
+                  <Bar dataKey="percentage" radius={[0, 6, 6, 0]} maxBarSize={22}>
+                    {demographics.geo.map((_e, i) => (
+                      <Cell key={`geo-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                    ))}
+                    <LabelList
+                      dataKey="percentage"
+                      position="right"
+                      formatter={(v: any) => `${v}%`}
+                      style={{ fontSize: 11, fill: '#6B7280', fontWeight: 600 }}
+                    />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </ChartCard>
 
           {/* Monthly Revenue Trend */}
@@ -525,43 +534,47 @@ export default function ReportsPage() {
               </ResponsiveContainer>
             </div>
 
-            {/* Conversion Rate Trend */}
+            {/* Industry Distribution (manually entered via Demographics module) */}
             <div className="glass-card p-4">
               <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
-                Conversion Trend
+                Industry Distribution
               </h3>
-              <ResponsiveContainer width="100%" height={CHART_H_SM}>
-                <AreaChart data={currentMetrics.monthlyData}>
-                  <defs>
-                    <linearGradient id="colorConversions" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="rgba(186,32,39,0.2)" stopOpacity={1} />
-                      <stop offset="95%" stopColor="rgba(186,32,39,0.2)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
-                  <XAxis 
-                    dataKey="month" 
-                    style={{ fontSize: 9, fill: '#9CA3AF' }} 
-                    stroke="none"
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    style={{ fontSize: 9, fill: '#9CA3AF' }} 
-                    stroke="none"
-                    tickLine={false}
-                  />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="conversions" 
-                    stroke="#BA2027" 
-                    strokeWidth={2}
-                    fillOpacity={1} 
-                    fill="url(#colorConversions)"
-                    dot={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {demographics.industry.length === 0 ? (
+                <div className="flex items-center justify-center text-sm" style={{ height: CHART_H_SM, color: 'var(--color-text-secondary)' }}>
+                  No industry data entered yet.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={CHART_H_SM}>
+                  <BarChart layout="vertical" data={demographics.industry} margin={{ top: 4, right: 48, bottom: 4, left: 8 }}>
+                    <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" horizontal={false} />
+                    <XAxis type="number" hide domain={[0, 'dataMax']} />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={110}
+                      style={{ fontSize: 10, fill: '#6B7280' }}
+                      stroke="none"
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={TOOLTIP_STYLE}
+                      formatter={(v: any, _n: any, p: any) => [`${v}% · ${p.payload.count.toLocaleString()} leads`, 'Share']}
+                    />
+                    <Bar dataKey="percentage" radius={[0, 6, 6, 0]} maxBarSize={20}>
+                      {demographics.industry.map((_e, i) => (
+                        <Cell key={`ind-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                      <LabelList
+                        dataKey="percentage"
+                        position="right"
+                        formatter={(v: any) => `${v}%`}
+                        style={{ fontSize: 10, fill: '#6B7280', fontWeight: 600 }}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>

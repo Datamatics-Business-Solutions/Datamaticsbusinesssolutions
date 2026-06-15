@@ -32,6 +32,7 @@ const ClientAssignmentPage = lazy(() => import('./pages/ClientAssignmentPage'));
 const ErrorBoundary = lazy(() => import('./pages/ErrorBoundary'));
 const CampaignApprovalsPage = lazy(() => import('./pages/CampaignApprovalsPage'));
 const OpsOverridePage = lazy(() => import('./pages/OpsOverridePage'));
+const DemographicsEntryPage = lazy(() => import('./pages/DemographicsEntryPage'));
 
 // Wraps every lazy page in a Suspense boundary with a slim top-bar loader.
 // The full SplashLoader is intentionally NOT used here — it is too intrusive
@@ -147,6 +148,17 @@ export const router = createBrowserRouter([
     path: '/internal/ops-override',
     Component: () => {
       const SuspendedPage = withSuspense(OpsOverridePage);
+      return (
+        <ProtectedRoute blockClient={true} requireManager={true}>
+          <SuspendedPage />
+        </ProtectedRoute>
+      );
+    }
+  },
+  {
+    path: '/internal/demographics',
+    Component: () => {
+      const SuspendedPage = withSuspense(DemographicsEntryPage);
       return (
         <ProtectedRoute blockClient={true} requireManager={true}>
           <SuspendedPage />

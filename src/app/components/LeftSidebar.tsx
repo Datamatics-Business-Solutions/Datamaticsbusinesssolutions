@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router';
 import {
   LayoutDashboard,
   BarChart2,
+  Globe,
   Users,
   FileBarChart,
   MessageCircle,
@@ -194,6 +195,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         },
         { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
         { name: 'Metrics Override', icon: BarChart2, path: '/internal/ops-override', section: 'PLATFORM' },
+        { name: 'Lead Demographics', icon: Globe, path: '/internal/demographics', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
         { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
       ];
@@ -231,6 +233,7 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         },
         { name: 'Reports', icon: FileBarChart, path: '/internal/reports', section: 'PLATFORM' },
         { name: 'Metrics Override', icon: BarChart2, path: '/internal/ops-override', section: 'PLATFORM' },
+        { name: 'Lead Demographics', icon: Globe, path: '/internal/demographics', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
         { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
       ];
