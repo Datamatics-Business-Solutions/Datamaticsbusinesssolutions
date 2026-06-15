@@ -310,12 +310,33 @@ export default function CampaignList() {
     setTimeout(() => setShowSuccessMessage(false), 5000);
   };
 
+  // Historical filter keys off the campaign START date (when it began),
+  // not the end date — "last 3 months" means started in that window.
+  const matchesDateRange = (startDateStr: string): boolean => {
+    if (dateRange === 'All time') return true;
+    const start = new Date(startDateStr);
+    if (isNaN(start.getTime())) return true;
+    const now = new Date();
+    if (dateRange === 'This month') {
+      return start.getFullYear() === now.getFullYear() && start.getMonth() === now.getMonth();
+    }
+    if (dateRange === 'Last 3 months') {
+      const cutoff = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+      return start >= cutoff;
+    }
+    if (dateRange === 'This year') {
+      return start.getFullYear() === now.getFullYear();
+    }
+    return true;
+  };
+
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
     // Client view: only show Intentsify campaigns (demo client)
     const matchesClient = campaign.clientCompany === 'Intentsify';
-    return matchesSearch && matchesStatus && matchesClient;
+    const matchesDate = matchesDateRange(campaign.startDate);
+    return matchesSearch && matchesStatus && matchesClient && matchesDate;
   });
 
   // Only show submissions that are still actionable (not yet approved/declined)

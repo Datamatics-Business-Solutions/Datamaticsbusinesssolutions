@@ -75,6 +75,12 @@ export default function CampaignDetail() {
     ? Math.min(100, Math.round((deliveredLeads / targetLeads) * 100))
     : 0;
 
+  // CPL × delivered leads = total billable to the client (client-facing "revenue").
+  // CPL derives from the agreed budget ÷ target when not set explicitly.
+  const cpl = (campaign as any).cpl ?? (campaign.budget && targetLeads ? Math.round(campaign.budget / targetLeads) : 50);
+  const totalBillable = cpl * deliveredLeads;
+  const fmtMoney = (n: number) => '$' + n.toLocaleString('en-US');
+
   const health = getCampaignHealth(campaign);
   const activities = getActivitiesForCampaign(campaign.id);
   const replacementStats = getReplacementStats(campaign.id);
@@ -166,14 +172,24 @@ export default function CampaignDetail() {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 stagger-children">
-          <div className="kpi-card animate-slideInUp">
+          {/* Total Billable — larger (spans 2), brand-tinted, CPL inside */}
+          <div className="kpi-card animate-slideInUp col-span-2 flex flex-col justify-between"
+            style={{ background: 'linear-gradient(135deg, rgba(186,32,39,0.06), rgba(186,32,39,0.01))', border: '1px solid rgba(186,32,39,0.18)' }}>
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-primary-tint)' }}>
-                <Target className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                <DollarSign className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+              </div>
+              <span className="px-2 py-1 rounded-md" style={{ fontSize: '11px', fontWeight: 700, background: 'rgba(186,32,39,0.10)', color: '#BA2027' }}>
+                {fmtMoney(cpl)} CPL
+              </span>
+            </div>
+            <div>
+              <div className="kpi-card__number" style={{ fontSize: '30px', lineHeight: 1.1 }}>{fmtMoney(totalBillable)}</div>
+              <div className="kpi-card__label">Total Billable</div>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                {deliveredLeads.toLocaleString()} leads × {fmtMoney(cpl)} CPL
               </div>
             </div>
-            <div className="kpi-card__number">{campaign.target || campaign.totalLeads}</div>
-            <div className="kpi-card__label">Target</div>
           </div>
 
           <div className="kpi-card animate-slideInUp">
@@ -182,8 +198,8 @@ export default function CampaignDetail() {
                 <TrendingUp className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
               </div>
             </div>
-            <div className="kpi-card__number">{campaign.delivered || campaign.totalLeads}</div>
-            <div className="kpi-card__label">Delivered</div>
+            <div className="kpi-card__number">{deliveredLeads.toLocaleString()}</div>
+            <div className="kpi-card__label">Total Leads</div>
           </div>
 
           <div className="kpi-card animate-slideInUp">
@@ -194,16 +210,6 @@ export default function CampaignDetail() {
             </div>
             <div className="kpi-card__number">{acceptanceRate}%</div>
             <div className="kpi-card__label">Acceptance</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-success-bg)' }}>
-                <DollarSign className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
-              </div>
-            </div>
-            <div className="kpi-card__number">${campaign.budget ? (campaign.budget / 1000).toFixed(0) : '0'}K</div>
-            <div className="kpi-card__label">Budget</div>
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, Target, CheckCircle, Download,
-  Share2, Bookmark, BookmarkCheck, BarChart3, Activity, Zap, Filter,
+  Share2, BarChart3, Activity, Zap, Filter,
   Globe, Building2, IdCard
 } from 'lucide-react';
 import {
@@ -84,7 +84,6 @@ export default function ReportsPage() {
   const { currentUser } = useAuth();
   const [dateRange, setDateRange] = useState('30days');
   const [showExportModal, setShowExportModal] = useState(false);
-  const [savedReports, setSavedReports] = useState<string[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
   const [scope, setScope] = useState<CampaignStatus>('active');
   const [search, setSearch] = useState('');
@@ -240,7 +239,6 @@ export default function ReportsPage() {
   };
 
   const currentMetrics = campaignMetrics[selectedCampaign] || campaignMetrics['all'];
-  const isSaved = savedReports.includes(dateRange);
 
   // Geo/Industry/Size/Title — manually entered via the Demographics module,
   // computed (and scope-aggregated for 'all') from the demographics store.
@@ -261,7 +259,8 @@ export default function ReportsPage() {
   const convDelta = md.length >= 2 ? pctChange(md[md.length - 1].conversions, md[md.length - 2].conversions) : 0;
 
   // Period selector re-slices the revenue series so the control visibly responds.
-  const revData = period === 'month' ? md.slice(-2) : period === 'quarter' ? md.slice(-3) : md;
+  // Trend always shows the full trailing 6 months of billable.
+  const revData = md;
 
   // Lead quality split for the accepted-vs-rejected bar.
   const acceptedPct = currentMetrics.acceptance;
@@ -276,7 +275,7 @@ export default function ReportsPage() {
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto page-content animate-fadeIn`}>
+      <div className={`max-w-[1120px] mx-auto page-content animate-fadeIn`}>
         {/* Compact Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div>
@@ -288,21 +287,6 @@ export default function ReportsPage() {
             </p>
           </div>
           <div className="flex gap-2 flex-wrap items-center">
-            <button
-              onClick={() => {
-                if (isSaved) {
-                  setSavedReports(savedReports.filter(r => r !== dateRange));
-                  toast.success('Report removed from saved');
-                } else {
-                  setSavedReports([...savedReports, dateRange]);
-                  toast.success('Report saved successfully');
-                }
-              }}
-              className="btn-outline px-3 py-2 flex items-center gap-2"
-            >
-              {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
-              {isSaved ? 'Saved' : 'Save'}
-            </button>
             <button
               onClick={() => setShowExportModal(true)}
               className="btn-primary px-3 py-2 flex items-center gap-2"
@@ -446,7 +430,7 @@ export default function ReportsPage() {
               <DollarSign className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
             </div>
             <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>${(currentMetrics.revenue / 1000).toFixed(0)}K</div>
-            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Revenue</div>
+            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Billable</div>
             <div style={{ fontSize: '10px', fontWeight: 600, color: revDelta >= 0 ? '#0F9D58' : '#BA2027' }}>{revDelta >= 0 ? '▲' : '▼'} {Math.abs(revDelta)}% vs last mo</div>
           </div>
 
@@ -467,15 +451,15 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Monthly revenue trend */}
-        <ChartCard title="Monthly Revenue Trend">
+        {/* Monthly billable trend — trailing 6 months */}
+        <ChartCard title="Monthly Billable Trend">
           <ResponsiveContainer width="100%" height={CHART_H}>
             <BarChart data={revData} barCategoryGap="20%">
               <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
               <XAxis dataKey="month" style={{ fontSize: 10, fill: '#9CA3AF' }} stroke="none" tickLine={false} />
               <YAxis style={{ fontSize: 10, fill: '#9CA3AF' }} stroke="none" tickLine={false} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Bar dataKey="revenue" fill="#3E5C8A" radius={[6, 6, 0, 0]} maxBarSize={40} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any) => [`$${Number(v).toLocaleString()}`, 'Billable']} />
+              <Bar dataKey="revenue" name="Billable" fill="#3E5C8A" radius={[6, 6, 0, 0]} maxBarSize={40} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -493,14 +477,14 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Lead quality — accepted vs rejected */}
+        {/* Conversion — leads sent → accepted */}
         <div className="glass-card p-4 mt-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-              <CheckCircle className="w-4 h-4 text-[#BA2027]" /> Lead Quality
+              <CheckCircle className="w-4 h-4 text-[#BA2027]" /> Conversion
             </h3>
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              {currentMetrics.totalLeads.toLocaleString()} total · {rejectedCount.toLocaleString()} rejected
+              {currentMetrics.totalLeads.toLocaleString()} sent · {(currentMetrics.totalLeads - rejectedCount).toLocaleString()} accepted ({acceptedPct}%)
             </span>
           </div>
           <div className="flex h-4 rounded-lg overflow-hidden">
@@ -509,7 +493,7 @@ export default function ReportsPage() {
           </div>
           <div className="flex gap-5 mt-2.5" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#1D9E75' }} />Accepted {acceptedPct}%</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm border" style={{ background: 'var(--background-muted)', borderColor: 'var(--color-border)' }} />Rejected {rejectedPct}%</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm border" style={{ background: 'var(--background-muted)', borderColor: 'var(--color-border)' }} />Not accepted {rejectedPct}%</span>
           </div>
         </div>
       </div>

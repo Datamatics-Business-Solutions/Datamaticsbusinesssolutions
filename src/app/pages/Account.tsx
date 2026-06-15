@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   User, Mail, Phone, Building2, MapPin, Globe, Lock, Bell, Shield,
   Smartphone, Monitor, Users, UserPlus, Trash2, Edit, Check, X,
-  Key, Activity, Chrome, Calendar, CreditCard, Eye, EyeOff, Save
+  Key, Activity, Chrome, Calendar, CreditCard, Eye, EyeOff, Save, LayoutDashboard
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
@@ -11,16 +11,25 @@ import { AnimatedCounter } from '../components/AnimatedCounter';
 import { toast } from 'sonner';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { NotificationsTabContent } from '../components/NotificationsTabContent';
+import { DASH_METRICS, getDashPrefs, setDashMetric, type DashMetricKey } from '../data/dashboardPrefs';
 
 export default function Account() {
   useDocumentTitle('Account Settings');
   const { currentUser } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'company' | 'team' | 'security' | 'notifications'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'company' | 'team' | 'security' | 'notifications' | 'dashboard'>('profile');
   const [showPassword, setShowPassword] = useState(false);
+  const [dashPrefs, setDashPrefs] = useState(getDashPrefs);
+
+  const toggleDashMetric = (key: DashMetricKey) => {
+    const next = !dashPrefs[key];
+    setDashMetric(key, next);
+    setDashPrefs((p) => ({ ...p, [key]: next }));
+  };
 
   const tabs = [
     { id: 'profile', label: 'My Profile', icon: User },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'company', label: 'Company Info', icon: Building2 },
     { id: 'team', label: 'Team Members', icon: Users },
     { id: 'security', label: 'Security', icon: Shield },
@@ -115,6 +124,42 @@ export default function Account() {
                   <Save className="w-4 h-4" />
                   Save Changes
                 </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'dashboard' && (
+            <div className="space-y-6">
+              <div>
+                <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+                  Dashboard Metrics
+                </h2>
+                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }} className="mt-1">
+                  Choose which summary cards appear at the top of your dashboard. Hidden cards are removed and the row reflows automatically.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {DASH_METRICS.map((m) => {
+                  const on = dashPrefs[m.key];
+                  return (
+                    <div key={m.key} className="flex items-center justify-between p-4 rounded-xl" style={{ border: '1px solid var(--color-border)' }}>
+                      <div>
+                        <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>{m.label}</div>
+                        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{m.description}</div>
+                      </div>
+                      <button
+                        onClick={() => toggleDashMetric(m.key)}
+                        role="switch"
+                        aria-checked={on}
+                        aria-label={`Toggle ${m.label}`}
+                        className="relative rounded-full transition-colors flex-shrink-0"
+                        style={{ width: 44, height: 24, background: on ? '#BA2027' : 'var(--color-border)' }}
+                      >
+                        <span className="absolute rounded-full bg-white shadow transition-transform" style={{ width: 18, height: 18, top: 3, left: 3, transform: on ? 'translateX(20px)' : 'translateX(0)' }} />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
