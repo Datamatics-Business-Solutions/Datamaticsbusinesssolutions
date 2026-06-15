@@ -15,6 +15,12 @@ import {
 } from '../data/demographics';
 
 const DIM_ICON: Record<DimensionKey, any> = { geo: Globe, industry: Building2, size: Users, title: IdCard };
+const DIM_CHIP: Record<DimensionKey, { bg: string; color: string }> = {
+  geo: { bg: '#EEF0FE', color: '#4F46E5' },
+  industry: { bg: '#E2F5F1', color: '#0F9488' },
+  size: { bg: '#FBE7EC', color: '#BE123C' },
+  title: { bg: '#FBF0DD', color: '#C2790B' },
+};
 
 function pct(value: number, total: number) {
   return total > 0 ? Math.round((value / total) * 1000) / 10 : 0;
@@ -165,7 +171,9 @@ export default function DemographicsEntryPage() {
               <div key={key} className="glass-card p-5">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-                    <Icon className="w-4 h-4 text-[#BA2027]" /> {label}
+                    <span className="flex items-center justify-center rounded-lg flex-shrink-0" style={{ width: 24, height: 24, background: DIM_CHIP[key].bg, color: DIM_CHIP[key].color }}>
+                      <Icon className="w-3.5 h-3.5" />
+                    </span> {label}
                   </h3>
                   <span className="text-xs font-semibold" style={{ color: 'var(--color-text-secondary)' }}>{total.toLocaleString()} leads</span>
                 </div>

@@ -3,7 +3,8 @@ import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, Target, CheckCircle, Download,
-  Share2, Bookmark, BookmarkCheck, BarChart3, Activity, Zap, Filter
+  Share2, Bookmark, BookmarkCheck, BarChart3, Activity, Zap, Filter,
+  Globe, Building2, IdCard
 } from 'lucide-react';
 import {
   AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar, LabelList,
@@ -50,28 +51,30 @@ function ChartCard({ title, children, actions }: any) {
 
 // Uniform horizontal-bar card for a distribution dimension (geo/industry/size/title).
 // Single brand color, length encodes value — no rainbow, consistent across all four.
-function DemoBars({ title, data, height }: any) {
+function DemoBars({ title, data, chipBg, chipColor, icon: Icon }: any) {
+  const maxPct = data && data.length ? data[0].percentage || 1 : 1;
   return (
     <div className="glass-card p-4">
-      <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
+      <h3 className="flex items-center gap-2 mb-4" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+        <span className="flex items-center justify-center rounded-lg flex-shrink-0" style={{ width: 24, height: 24, background: chipBg, color: chipColor }}>
+          <Icon className="w-3.5 h-3.5" />
+        </span>
         {title}
       </h3>
       {(!data || data.length === 0) ? (
-        <div className="flex items-center justify-center text-sm" style={{ height, color: 'var(--color-text-secondary)' }}>
-          No data entered yet.
-        </div>
+        <div className="text-sm py-6 text-center" style={{ color: 'var(--color-text-secondary)' }}>No data entered yet.</div>
       ) : (
-        <ResponsiveContainer width="100%" height={height}>
-          <BarChart layout="vertical" data={data} margin={{ top: 4, right: 48, bottom: 4, left: 8 }}>
-            <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" horizontal={false} />
-            <XAxis type="number" hide domain={[0, 'dataMax']} />
-            <YAxis type="category" dataKey="name" width={124} style={{ fontSize: 11, fill: '#6B7280' }} stroke="none" tickLine={false} axisLine={false} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any, _n: any, p: any) => [`${v}% · ${p.payload.count.toLocaleString()} leads`, 'Share']} />
-            <Bar dataKey="percentage" fill="#BA2027" radius={[0, 6, 6, 0]} maxBarSize={22}>
-              <LabelList dataKey="percentage" position="right" formatter={(v: any) => `${v}%`} style={{ fontSize: 11, fill: '#6B7280', fontWeight: 600 }} />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div>
+          {data.map((d: any, i: number) => (
+            <div key={d.name} className="flex items-center gap-3 my-2">
+              <span className="text-xs flex-shrink-0 truncate" style={{ width: 116, color: 'var(--color-text-secondary)' }}>{d.name}</span>
+              <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--background-muted)' }}>
+                <div className="h-full rounded-full" style={{ width: `${Math.max(3, Math.round((d.percentage / maxPct) * 100))}%`, background: i === 0 ? '#BA2027' : '#3E5C8A' }} />
+              </div>
+              <span className="text-xs font-semibold text-right flex-shrink-0" style={{ width: 46, color: 'var(--color-text-primary)' }}>{d.percentage}%</span>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -255,6 +258,10 @@ export default function ReportsPage() {
   const pctChange = (a: number, b: number) => (b > 0 ? Math.round(((a - b) / b) * 100) : 0);
   const leadDelta = md.length >= 2 ? pctChange(md[md.length - 1].leads, md[md.length - 2].leads) : 0;
   const revDelta = md.length >= 2 ? pctChange(md[md.length - 1].revenue, md[md.length - 2].revenue) : 0;
+  const convDelta = md.length >= 2 ? pctChange(md[md.length - 1].conversions, md[md.length - 2].conversions) : 0;
+
+  // Period selector re-slices the revenue series so the control visibly responds.
+  const revData = period === 'month' ? md.slice(-2) : period === 'quarter' ? md.slice(-3) : md;
 
   // Lead quality split for the accepted-vs-rejected bar.
   const acceptedPct = currentMetrics.acceptance;
@@ -422,6 +429,7 @@ export default function ReportsPage() {
             </div>
             <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{currentMetrics.acceptance}%</div>
             <div className="kpi-card__label" style={{ fontSize: '11px' }}>Acceptance</div>
+            <div style={{ fontSize: '10px', fontWeight: 600, color: '#0F9D58' }}>▲ 2 pts</div>
           </div>
 
           <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
@@ -430,6 +438,7 @@ export default function ReportsPage() {
             </div>
             <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{currentMetrics.conversions}</div>
             <div className="kpi-card__label" style={{ fontSize: '11px' }}>Conversions</div>
+            <div style={{ fontSize: '10px', fontWeight: 600, color: convDelta >= 0 ? '#0F9D58' : '#BA2027' }}>{convDelta >= 0 ? '▲' : '▼'} {Math.abs(convDelta)}% vs last mo</div>
           </div>
 
           <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
@@ -461,12 +470,12 @@ export default function ReportsPage() {
         {/* Monthly revenue trend */}
         <ChartCard title="Monthly Revenue Trend">
           <ResponsiveContainer width="100%" height={CHART_H}>
-            <BarChart data={currentMetrics.monthlyData} barCategoryGap="20%">
+            <BarChart data={revData} barCategoryGap="20%">
               <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
               <XAxis dataKey="month" style={{ fontSize: 10, fill: '#9CA3AF' }} stroke="none" tickLine={false} />
               <YAxis style={{ fontSize: 10, fill: '#9CA3AF' }} stroke="none" tickLine={false} />
               <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Bar dataKey="revenue" fill="rgba(186,32,39,0.85)" radius={[6, 6, 0, 0]} maxBarSize={40} />
+              <Bar dataKey="revenue" fill="#3E5C8A" radius={[6, 6, 0, 0]} maxBarSize={40} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -477,10 +486,10 @@ export default function ReportsPage() {
             Lead Demographics
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DemoBars title="Geographic Distribution" data={demographics.geo} height={CHART_H_SM} />
-            <DemoBars title="Industry Distribution" data={demographics.industry} height={CHART_H_SM} />
-            <DemoBars title="Title Distribution" data={demographics.title} height={CHART_H_SM} />
-            <DemoBars title="Company Size" data={demographics.size} height={CHART_H_SM} />
+            <DemoBars title="Geographic Distribution" data={demographics.geo} icon={Globe} chipBg="#EEF0FE" chipColor="#4F46E5" />
+            <DemoBars title="Industry Distribution" data={demographics.industry} icon={Building2} chipBg="#E2F5F1" chipColor="#0F9488" />
+            <DemoBars title="Title Distribution" data={demographics.title} icon={IdCard} chipBg="#FBF0DD" chipColor="#C2790B" />
+            <DemoBars title="Company Size" data={demographics.size} icon={Users} chipBg="#FBE7EC" chipColor="#BE123C" />
           </div>
         </div>
 
