@@ -10,7 +10,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { mockAnalytics, mockCampaigns } from '../mockData';
-import { getCampaignDemographics } from '../data/demographics';
+import { getCampaignDemographics, getPacing, campaignsForScope, type CampaignStatus } from '../data/demographics';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { DateRangePicker } from '../components/DateRangePicker';
@@ -48,12 +48,44 @@ function ChartCard({ title, children, actions }: any) {
   );
 }
 
+// Uniform horizontal-bar card for a distribution dimension (geo/industry/size/title).
+// Single brand color, length encodes value — no rainbow, consistent across all four.
+function DemoBars({ title, data, height }: any) {
+  return (
+    <div className="glass-card p-4">
+      <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
+        {title}
+      </h3>
+      {(!data || data.length === 0) ? (
+        <div className="flex items-center justify-center text-sm" style={{ height, color: 'var(--color-text-secondary)' }}>
+          No data entered yet.
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={height}>
+          <BarChart layout="vertical" data={data} margin={{ top: 4, right: 48, bottom: 4, left: 8 }}>
+            <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" horizontal={false} />
+            <XAxis type="number" hide domain={[0, 'dataMax']} />
+            <YAxis type="category" dataKey="name" width={124} style={{ fontSize: 11, fill: '#6B7280' }} stroke="none" tickLine={false} axisLine={false} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any, _n: any, p: any) => [`${v}% · ${p.payload.count.toLocaleString()} leads`, 'Share']} />
+            <Bar dataKey="percentage" fill="#BA2027" radius={[0, 6, 6, 0]} maxBarSize={22}>
+              <LabelList dataKey="percentage" position="right" formatter={(v: any) => `${v}%`} style={{ fontSize: 11, fill: '#6B7280', fontWeight: 600 }} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  );
+}
+
 export default function ReportsPage() {
   const { currentUser } = useAuth();
   const [dateRange, setDateRange] = useState('30days');
   const [showExportModal, setShowExportModal] = useState(false);
   const [savedReports, setSavedReports] = useState<string[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
+  const [scope, setScope] = useState<CampaignStatus>('active');
+  const [search, setSearch] = useState('');
+  const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('month');
 
   // Campaign-specific data
   const campaignMetrics: Record<string, any> = {
@@ -207,9 +239,27 @@ export default function ReportsPage() {
   const currentMetrics = campaignMetrics[selectedCampaign] || campaignMetrics['all'];
   const isSaved = savedReports.includes(dateRange);
 
-  // Geo + Industry breakdowns — manually entered via the Demographics module,
-  // computed (and aggregated for 'all') from the demographics store.
-  const demographics = getCampaignDemographics(selectedCampaign);
+  // Geo/Industry/Size/Title — manually entered via the Demographics module,
+  // computed (and scope-aggregated for 'all') from the demographics store.
+  const demographics = getCampaignDemographics(selectedCampaign, scope);
+  const pacing = getPacing(selectedCampaign, scope);
+  const pacingPct = pacing.monthTarget > 0 ? Math.round((pacing.monthDelivered / pacing.monthTarget) * 100) : 0;
+
+  // Campaigns matching the chosen scope + search, for the drill-down dropdown.
+  const scopedCampaigns = campaignsForScope(scope).filter((c) =>
+    c.toLowerCase().includes(search.trim().toLowerCase()),
+  );
+
+  // KPI movement vs the previous month in the series.
+  const md = currentMetrics.monthlyData || [];
+  const pctChange = (a: number, b: number) => (b > 0 ? Math.round(((a - b) / b) * 100) : 0);
+  const leadDelta = md.length >= 2 ? pctChange(md[md.length - 1].leads, md[md.length - 2].leads) : 0;
+  const revDelta = md.length >= 2 ? pctChange(md[md.length - 1].revenue, md[md.length - 2].revenue) : 0;
+
+  // Lead quality split for the accepted-vs-rejected bar.
+  const acceptedPct = currentMetrics.acceptance;
+  const rejectedPct = Math.round((100 - acceptedPct) * 10) / 10;
+  const rejectedCount = Math.round((currentMetrics.totalLeads * (100 - acceptedPct)) / 100);
 
   // Get active and completed counts
   const activeCampaigns = currentMetrics.activeCampaigns;
@@ -256,87 +306,102 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Campaign Filter Section - Prominent */}
+        {/* Filters: scope + search + period */}
         <div className="glass-card p-4 mb-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-[#BA2027]" />
-              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                Filter by Campaign:
-              </span>
-            </div>
-            <div className="flex-1 max-w-md">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Active / Completed scope */}
+              <div className="inline-flex rounded-lg overflow-hidden border" style={{ borderColor: 'var(--color-border)' }}>
+                {(['active', 'completed'] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => { setScope(s); setSelectedCampaign('all'); }}
+                    className="px-4 py-2 text-sm font-semibold capitalize transition-colors"
+                    style={{
+                      background: scope === s ? '#BA2027' : 'transparent',
+                      color: scope === s ? '#fff' : 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              {/* Search */}
+              <div className="relative">
+                <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-tertiary)' }} />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search campaigns…"
+                  className="input-base pl-9 pr-4 py-2.5 w-56"
+                  style={{ fontSize: 'var(--font-size-sm)' }}
+                />
+              </div>
+              {/* Campaign drill-down (scoped) */}
               <select
                 value={selectedCampaign}
                 onChange={(e) => setSelectedCampaign(e.target.value)}
-                className="input-base w-full px-4 py-2.5"
+                className="input-base px-4 py-2.5"
                 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)' }}
               >
-                <option value="all">All Campaigns</option>
-                <option value="IT Security">IT Security</option>
-                <option value="Healthcare Synd.">Healthcare Synd.</option>
-                <option value="Financial BANT">Financial BANT</option>
-                <option value="SaaS Appts">SaaS Appts</option>
+                <option value="all">All {scope} campaigns</option>
+                {scopedCampaigns.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
               </select>
             </div>
-            
-            {/* Campaign Status Indicator */}
-            <div className="flex items-center gap-2">
-              {selectedCampaign === 'all' ? (
-                // Show breakdown when all campaigns selected
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200">
-                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#059669' }}>
-                      {activeCampaigns} Active
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200">
-                    <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                    <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#6B7280' }}>
-                      {completedCount} Completed
-                    </span>
-                  </div>
-                  {pausedCampaigns > 0 && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-50 border border-yellow-200">
-                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                      <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#D97706' }}>
-                        {pausedCampaigns} Paused
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Show single status badge for specific campaign
-                <>
-                  {currentMetrics.activeCampaigns > 0 && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#059669' }}>
-                        Active
-                      </span>
-                    </div>
-                  )}
-                  {currentMetrics.completedCampaigns > 0 && currentMetrics.activeCampaigns === 0 && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200">
-                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                      <span style={{ fontSize: '13px', fontWeight: 'var(--font-weight-semibold)', color: '#6B7280' }}>
-                        Completed
-                      </span>
-                    </div>
-                  )}
-                </>
-              )}
+
+            <div className="flex items-center gap-3">
+              {/* Period */}
+              <div className="inline-flex rounded-lg overflow-hidden border" style={{ borderColor: 'var(--color-border)' }}>
+                {(['month', 'quarter', 'year'] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPeriod(p)}
+                    className="px-4 py-2 text-sm font-semibold capitalize transition-colors"
+                    style={{
+                      background: period === p ? '#BA2027' : 'transparent',
+                      color: period === p ? '#fff' : 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+              <span className="text-xs flex items-center gap-1 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
+                <Activity className="w-3.5 h-3.5" /> Data as of Jun 14
+              </span>
             </div>
-            
-            {selectedCampaign !== 'all' && (
-              <button
-                onClick={() => setSelectedCampaign('all')}
-                className="btn-outline px-3 py-2 text-sm whitespace-nowrap"
-              >
-                Clear Filter
-              </button>
-            )}
+          </div>
+        </div>
+
+        {/* This month — target vs delivered (pacing hero) */}
+        <div className="glass-card p-5 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+              <Target className="w-4 h-4 text-[#BA2027]" /> This month — target vs delivered
+            </h3>
+            <span
+              className="text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1"
+              style={{
+                background: pacingPct >= 60 ? 'rgba(16,163,127,0.12)' : 'rgba(245,158,11,0.14)',
+                color: pacingPct >= 60 ? '#0F9D58' : '#B45309',
+              }}
+            >
+              <CheckCircle className="w-3.5 h-3.5" /> {pacingPct >= 60 ? 'On track' : 'Behind pace'}
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2 mb-2">
+            <span style={{ fontSize: '30px', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+              {pacing.monthDelivered.toLocaleString()}
+            </span>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+              / {pacing.monthTarget.toLocaleString()} target · {pacingPct}%
+            </span>
+          </div>
+          <div className="w-full h-3.5 rounded-full overflow-hidden mb-1" style={{ background: 'var(--background-muted)' }}>
+            <div className="h-full rounded-full" style={{ width: `${Math.min(100, pacingPct)}%`, background: '#BA2027' }} />
           </div>
         </div>
 
@@ -348,6 +413,7 @@ export default function ReportsPage() {
             </div>
             <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{currentMetrics.totalLeads.toLocaleString()}</div>
             <div className="kpi-card__label" style={{ fontSize: '11px' }}>Total Leads</div>
+            <div style={{ fontSize: '10px', fontWeight: 600, color: leadDelta >= 0 ? '#0F9D58' : '#BA2027' }}>{leadDelta >= 0 ? '▲' : '▼'} {Math.abs(leadDelta)}% vs last mo</div>
           </div>
 
           <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
@@ -372,6 +438,7 @@ export default function ReportsPage() {
             </div>
             <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>${(currentMetrics.revenue / 1000).toFixed(0)}K</div>
             <div className="kpi-card__label" style={{ fontSize: '11px' }}>Revenue</div>
+            <div style={{ fontSize: '10px', fontWeight: 600, color: revDelta >= 0 ? '#0F9D58' : '#BA2027' }}>{revDelta >= 0 ? '▲' : '▼'} {Math.abs(revDelta)}% vs last mo</div>
           </div>
 
           <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
@@ -391,191 +458,49 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Lead Performance & Revenue Charts - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          {/* Geographic Distribution (manually entered via Demographics module) */}
-          <ChartCard title="Geographic Distribution">
-            {demographics.geo.length === 0 ? (
-              <div className="flex items-center justify-center text-sm" style={{ height: CHART_H, color: 'var(--color-text-secondary)' }}>
-                No geo data entered yet.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={CHART_H}>
-                <BarChart layout="vertical" data={demographics.geo} margin={{ top: 4, right: 48, bottom: 4, left: 8 }}>
-                  <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" horizontal={false} />
-                  <XAxis type="number" hide domain={[0, 'dataMax']} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={104}
-                    style={{ fontSize: 11, fill: '#6B7280' }}
-                    stroke="none"
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={TOOLTIP_STYLE}
-                    formatter={(v: any, _n: any, p: any) => [`${v}% · ${p.payload.count.toLocaleString()} leads`, 'Share']}
-                  />
-                  <Bar dataKey="percentage" radius={[0, 6, 6, 0]} maxBarSize={22}>
-                    {demographics.geo.map((_e, i) => (
-                      <Cell key={`geo-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                    ))}
-                    <LabelList
-                      dataKey="percentage"
-                      position="right"
-                      formatter={(v: any) => `${v}%`}
-                      style={{ fontSize: 11, fill: '#6B7280', fontWeight: 600 }}
-                    />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </ChartCard>
+        {/* Monthly revenue trend */}
+        <ChartCard title="Monthly Revenue Trend">
+          <ResponsiveContainer width="100%" height={CHART_H}>
+            <BarChart data={currentMetrics.monthlyData} barCategoryGap="20%">
+              <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
+              <XAxis dataKey="month" style={{ fontSize: 10, fill: '#9CA3AF' }} stroke="none" tickLine={false} />
+              <YAxis style={{ fontSize: 10, fill: '#9CA3AF' }} stroke="none" tickLine={false} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} />
+              <Bar dataKey="revenue" fill="rgba(186,32,39,0.85)" radius={[6, 6, 0, 0]} maxBarSize={40} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
 
-          {/* Monthly Revenue Trend */}
-          <ChartCard title="Monthly Revenue Trend">
-            <ResponsiveContainer width="100%" height={CHART_H}>
-              <BarChart data={currentMetrics.monthlyData} barCategoryGap="20%">
-                <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
-                <XAxis 
-                  dataKey="month" 
-                  style={{ fontSize: 10, fill: '#9CA3AF' }} 
-                  stroke="none"
-                  tickLine={false}
-                />
-                <YAxis 
-                  style={{ fontSize: 10, fill: '#9CA3AF' }} 
-                  stroke="none"
-                  tickLine={false}
-                />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Bar 
-                  dataKey="revenue" 
-                  fill="rgba(186,32,39,0.85)" 
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={40}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </div>
-
-        {/* Demographics Section - 3 columns */}
-        <div>
+        {/* Lead Demographics — all four dimensions as consistent bars */}
+        <div className="mt-4">
           <h2 style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)' }} className="mb-3">
             Lead Demographics
           </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DemoBars title="Geographic Distribution" data={demographics.geo} height={CHART_H_SM} />
+            <DemoBars title="Industry Distribution" data={demographics.industry} height={CHART_H_SM} />
+            <DemoBars title="Title Distribution" data={demographics.title} height={CHART_H_SM} />
+            <DemoBars title="Company Size" data={demographics.size} height={CHART_H_SM} />
+          </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Title Distribution */}
-            <div className="glass-card p-4">
-              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
-                Title Distribution
-              </h3>
-              <ResponsiveContainer width="100%" height={CHART_H_SM}>
-                <PieChart>
-                  <Pie
-                    data={currentMetrics.titleDistribution}
-                    dataKey="percentage"
-                    nameKey="title"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={70}
-                    label={({ percentage }) => `${percentage}%`}
-                    labelLine={true}
-                  >
-                    {currentMetrics.titleDistribution.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    align="center" 
-                    layout="horizontal"
-                    iconType="circle"
-                    wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Company Size Distribution */}
-            <div className="glass-card p-4">
-              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
-                Company Size
-              </h3>
-              <ResponsiveContainer width="100%" height={CHART_H_SM}>
-                <PieChart>
-                  <Pie
-                    data={currentMetrics.companySizeData}
-                    dataKey="percentage"
-                    nameKey="size"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={70}
-                    label={({ percentage }) => `${percentage}%`}
-                    labelLine={true}
-                  >
-                    {currentMetrics.companySizeData.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    align="center" 
-                    layout="horizontal"
-                    iconType="circle"
-                    wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Industry Distribution (manually entered via Demographics module) */}
-            <div className="glass-card p-4">
-              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }} className="mb-4">
-                Industry Distribution
-              </h3>
-              {demographics.industry.length === 0 ? (
-                <div className="flex items-center justify-center text-sm" style={{ height: CHART_H_SM, color: 'var(--color-text-secondary)' }}>
-                  No industry data entered yet.
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height={CHART_H_SM}>
-                  <BarChart layout="vertical" data={demographics.industry} margin={{ top: 4, right: 48, bottom: 4, left: 8 }}>
-                    <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" horizontal={false} />
-                    <XAxis type="number" hide domain={[0, 'dataMax']} />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      width={110}
-                      style={{ fontSize: 10, fill: '#6B7280' }}
-                      stroke="none"
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Tooltip
-                      contentStyle={TOOLTIP_STYLE}
-                      formatter={(v: any, _n: any, p: any) => [`${v}% · ${p.payload.count.toLocaleString()} leads`, 'Share']}
-                    />
-                    <Bar dataKey="percentage" radius={[0, 6, 6, 0]} maxBarSize={20}>
-                      {demographics.industry.map((_e, i) => (
-                        <Cell key={`ind-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                      ))}
-                      <LabelList
-                        dataKey="percentage"
-                        position="right"
-                        formatter={(v: any) => `${v}%`}
-                        style={{ fontSize: 10, fill: '#6B7280', fontWeight: 600 }}
-                      />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
+        {/* Lead quality — accepted vs rejected */}
+        <div className="glass-card p-4 mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+              <CheckCircle className="w-4 h-4 text-[#BA2027]" /> Lead Quality
+            </h3>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+              {currentMetrics.totalLeads.toLocaleString()} total · {rejectedCount.toLocaleString()} rejected
+            </span>
+          </div>
+          <div className="flex h-4 rounded-lg overflow-hidden">
+            <div style={{ width: `${acceptedPct}%`, background: '#1D9E75' }} />
+            <div style={{ width: `${rejectedPct}%`, background: 'var(--background-muted)' }} />
+          </div>
+          <div className="flex gap-5 mt-2.5" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#1D9E75' }} />Accepted {acceptedPct}%</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm border" style={{ background: 'var(--background-muted)', borderColor: 'var(--color-border)' }} />Rejected {rejectedPct}%</span>
           </div>
         </div>
       </div>
