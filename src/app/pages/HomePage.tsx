@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { OnboardingTour } from '../components/OnboardingTour';
@@ -16,6 +16,7 @@ import { getAccountTeam, allClients } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
 import { PersonAvatar } from '../components/PersonAvatar';
 import { getPersonPhoto } from '../data/personPhotos';
+import { getDashPrefs, subscribeDashPrefs, type DashPrefs } from '../data/dashboardPrefs';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function getGreeting() {
@@ -53,6 +54,10 @@ export default function HomePage() {
 
   // ── Email digest modal ──────────────────────────────────────────────────────
   const [showDigest, setShowDigest] = useState(false);
+
+  // ── Client-controlled KPI visibility (reflows the 4-card row) ────────────────
+  const [prefs, setPrefs] = useState<DashPrefs>(getDashPrefs);
+  useEffect(() => subscribeDashPrefs(() => setPrefs(getDashPrefs())), []);
 
   // ── Business period toggle ──────────────────────────────────────────────────
   const [bizPeriod, setBizPeriod] = useState<'month' | 'year'>('month');
@@ -219,6 +224,7 @@ export default function HomePage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
           {/* 1 — Total Leads This Month */}
+          {prefs.totalLeads && (
           <motion.div
             className="relative overflow-hidden rounded-2xl p-3 sm:p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -3, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
@@ -254,8 +260,10 @@ export default function HomePage() {
               <p className="text-xs text-[#9CA3AF]">{leadsLabel}</p>
             </div>
           </motion.div>
+          )}
 
           {/* 2 — Total Business */}
+          {prefs.totalBusiness && (
           <motion.div
             className="relative overflow-hidden rounded-2xl p-3 sm:p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -3, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
@@ -289,8 +297,10 @@ export default function HomePage() {
               <p className="text-xs text-[#9CA3AF] leading-snug">{bizLabel} · accepted × CPL</p>
             </div>
           </motion.div>
+          )}
 
           {/* 3 — Campaigns */}
+          {prefs.campaigns && (
           <motion.div
             className="relative overflow-hidden rounded-2xl p-3 sm:p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -3, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
@@ -395,8 +405,10 @@ export default function HomePage() {
               </div>
             </div>
           </motion.div>
+          )}
 
           {/* 4 — Pending Invoices & Signatures */}
+          {prefs.actionRequired && (
           <motion.div
             className="relative overflow-hidden rounded-2xl p-3 sm:p-5 bg-white/60 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
             whileHover={{ y: -3, boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}
@@ -448,6 +460,7 @@ export default function HomePage() {
               </motion.button>
             </div>
           </motion.div>
+          )}
         </div>
 
         {/* ── Recent Activity & Needs Attention ──────────────────────────── */}

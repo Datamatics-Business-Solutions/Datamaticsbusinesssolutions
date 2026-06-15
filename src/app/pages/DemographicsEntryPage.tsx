@@ -13,6 +13,7 @@ import {
   type DemographicEntry,
   type DimensionKey,
 } from '../data/demographics';
+import { BatchUpload } from '../components/BatchUpload';
 
 const DIM_ICON: Record<DimensionKey, any> = { geo: Globe, industry: Building2, size: Users, title: IdCard };
 const DIM_CHIP: Record<DimensionKey, { bg: string; color: string }> = {
@@ -51,6 +52,20 @@ export default function DemographicsEntryPage() {
     setEntry((p) => ({ ...p, [dim]: { ...(p[dim] as Counts), [option]: v } }));
   const setPacing = (field: 'monthTarget' | 'monthDelivered', v: number) =>
     setEntry((p) => ({ ...p, pacing: { ...p.pacing, [field]: v } }));
+
+  // Cumulative: each uploaded batch ADDS to the running totals (a campaign's
+  // demographics accumulate delivery over delivery). Operator can still edit after.
+  const mergeBatch = (counts: Record<DimensionKey, Counts>) => {
+    setEntry((p) => {
+      const next = { ...p };
+      (Object.keys(counts) as DimensionKey[]).forEach((dim) => {
+        const merged = { ...(p[dim] as Counts) };
+        Object.entries(counts[dim]).forEach(([k, v]) => { merged[k] = (merged[k] || 0) + v; });
+        next[dim] = merged;
+      });
+      return next;
+    });
+  };
 
   // Integrity: every lead has all four attributes, so the four dimension
   // totals should match. Surface any mismatch before it reaches the client.
@@ -117,6 +132,9 @@ export default function DemographicsEntryPage() {
             );
           })}
         </div>
+
+        {/* Excel batch upload → deterministic parse → cumulative merge */}
+        <BatchUpload campaignKey={selected} onMerge={mergeBatch} />
 
         {/* This month pacing */}
         <div className="glass-card p-5 mb-4">
