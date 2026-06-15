@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import * as XLSX from 'xlsx';
 import { Upload, FileSpreadsheet, Sparkles, Check, AlertTriangle, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { DIMENSIONS, type DimensionKey, type Counts } from '../data/demographics';
@@ -41,6 +40,8 @@ export function BatchUpload({ campaignKey, onMerge }: Props) {
     if (!file) return;
     try {
       setBusy(true);
+      // xlsx is heavy (~340kB); load it on demand so it stays out of the page's initial chunk.
+      const XLSX = await import('xlsx');
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf);
       const ws = wb.Sheets[wb.SheetNames[0]];
