@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { OnboardingTour } from '../components/OnboardingTour';
+import { IntroShowcase, shouldShowIntro, markIntroSeen } from '../components/IntroShowcase';
 import { EmailDigestModal } from '../components/EmailDigestModal';
 import {
   CheckCircle2, FileText, Layers, Users, TrendingUp,
@@ -58,6 +58,9 @@ export default function HomePage() {
   // ── Client-controlled KPI visibility (reflows the 4-card row) ────────────────
   const [prefs, setPrefs] = useState<DashPrefs>(getDashPrefs);
   useEffect(() => subscribeDashPrefs(() => setPrefs(getDashPrefs())), []);
+
+  // First-load showcase — plays Design's animation over the dashboard, then reveals it
+  const [showIntro, setShowIntro] = useState(shouldShowIntro);
 
   // ── Business period toggle ──────────────────────────────────────────────────
   const [bizPeriod, setBizPeriod] = useState<'month' | 'year'>('month');
@@ -580,7 +583,7 @@ export default function HomePage() {
       </div>
 
       <EmailDigestModal isOpen={showDigest} onClose={() => setShowDigest(false)} />
-      <OnboardingTour />
+      {showIntro && <IntroShowcase onDone={() => { markIntroSeen(); setShowIntro(false); }} />}
     </AppLayout>
   );
 }
