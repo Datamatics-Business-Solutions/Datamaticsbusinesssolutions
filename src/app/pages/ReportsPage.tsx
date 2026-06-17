@@ -34,6 +34,25 @@ const TOOLTIP_STYLE = {
 };
 
 // Compact Chart Card
+// Account-level billable, trailing 12 months + same month prior year (YoY).
+// Mocked for the demo; the backend supplies real figures and should set
+// `prev` to null for months with no prior-year history (chart degrades to
+// a single series automatically — see hasPrevYear).
+const BILLABLE_TREND_12 = [
+  { label: 'Jul', current: 16000, prev: 12000 },
+  { label: 'Aug', current: 18500, prev: 13500 },
+  { label: 'Sep', current: 21000, prev: 15000 },
+  { label: 'Oct', current: 23000, prev: 16500 },
+  { label: 'Nov', current: 26000, prev: 18000 },
+  { label: 'Dec', current: 28000, prev: 19500 },
+  { label: 'Jan', current: 27000, prev: 18500 },
+  { label: 'Feb', current: 31000, prev: 21000 },
+  { label: 'Mar', current: 34000, prev: 23000 },
+  { label: 'Apr', current: 39000, prev: 25500 },
+  { label: 'May', current: 43500, prev: 28000 },
+  { label: 'Jun', current: 48250, prev: 31000 },
+];
+
 function ChartCard({ title, children, actions }: any) {
   return (
     <div className="glass-card p-4 transition-all hover:shadow-lg animate-fadeIn">
@@ -258,9 +277,12 @@ export default function ReportsPage() {
   const revDelta = md.length >= 2 ? pctChange(md[md.length - 1].revenue, md[md.length - 2].revenue) : 0;
   const convDelta = md.length >= 2 ? pctChange(md[md.length - 1].conversions, md[md.length - 2].conversions) : 0;
 
-  // Period selector re-slices the revenue series so the control visibly responds.
-  // Trend always shows the full trailing 6 months of billable.
-  const revData = md;
+  // Account-level billable trend (trailing 12 months + prior year). This is the
+  // total billing relationship, so it is intentionally independent of the campaign
+  // scope / search / period filters below. hasPrevYear hides the prior-year series
+  // (and its legend) when the backend reports no comparable history.
+  const billableTrend = BILLABLE_TREND_12;
+  const hasPrevYear = billableTrend.some((d) => (d.prev ?? 0) > 0);
 
   // Lead quality split for the accepted-vs-rejected bar.
   const acceptedPct = currentMetrics.acceptance;
@@ -295,6 +317,67 @@ export default function ReportsPage() {
               Export
             </button>
           </div>
+        </div>
+
+        {/* Account-level billing overview — sits above (and independent of) the
+            campaign filters. Slate-washed surface so it reads as its own section
+            and doesn't get lost among the white analytics cards. */}
+        <div
+          className="rounded-2xl p-5 mb-4 animate-fadeIn"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(62,92,138,0.13), rgba(62,92,138,0.05))',
+            border: '1px solid rgba(62,92,138,0.22)',
+            boxShadow: '0 10px 30px rgba(30,45,73,0.10)',
+          }}
+        >
+          <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+            <h3
+              className="flex items-center gap-2"
+              style={{
+                fontSize: 'var(--font-size-base)',
+                fontWeight: 'var(--font-weight-bold)' as any,
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              <BarChart3 className="w-4 h-4" style={{ color: '#BA2027' }} />
+              Monthly Billable Trend
+            </h3>
+            <div
+              className="flex items-center gap-4"
+              style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}
+            >
+              {hasPrevYear && (
+                <span className="flex items-center gap-1.5">
+                  <span style={{ width: 10, height: 10, borderRadius: 3, background: '#AEB8C9', display: 'inline-block' }} />
+                  Last year
+                </span>
+              )}
+              <span className="flex items-center gap-1.5">
+                <span style={{ width: 10, height: 10, borderRadius: 3, background: '#3E5C8A', display: 'inline-block' }} />
+                This year
+              </span>
+            </div>
+          </div>
+          <p className="mb-3" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+            Across all campaigns · last 12 months{hasPrevYear ? ' vs prior year' : ''}
+          </p>
+          <ResponsiveContainer width="100%" height={CHART_H}>
+            <BarChart data={billableTrend} barGap={3} barCategoryGap="22%">
+              <CartesianGrid strokeDasharray="0" stroke="rgba(120,140,170,0.18)" vertical={false} />
+              <XAxis dataKey="label" style={{ fontSize: 10, fill: 'var(--color-text-secondary)' }} stroke="none" tickLine={false} />
+              <YAxis
+                style={{ fontSize: 10, fill: 'var(--color-text-secondary)' }}
+                stroke="none"
+                tickLine={false}
+                width={44}
+                tickFormatter={(v: any) => `$${Math.round(v / 1000)}k`}
+              />
+              <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any, name: any) => [`$${Number(v).toLocaleString()}`, name]} />
+              {hasPrevYear && <Bar dataKey="prev" name="Last year" fill="#AEB8C9" radius={[4, 4, 0, 0]} maxBarSize={22} />}
+              <Bar dataKey="current" name="This year" fill="#3E5C8A" radius={[4, 4, 0, 0]} maxBarSize={22} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Filters: scope + search + period */}
@@ -450,19 +533,6 @@ export default function ReportsPage() {
             <div className="kpi-card__label" style={{ fontSize: '11px' }}>Completed</div>
           </div>
         </div>
-
-        {/* Monthly billable trend — trailing 6 months */}
-        <ChartCard title="Monthly Billable Trend">
-          <ResponsiveContainer width="100%" height={CHART_H}>
-            <BarChart data={revData} barCategoryGap="20%">
-              <CartesianGrid strokeDasharray="0" stroke="#F5F5F5" vertical={false} />
-              <XAxis dataKey="month" style={{ fontSize: 10, fill: '#9CA3AF' }} stroke="none" tickLine={false} />
-              <YAxis style={{ fontSize: 10, fill: '#9CA3AF' }} stroke="none" tickLine={false} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any) => [`$${Number(v).toLocaleString()}`, 'Billable']} />
-              <Bar dataKey="revenue" name="Billable" fill="#3E5C8A" radius={[6, 6, 0, 0]} maxBarSize={40} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
 
         {/* Lead Demographics — all four dimensions as consistent bars */}
         <div className="mt-4">
