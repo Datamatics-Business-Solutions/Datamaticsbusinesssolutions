@@ -374,12 +374,12 @@ export default function ReportsPage() {
             >
               {hasPrevYear && (
                 <span className="flex items-center gap-1.5">
-                  <span style={{ width: 10, height: 10, borderRadius: 3, background: '#AEB8C9', display: 'inline-block' }} />
+                  <span style={{ width: 10, height: 10, borderRadius: 3, background: '#E0A8AB', display: 'inline-block' }} />
                   Last year
                 </span>
               )}
               <span className="flex items-center gap-1.5">
-                <span style={{ width: 10, height: 10, borderRadius: 3, background: '#3E5C8A', display: 'inline-block' }} />
+                <span style={{ width: 10, height: 10, borderRadius: 3, background: '#BA2027', display: 'inline-block' }} />
                 This year
               </span>
             </div>
@@ -399,8 +399,8 @@ export default function ReportsPage() {
                 tickFormatter={(v: any) => `$${Math.round(v / 1000)}k`}
               />
               <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any, name: any) => [`$${Number(v).toLocaleString()}`, name]} />
-              {hasPrevYear && <Bar dataKey="prev" name="Last year" fill="#AEB8C9" radius={[4, 4, 0, 0]} maxBarSize={22} />}
-              <Bar dataKey="current" name="This year" fill="#3E5C8A" radius={[4, 4, 0, 0]} maxBarSize={22} />
+              {hasPrevYear && <Bar dataKey="prev" name="Last year" fill="#E0A8AB" radius={[4, 4, 0, 0]} maxBarSize={22} />}
+              <Bar dataKey="current" name="This year" fill="#BA2027" radius={[4, 4, 0, 0]} maxBarSize={22} />
             </BarChart>
           </ResponsiveContainer>
         </div>
