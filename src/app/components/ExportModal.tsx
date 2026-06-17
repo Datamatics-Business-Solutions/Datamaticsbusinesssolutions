@@ -2,13 +2,20 @@ import { X, FileText, FileSpreadsheet, Download, Check } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import {
+  generateReportsPDF,
+  exportReportsCSV,
+  exportReportsXLSX,
+  type ReportsPDFData,
+} from '../utils/exportUtils';
 
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
+  reportData: ReportsPDFData;
 }
 
-export function ExportModal({ isOpen, onClose }: ExportModalProps) {
+export function ExportModal({ isOpen, onClose, reportData }: ExportModalProps) {
   const [selectedFormat, setSelectedFormat] = useState<'pdf' | 'excel' | 'csv'>('pdf');
   const [includeCharts, setIncludeCharts] = useState(true);
   const [includeData, setIncludeData] = useState(true);
@@ -19,12 +26,23 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
     { id: 'csv', label: 'CSV Data', icon: FileText, description: 'Raw data in comma-separated format' }
   ];
 
-  const handleExport = () => {
-    toast.success(`Exporting report as ${selectedFormat.toUpperCase()}...`);
-    setTimeout(() => {
-      toast.success('Export complete!');
+  const handleExport = async () => {
+    const fmt = selectedFormat.toUpperCase();
+    const t = toast.loading(`Generating ${fmt}…`);
+    try {
+      if (selectedFormat === 'pdf') {
+        await generateReportsPDF(reportData, { includeCharts, includeData });
+      } else if (selectedFormat === 'csv') {
+        exportReportsCSV(reportData);
+      } else {
+        await exportReportsXLSX(reportData);
+      }
+      toast.success(`${fmt} downloaded`, { id: t });
       onClose();
-    }, 1500);
+    } catch (err) {
+      console.error('Report export failed:', err);
+      toast.error(`Couldn't generate the ${fmt}. Please try again.`, { id: t });
+    }
   };
 
   return (

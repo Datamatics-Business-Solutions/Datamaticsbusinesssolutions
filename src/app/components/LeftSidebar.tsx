@@ -346,36 +346,6 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         </AnimatePresence>
       </div>
 
-      {/* Client branding strip — only for client role with a logo */}
-      {currentUser?.role === 'client' && currentUser?.logo && (
-        <div
-          className={`flex-shrink-0 flex items-center border-b border-[#EEECEC] ${
-            isExpanded ? 'px-5 py-3 gap-3' : 'justify-center px-3 py-3'
-          }`}
-          style={{ background: 'rgba(186,32,39,0.03)' }}
-        >
-          {isExpanded ? (
-            <div className="flex flex-col items-center gap-1.5 w-full">
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#6B7280', letterSpacing: '0.1em' }}>
-                CLIENT PORTAL FOR
-              </span>
-              <img
-                src={currentUser.logo}
-                alt={currentUser.company || 'Client logo'}
-                className="h-5 object-contain"
-                style={{ maxWidth: '160px' }}
-              />
-            </div>
-          ) : (
-            <img
-              src={currentUser.logo}
-              alt={currentUser.company || 'Client logo'}
-              className="h-5 w-5 object-contain"
-            />
-          )}
-        </div>
-      )}
-
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
         {Object.entries(groupedNav).map(([section, items]) => {
