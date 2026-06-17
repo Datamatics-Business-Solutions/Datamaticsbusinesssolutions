@@ -17,7 +17,6 @@ import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { DateRangePicker } from '../components/DateRangePicker';
 import { ExportModal } from '../components/ExportModal';
 import { ProgressBar } from '../components/ProgressBar';
-import { toast } from 'sonner';
 
 const CHART_COLORS = ['#BA2027', '#D32F2F', '#E57373', '#0891B2', '#0F9D58', '#F4B400'];
 const CHART_H = typeof window !== 'undefined' && window.innerWidth < 640 ? 160 : 240;
@@ -295,6 +294,32 @@ export default function ReportsPage() {
   const totalCampaigns = activeCampaigns + completedCount;
   const pausedCampaigns = 0;
 
+  // Snapshot of exactly what the client sees, handed to the export modal so the
+  // PDF/CSV/XLSX match this page (KPIs, pacing, 12-mo YoY trend, demographics).
+  const reportData = {
+    clientName: currentUser?.company || currentUser?.name || 'Client',
+    asOf: 'Jun 14, 2026',
+    scope: scope.charAt(0).toUpperCase() + scope.slice(1),
+    campaignLabel: selectedCampaign === 'all' ? `All ${scope} campaigns` : selectedCampaign,
+    kpis: [
+      { label: 'Total Leads', value: currentMetrics.totalLeads.toLocaleString(), delta: `${leadDelta >= 0 ? '▲' : '▼'} ${Math.abs(leadDelta)}%`, up: leadDelta >= 0 },
+      { label: 'Acceptance', value: `${currentMetrics.acceptance}%`, delta: '▲ 2 pts', up: true },
+      { label: 'Conversions', value: String(currentMetrics.conversions), delta: `${convDelta >= 0 ? '▲' : '▼'} ${Math.abs(convDelta)}%`, up: convDelta >= 0 },
+      { label: 'Billable', value: `$${(currentMetrics.revenue / 1000).toFixed(0)}K`, delta: `${revDelta >= 0 ? '▲' : '▼'} ${Math.abs(revDelta)}%`, up: revDelta >= 0 },
+      { label: 'Campaigns', value: `${activeCampaigns} active · ${completedCount} completed` },
+    ],
+    pacing: { delivered: pacing.monthDelivered, target: pacing.monthTarget, pct: pacingPct, onTrack: pacingPct >= 60 },
+    trend: billableTrend,
+    hasPrevYear,
+    demographics: [
+      { title: 'Geographic Distribution', rows: demographics.geo },
+      { title: 'Industry Distribution', rows: demographics.industry },
+      { title: 'Title Distribution', rows: demographics.title },
+      { title: 'Company Size', rows: demographics.size },
+    ],
+    conversion: { sent: currentMetrics.totalLeads, accepted: currentMetrics.totalLeads - rejectedCount, acceptedPct, rejectedPct },
+  };
+
   return (
     <AppLayout>
       <div className={`max-w-[1120px] mx-auto page-content animate-fadeIn`}>
@@ -443,7 +468,7 @@ export default function ReportsPage() {
                   </button>
                 ))}
               </div>
-              <span className="text-xs flex items-center gap-1 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
+              <span className="text-xs flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1.5 rounded-lg" style={{ color: 'var(--color-text-secondary)', background: 'var(--background-muted)' }}>
                 <Activity className="w-3.5 h-3.5" /> Data as of Jun 14
               </span>
             </div>
@@ -479,8 +504,8 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Compact KPI Cards - 6 cards in 2 rows on mobile, 6 across on desktop */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4 stagger-children">
+        {/* Compact KPI Cards — 5 across on desktop (Active+Completed merged) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4 stagger-children">
           <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
             <div className="flex items-center justify-between mb-1">
               <Target className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
@@ -521,34 +546,16 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between mb-1">
               <Activity className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
             </div>
-            <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{activeCampaigns}</div>
-            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Active</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
-            <div className="flex items-center justify-between mb-1">
-              <CheckCircle className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
+            <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>
+              {activeCampaigns}<span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}> active</span>
             </div>
-            <div className="kpi-card__number" style={{ fontSize: '20px', marginBottom: '2px' }}>{completedCount}</div>
-            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Completed</div>
+            <div className="kpi-card__label" style={{ fontSize: '11px' }}>Campaigns</div>
+            <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>{completedCount} completed</div>
           </div>
         </div>
 
-        {/* Lead Demographics — all four dimensions as consistent bars */}
-        <div className="mt-4">
-          <h2 style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)' }} className="mb-3">
-            Lead Demographics
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DemoBars title="Geographic Distribution" data={demographics.geo} icon={Globe} chipBg="#EEF0FE" chipColor="#4F46E5" />
-            <DemoBars title="Industry Distribution" data={demographics.industry} icon={Building2} chipBg="#E2F5F1" chipColor="#0F9488" />
-            <DemoBars title="Title Distribution" data={demographics.title} icon={IdCard} chipBg="#FBF0DD" chipColor="#C2790B" />
-            <DemoBars title="Company Size" data={demographics.size} icon={Users} chipBg="#FBE7EC" chipColor="#BE123C" />
-          </div>
-        </div>
-
-        {/* Conversion — leads sent → accepted */}
-        <div className="glass-card p-4 mt-4">
+        {/* Conversion — leads sent → accepted (sits with the acceptance KPI above) */}
+        <div className="glass-card p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
               <CheckCircle className="w-4 h-4 text-[#BA2027]" /> Conversion
@@ -566,16 +573,27 @@ export default function ReportsPage() {
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm border" style={{ background: 'var(--background-muted)', borderColor: 'var(--color-border)' }} />Not accepted {rejectedPct}%</span>
           </div>
         </div>
+
+        {/* Lead Demographics — all four dimensions as consistent bars */}
+        <div className="mt-4">
+          <h2 style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)' }} className="mb-3">
+            Lead Demographics
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DemoBars title="Geographic Distribution" data={demographics.geo} icon={Globe} chipBg="#EEF0FE" chipColor="#4F46E5" />
+            <DemoBars title="Industry Distribution" data={demographics.industry} icon={Building2} chipBg="#E2F5F1" chipColor="#0F9488" />
+            <DemoBars title="Title Distribution" data={demographics.title} icon={IdCard} chipBg="#FBF0DD" chipColor="#C2790B" />
+            <DemoBars title="Company Size" data={demographics.size} icon={Users} chipBg="#FBE7EC" chipColor="#BE123C" />
+          </div>
+        </div>
+
       </div>
 
       {/* Export Modal */}
       <ExportModal
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
-        onExport={(format) => {
-          toast.success(`Exporting report as ${format.toUpperCase()}`);
-          setShowExportModal(false);
-        }}
+        reportData={reportData}
       />
     </AppLayout>
   );
