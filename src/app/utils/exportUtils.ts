@@ -263,12 +263,13 @@ export async function generateReportsPDF(
   const PW = 210, ML = 14, CW = PW - ML * 2;
   const brand: [number, number, number] = [186, 32, 39];
   const slate: [number, number, number] = [62, 92, 138];
-  const slateLt: [number, number, number] = [174, 184, 201];
   const green: [number, number, number] = [29, 158, 117];
   const amber: [number, number, number] = [180, 83, 9];
   const dark: [number, number, number] = [26, 26, 26];
   const gray: [number, number, number] = [107, 114, 128];
   const track: [number, number, number] = [237, 240, 244];
+  const redCur: [number, number, number] = [186, 32, 39];    // brand red — "this year"
+  const redPrev: [number, number, number] = [224, 168, 171];  // soft red tint — "last year"
 
   let y = 0;
   const ensure = (need: number) => { if (y + need > 280) { doc.addPage(); y = 18; } };
@@ -339,11 +340,11 @@ export async function generateReportsPDF(
     ensure(chartH + 14);
     let lx = PW - ML - 56; const ly = y - 1;
     if (d.hasPrevYear) {
-      doc.setFillColor(...slateLt); doc.rect(lx, ly - 2.6, 3, 3, 'F');
+      doc.setFillColor(...redPrev); doc.rect(lx, ly - 2.6, 3, 3, 'F');
       doc.setTextColor(...gray); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
       doc.text('Last year', lx + 4.5, ly); lx += 27;
     }
-    doc.setFillColor(...slate); doc.rect(lx, ly - 2.6, 3, 3, 'F');
+    doc.setFillColor(...redCur); doc.rect(lx, ly - 2.6, 3, 3, 'F');
     doc.setTextColor(...gray); doc.setFontSize(7.5); doc.text('This year', lx + 4.5, ly);
     y += 3;
     const baseY = y + chartH;
@@ -357,10 +358,10 @@ export async function generateReportsPDF(
       const curH = (t.current / maxV) * chartH;
       if (d.hasPrevYear && t.prev != null) {
         const prevH = (t.prev / maxV) * chartH;
-        doc.setFillColor(...slateLt); doc.rect(cx - barW - ig / 2, baseY - prevH, barW, prevH, 'F');
-        doc.setFillColor(...slate); doc.rect(cx + ig / 2, baseY - curH, barW, curH, 'F');
+        doc.setFillColor(...redPrev); doc.rect(cx - barW - ig / 2, baseY - prevH, barW, prevH, 'F');
+        doc.setFillColor(...redCur); doc.rect(cx + ig / 2, baseY - curH, barW, curH, 'F');
       } else {
-        doc.setFillColor(...slate); doc.rect(cx - barW / 2, baseY - curH, barW, curH, 'F');
+        doc.setFillColor(...redCur); doc.rect(cx - barW / 2, baseY - curH, barW, curH, 'F');
       }
       doc.setTextColor(...gray); doc.setFont('helvetica', 'normal'); doc.setFontSize(6);
       doc.text(t.label, cx, baseY + 4, { align: 'center' });
