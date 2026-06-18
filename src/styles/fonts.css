@@ -1,1 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* Inter is now self-hosted and bundled via '@fontsource-variable/inter'
+   (imported in src/main.tsx). No external Google Fonts request — this avoids
+   the fallback-font flash on load. Family name: 'Inter Variable'. */
