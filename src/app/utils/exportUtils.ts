@@ -335,7 +335,7 @@ export async function generateReportsPDF(
 
   // Billable trend (vector bar chart)
   if (opts.includeCharts) {
-    sectionTitle(`Monthly Billable Trend — last 12 months${d.hasPrevYear ? ' vs prior year' : ''}`);
+    sectionTitle(`Billing Trend — last 12 months${d.hasPrevYear ? ' vs prior year' : ''}`);
     const chartH = 44;
     ensure(chartH + 14);
     let lx = PW - ML - 56; const ly = y - 1;
@@ -458,7 +458,7 @@ export function exportReportsCSV(d: ReportsPDFData) {
   L.push(['Delivered', 'Target', 'Percent', 'Status'].map(csvCell).join(','));
   L.push([d.pacing.delivered, d.pacing.target, `${d.pacing.pct}%`, d.pacing.onTrack ? 'On track' : 'Behind pace'].map(csvCell).join(','));
   L.push('');
-  L.push('Monthly Billable Trend');
+  L.push('Billing Trend');
   L.push(['Month', 'This Year', d.hasPrevYear ? 'Last Year' : ''].map(csvCell).join(','));
   d.trend.forEach((t) => L.push([t.label, t.current, d.hasPrevYear ? (t.prev ?? '') : ''].map(csvCell).join(',')));
   L.push('');

@@ -17,6 +17,8 @@ import { UnifiedKpiCard } from '../components/UnifiedKpiCard';
 import { DateRangePicker } from '../components/DateRangePicker';
 import { ExportModal } from '../components/ExportModal';
 import { ProgressBar } from '../components/ProgressBar';
+import { motion, useReducedMotion } from 'motion/react';
+import { Reveal } from '../components/Reveal';
 
 const CHART_COLORS = ['#BA2027', '#D32F2F', '#E57373', '#0891B2', '#0F9D58', '#F4B400'];
 const CHART_H = typeof window !== 'undefined' && window.innerWidth < 640 ? 160 : 240;
@@ -70,6 +72,7 @@ function ChartCard({ title, children, actions }: any) {
 // Uniform horizontal-bar card for a distribution dimension (geo/industry/size/title).
 // Single brand color, length encodes value — no rainbow, consistent across all four.
 function DemoBars({ title, data, chipBg, chipColor, icon: Icon }: any) {
+  const reduce = useReducedMotion();
   const maxPct = data && data.length ? data[0].percentage || 1 : 1;
   return (
     <div className="glass-card p-4">
@@ -87,7 +90,14 @@ function DemoBars({ title, data, chipBg, chipColor, icon: Icon }: any) {
             <div key={d.name} className="flex items-center gap-3 my-2">
               <span className="text-xs flex-shrink-0 truncate" style={{ width: 116, color: 'var(--color-text-secondary)' }}>{d.name}</span>
               <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--background-muted)' }}>
-                <div className="h-full rounded-full" style={{ width: `${Math.max(3, Math.round((d.percentage / maxPct) * 100))}%`, background: i === 0 ? '#BA2027' : '#3E5C8A' }} />
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: i === 0 ? '#BA2027' : '#3E5C8A' }}
+                  initial={reduce ? false : { width: 0 }}
+                  whileInView={{ width: `${Math.max(3, Math.round((d.percentage / maxPct) * 100))}%` }}
+                  viewport={{ once: true, amount: 0.5 }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.05 }}
+                />
               </div>
               <span className="text-xs font-semibold text-right flex-shrink-0" style={{ width: 46, color: 'var(--color-text-primary)' }}>{d.percentage}%</span>
             </div>
@@ -275,6 +285,7 @@ export default function ReportsPage() {
   const leadDelta = md.length >= 2 ? pctChange(md[md.length - 1].leads, md[md.length - 2].leads) : 0;
   const revDelta = md.length >= 2 ? pctChange(md[md.length - 1].revenue, md[md.length - 2].revenue) : 0;
   const convDelta = md.length >= 2 ? pctChange(md[md.length - 1].conversions, md[md.length - 2].conversions) : 0;
+  const reduce = useReducedMotion();
 
   // Account-level billable trend (trailing 12 months + prior year). This is the
   // total billing relationship, so it is intentionally independent of the campaign
@@ -347,6 +358,7 @@ export default function ReportsPage() {
         {/* Account-level billing overview — sits above (and independent of) the
             campaign filters. Slate-washed surface so it reads as its own section
             and doesn't get lost among the white analytics cards. */}
+        <Reveal>
         <div
           className="rounded-2xl p-5 mb-4 animate-fadeIn"
           style={{
@@ -366,7 +378,7 @@ export default function ReportsPage() {
               }}
             >
               <BarChart3 className="w-4 h-4" style={{ color: '#BA2027' }} />
-              Monthly Billable Trend
+              Billing Trend
             </h3>
             <div
               className="flex items-center gap-4"
@@ -404,6 +416,7 @@ export default function ReportsPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+        </Reveal>
 
         {/* Filters: scope + search + period */}
         <div className="glass-card p-4 mb-4">
@@ -475,36 +488,8 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* This month — target vs delivered (pacing hero) */}
-        <div className="glass-card p-5 mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-              <Target className="w-4 h-4 text-[#BA2027]" /> This month — target vs delivered
-            </h3>
-            <span
-              className="text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1"
-              style={{
-                background: pacingPct >= 60 ? 'rgba(16,163,127,0.12)' : 'rgba(245,158,11,0.14)',
-                color: pacingPct >= 60 ? '#0F9D58' : '#B45309',
-              }}
-            >
-              <CheckCircle className="w-3.5 h-3.5" /> {pacingPct >= 60 ? 'On track' : 'Behind pace'}
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2 mb-2">
-            <span style={{ fontSize: '30px', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-              {pacing.monthDelivered.toLocaleString()}
-            </span>
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              / {pacing.monthTarget.toLocaleString()} target · {pacingPct}%
-            </span>
-          </div>
-          <div className="w-full h-3.5 rounded-full overflow-hidden mb-1" style={{ background: 'var(--background-muted)' }}>
-            <div className="h-full rounded-full" style={{ width: `${Math.min(100, pacingPct)}%`, background: '#BA2027' }} />
-          </div>
-        </div>
-
-        {/* Compact KPI Cards — 5 across on desktop (Active+Completed merged) */}
+        {/* KPI summary */}
+        <Reveal>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4 stagger-children">
           <div className="kpi-card animate-slideInUp" style={{ padding: '12px' }}>
             <div className="flex items-center justify-between mb-1">
@@ -553,28 +538,74 @@ export default function ReportsPage() {
             <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>{completedCount} completed</div>
           </div>
         </div>
+        </Reveal>
 
-        {/* Conversion — leads sent → accepted (sits with the acceptance KPI above) */}
-        <div className="glass-card p-4 mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-              <CheckCircle className="w-4 h-4 text-[#BA2027]" /> Conversion
-            </h3>
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              {currentMetrics.totalLeads.toLocaleString()} sent · {(currentMetrics.totalLeads - rejectedCount).toLocaleString()} accepted ({acceptedPct}%)
-            </span>
+        {/* Monthly Pacing + Conversion — paired on one row */}
+        <Reveal>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div className="glass-card p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                  <Target className="w-4 h-4 text-[#BA2027]" /> Monthly Pacing
+                </h3>
+                <span
+                  className="text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1"
+                  style={{
+                    background: pacingPct >= 60 ? 'rgba(16,163,127,0.12)' : 'rgba(245,158,11,0.14)',
+                    color: pacingPct >= 60 ? '#0F9D58' : '#B45309',
+                  }}
+                >
+                  <CheckCircle className="w-3.5 h-3.5" /> {pacingPct >= 60 ? 'On track' : 'Behind pace'}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2 mb-2">
+                <span style={{ fontSize: '30px', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                  {pacing.monthDelivered.toLocaleString()}
+                </span>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                  / {pacing.monthTarget.toLocaleString()} target · {pacingPct}%
+                </span>
+              </div>
+              <div className="w-full h-3.5 rounded-full overflow-hidden mb-1" style={{ background: 'var(--background-muted)' }}>
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: '#BA2027' }}
+                  initial={reduce ? false : { width: 0 }}
+                  whileInView={{ width: `${Math.min(100, pacingPct)}%` }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                />
+              </div>
+            </div>
+
+            <div className="glass-card p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                  <CheckCircle className="w-4 h-4 text-[#BA2027]" /> Conversion
+                </h3>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                  {currentMetrics.totalLeads.toLocaleString()} sent · {(currentMetrics.totalLeads - rejectedCount).toLocaleString()} accepted ({acceptedPct}%)
+                </span>
+              </div>
+              <div className="flex h-4 rounded-lg overflow-hidden" style={{ background: 'var(--background-muted)' }}>
+                <motion.div
+                  style={{ background: '#1D9E75' }}
+                  initial={reduce ? false : { width: 0 }}
+                  whileInView={{ width: `${acceptedPct}%` }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                />
+              </div>
+              <div className="flex gap-5 mt-2.5" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#1D9E75' }} />Accepted {acceptedPct}%</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm border" style={{ background: 'var(--background-muted)', borderColor: 'var(--color-border)' }} />Not accepted {rejectedPct}%</span>
+              </div>
+            </div>
           </div>
-          <div className="flex h-4 rounded-lg overflow-hidden">
-            <div style={{ width: `${acceptedPct}%`, background: '#1D9E75' }} />
-            <div style={{ width: `${rejectedPct}%`, background: 'var(--background-muted)' }} />
-          </div>
-          <div className="flex gap-5 mt-2.5" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#1D9E75' }} />Accepted {acceptedPct}%</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm border" style={{ background: 'var(--background-muted)', borderColor: 'var(--color-border)' }} />Not accepted {rejectedPct}%</span>
-          </div>
-        </div>
+        </Reveal>
 
         {/* Lead Demographics — all four dimensions as consistent bars */}
+        <Reveal>
         <div className="mt-4">
           <h2 style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)' }} className="mb-3">
             Lead Demographics
@@ -586,6 +617,7 @@ export default function ReportsPage() {
             <DemoBars title="Company Size" data={demographics.size} icon={Users} chipBg="#FBE7EC" chipColor="#BE123C" />
           </div>
         </div>
+        </Reveal>
 
       </div>
 
