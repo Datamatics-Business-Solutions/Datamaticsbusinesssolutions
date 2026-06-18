@@ -543,7 +543,8 @@ export default function ReportsPage() {
         {/* Monthly Pacing + Conversion — paired on one row */}
         <Reveal>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            <div className="glass-card p-5">
+            {/* Monthly Pacing */}
+            <div className="glass-card p-5 flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
                   <Target className="w-4 h-4 text-[#BA2027]" /> Monthly Pacing
@@ -558,15 +559,15 @@ export default function ReportsPage() {
                   <CheckCircle className="w-3.5 h-3.5" /> {pacingPct >= 60 ? 'On track' : 'Behind pace'}
                 </span>
               </div>
-              <div className="flex items-baseline gap-2 mb-2">
-                <span style={{ fontSize: '30px', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+              <div className="flex items-baseline gap-2 mb-2.5">
+                <span style={{ fontSize: '30px', lineHeight: 1, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
                   {pacing.monthDelivered.toLocaleString()}
                 </span>
                 <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                   / {pacing.monthTarget.toLocaleString()} target · {pacingPct}%
                 </span>
               </div>
-              <div className="w-full h-3.5 rounded-full overflow-hidden mb-1" style={{ background: 'var(--background-muted)' }}>
+              <div className="w-full h-3.5 rounded-full overflow-hidden mt-auto" style={{ background: 'var(--background-muted)' }}>
                 <motion.div
                   className="h-full rounded-full"
                   style={{ background: '#BA2027' }}
@@ -576,19 +577,39 @@ export default function ReportsPage() {
                   transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                 />
               </div>
+              <div className="flex gap-5 mt-2.5" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#BA2027' }} />Delivered {pacingPct}%</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm border" style={{ background: 'var(--background-muted)', borderColor: 'var(--color-border)' }} />Remaining {Math.max(0, 100 - pacingPct)}%</span>
+              </div>
             </div>
 
-            <div className="glass-card p-4">
+            {/* Conversion — same template as Pacing so the pair reads symmetric */}
+            <div className="glass-card p-5 flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="flex items-center gap-2" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
                   <CheckCircle className="w-4 h-4 text-[#BA2027]" /> Conversion
                 </h3>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                  {currentMetrics.totalLeads.toLocaleString()} sent · {(currentMetrics.totalLeads - rejectedCount).toLocaleString()} accepted ({acceptedPct}%)
+                <span
+                  className="text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1"
+                  style={{
+                    background: acceptedPct >= 80 ? 'rgba(16,163,127,0.12)' : 'rgba(245,158,11,0.14)',
+                    color: acceptedPct >= 80 ? '#0F9D58' : '#B45309',
+                  }}
+                >
+                  <CheckCircle className="w-3.5 h-3.5" /> {acceptedPct >= 80 ? 'Healthy' : 'Needs review'}
                 </span>
               </div>
-              <div className="flex h-4 rounded-lg overflow-hidden" style={{ background: 'var(--background-muted)' }}>
+              <div className="flex items-baseline gap-2 mb-2.5">
+                <span style={{ fontSize: '30px', lineHeight: 1, fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
+                  {(currentMetrics.totalLeads - rejectedCount).toLocaleString()}
+                </span>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                  / {currentMetrics.totalLeads.toLocaleString()} sent · {acceptedPct}%
+                </span>
+              </div>
+              <div className="w-full h-3.5 rounded-full overflow-hidden mt-auto" style={{ background: 'var(--background-muted)' }}>
                 <motion.div
+                  className="h-full rounded-full"
                   style={{ background: '#1D9E75' }}
                   initial={reduce ? false : { width: 0 }}
                   whileInView={{ width: `${acceptedPct}%` }}
