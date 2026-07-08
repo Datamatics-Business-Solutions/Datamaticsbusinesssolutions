@@ -275,11 +275,22 @@ export default function Documents() {
   const [showIntake, setShowIntake] = useState(false);
 
   // Clients only see their own company's job cards.
+  // Internal views sort action-first: cards blocked on the viewer, then longest-waiting.
   const visibleCards = useMemo(() => {
     const cards = perspective === 'client'
       ? jobCards.filter((c) => c.clientCompany === currentUser.company)
       : jobCards;
-    return [...cards].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    const needsViewer = (c: JobCard) =>
+      (perspective === 'client_manager' && (c.stage === 'pending_cm_review' || (c.stage === 'pending_confirmations' && !c.confirmations.clientManager.confirmed))) ||
+      (perspective === 'account_manager' && ((c.stage === 'pending_confirmations' && !c.confirmations.accountManager.confirmed) || c.salesforce.status === 'failed')) ||
+      (perspective === 'client' && c.type === 'client_signature' && c.stage === 'sent_for_signature');
+    const isOpen = (c: JobCard) => c.stage !== 'signed' && c.stage !== 'completed' && c.stage !== 'declined';
+    return [...cards].sort((a, b) => {
+      const rank = (c: JobCard) => (needsViewer(c) ? 0 : isOpen(c) ? 1 : 2);
+      const r = rank(a) - rank(b);
+      if (r !== 0) return r;
+      return a.updatedAt.localeCompare(b.updatedAt); // longest-waiting first among open items
+    });
   }, [jobCards, perspective, currentUser.company]);
 
   const awaitingSignature = visibleCards.filter((c) => c.type === 'client_signature' && c.stage === 'sent_for_signature');
