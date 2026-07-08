@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 
 // Demo: always play on dashboard load. Set false to show once per browser.
-const INTRO_ALWAYS = true;
+const INTRO_ALWAYS = false;
 // The showcase loops every 21s; advance during the held end card (~17.6-21s)
 // so the hand-off to the dashboard lands on the brand frame, not mid-replay.
 const AUTO_DISMISS_MS = 20500;
