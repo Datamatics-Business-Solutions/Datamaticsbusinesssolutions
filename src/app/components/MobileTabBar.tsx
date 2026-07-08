@@ -9,6 +9,7 @@ import {
   FileBarChart,
   Users,
   Receipt,
+  FolderOpen,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -45,6 +46,15 @@ const tabsByRole: Record<string, TabItem[]> = {
     { name: 'Leads', icon: Users, path: '/leads' },
     { name: 'Reports', icon: FileBarChart, path: '/reports' },
     { name: 'Invoices', icon: Receipt, path: '/invoices' },
+  ],
+  account_manager: [
+    { name: 'Job Cards', icon: FolderOpen, path: '/documents' },
+    { name: 'Invoices', icon: Receipt, path: '/invoices' },
+    { name: 'Campaigns', icon: BarChart2, path: '/internal/campaigns' },
+  ],
+  accounts: [
+    { name: 'Invoices', icon: Receipt, path: '/invoices' },
+    { name: 'Job Cards', icon: FolderOpen, path: '/documents' },
   ],
 };
 

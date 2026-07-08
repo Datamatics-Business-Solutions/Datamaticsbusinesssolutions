@@ -4,7 +4,13 @@ import { createContext, useContext, ReactNode, useState, useCallback } from 'rea
 // TYPES
 // ============================================
 
-export type UserRole = 'ops_manager' | 'campaign_manager' | 'campaign_backup' | 'client';
+export type UserRole =
+  | 'ops_manager'
+  | 'campaign_manager'
+  | 'campaign_backup'
+  | 'client'
+  | 'account_manager' // sales side — uploads won-campaign scope dumps, confirms job cards
+  | 'accounts';       // finance — validates invoices, owns Tally reconciliation
 
 export interface User {
   id: string;
@@ -23,6 +29,9 @@ interface AuthContextValue {
   canAccessOps: () => boolean;
   canManageTeam: () => boolean;
   canEditCampaigns: () => boolean;
+  canUploadScopeDump: () => boolean;
+  canConfirmJobCards: () => boolean;
+  canValidateInvoices: () => boolean;
 }
 
 // ============================================
@@ -60,6 +69,20 @@ export const mockUsers: User[] = [
     role: 'ops_manager',
     assignedClients: [],
   },
+  {
+    id: 'u5',
+    name: 'Rahul Desai',
+    email: 'rahul.desai@datamaticsbpm.com',
+    role: 'account_manager',
+    assignedClients: ['client_1', 'client_2'],
+  },
+  {
+    id: 'u6',
+    name: 'Kavita Rao',
+    email: 'kavita.rao@datamaticsbpm.com',
+    role: 'accounts',
+    assignedClients: [],
+  },
 ];
 
 // ============================================
@@ -91,6 +114,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return currentUser.role === 'ops_manager' || currentUser.role === 'campaign_manager';
   }, [currentUser.role]);
 
+  // Documents module: account managers upload won-campaign scope dumps.
+  const canUploadScopeDump = useCallback(() => {
+    return currentUser.role === 'account_manager';
+  }, [currentUser.role]);
+
+  // Documents module: both sides of the dual confirmation.
+  const canConfirmJobCards = useCallback(() => {
+    return ['account_manager', 'campaign_manager', 'campaign_backup'].includes(currentUser.role);
+  }, [currentUser.role]);
+
+  // Invoices module: Accounts validates amounts and owns Tally sync.
+  const canValidateInvoices = useCallback(() => {
+    return currentUser.role === 'accounts';
+  }, [currentUser.role]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -100,6 +138,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         canAccessOps,
         canManageTeam,
         canEditCampaigns,
+        canUploadScopeDump,
+        canConfirmJobCards,
+        canValidateInvoices,
       }}
     >
       {children}

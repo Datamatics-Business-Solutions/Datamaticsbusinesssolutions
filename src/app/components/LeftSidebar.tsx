@@ -196,6 +196,8 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
         { name: 'Metrics Override', icon: BarChart2, path: '/internal/ops-override', section: 'PLATFORM' },
         { name: 'Lead Demographics', icon: Globe, path: '/internal/demographics', section: 'PLATFORM' },
+        { name: 'Job Cards', icon: FolderOpen, path: '/documents', section: 'ORGANIZATION' },
+        { name: 'Invoices', icon: Receipt, path: '/invoices', section: 'ORGANIZATION' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
         { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
       ];
@@ -234,6 +236,27 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
         { name: 'Reports', icon: FileBarChart, path: '/internal/reports', section: 'PLATFORM' },
         { name: 'Metrics Override', icon: BarChart2, path: '/internal/ops-override', section: 'PLATFORM' },
         { name: 'Lead Demographics', icon: Globe, path: '/internal/demographics', section: 'PLATFORM' },
+        { name: 'Job Cards', icon: FolderOpen, path: '/documents', section: 'ORGANIZATION' },
+        { name: 'Invoices', icon: Receipt, path: '/invoices', section: 'ORGANIZATION' },
+        { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
+        { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
+      ];
+    }
+
+    if (role === 'account_manager') {
+      return [
+        { name: 'Job Cards', icon: FolderOpen, path: '/documents', section: 'PLATFORM' },
+        { name: 'Invoices', icon: Receipt, path: '/invoices', section: 'PLATFORM' },
+        { name: 'Campaigns', icon: BarChart2, path: '/internal/campaigns', section: 'PLATFORM' },
+        { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
+        { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
+      ];
+    }
+
+    if (role === 'accounts') {
+      return [
+        { name: 'Invoices', icon: Receipt, path: '/invoices', section: 'PLATFORM' },
+        { name: 'Job Cards', icon: FolderOpen, path: '/documents', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
         { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
       ];
@@ -737,6 +760,10 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
                       ? 'Campaign Manager'
                       : currentUser?.role === 'campaign_backup'
                       ? 'Campaign Backup'
+                      : currentUser?.role === 'account_manager'
+                      ? 'Account Manager'
+                      : currentUser?.role === 'accounts'
+                      ? 'Accounts'
                       : 'Operations Manager'}
                   </div>
                 </motion.div>

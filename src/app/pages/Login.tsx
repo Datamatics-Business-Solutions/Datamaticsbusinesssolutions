@@ -101,6 +101,8 @@ export default function Login() {
       const route = selectedUser.role === 'ops_manager' ? '/dashboard/ops' :
                     selectedUser.role === 'campaign_manager' ? '/dashboard/manager' :
                     selectedUser.role === 'campaign_backup' ? '/dashboard/manager' :
+                    selectedUser.role === 'account_manager' ? '/documents' :
+                    selectedUser.role === 'accounts' ? '/invoices' :
                     '/dashboard';
       
       setTimeout(() => {
@@ -218,6 +220,8 @@ export default function Login() {
                     user.role === 'client' ? `Client (${user.company})` :
                     user.role === 'campaign_manager' ? 'Campaign Manager' :
                     user.role === 'campaign_backup' ? 'Campaign Backup' :
+                    user.role === 'account_manager' ? 'Account Manager' :
+                    user.role === 'accounts' ? 'Accounts (Finance)' :
                     'Ops Manager';
                   
                   return (

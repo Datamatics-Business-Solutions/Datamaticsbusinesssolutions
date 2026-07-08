@@ -1,176 +1,353 @@
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useMemo, useState } from 'react';
 import {
-  Search, Plus, FileText, Filter, Grid3x3, List, Download, Trash2,
-  Eye, Star, Calendar, User, FolderOpen, Upload, X, Check,
-  FileSpreadsheet, ChevronDown, MoreVertical, Lock,
+  FileSignature, Upload, CheckCircle2, Hourglass, FolderOpen,
+  ClipboardList, X, Loader2, FileUp, PenLine,
 } from 'lucide-react';
-import { AppLayout } from '../components/AppLayout';
-import { DocumentViewerModal } from '../components/DocumentViewerModal';
-import { UploadZoneModal } from '../components/UploadZoneModal';
-import { TableRow } from '../components/TableRow';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { toast } from 'sonner';
+import { AppLayout } from '../components/AppLayout';
+import { useAuth } from '../context/AuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { EmptyState } from '../components/EmptyState';
+import { DocumentLibraryTab } from '../components/DocumentLibraryTab';
+import { JobCardCard, JobCardPerspective } from '../components/workflow/JobCardCard';
+import { mockJobCards } from '../data/mockJobCards';
+import {
+  confirmOpportunity, confirmJobCard, sendForSignature, signJobCard, uploadScopeDump,
+} from '../utils/documentWorkflow';
+import type { JobCard, ScopeSummary } from '../types';
 
-interface Document {
-  id: string;
-  name: string;
-  type: 'Contract' | 'SOW' | 'NDA' | 'Invoice' | 'Report' | 'Other';
-  uploadedBy: string;
-  uploadDate: string;
-  size: string;
-  status: 'Active' | 'Expired' | 'Pending' | 'Archived';
-  campaign?: string;
-  tags?: string[];
+// ─── Sign modal (client) ──────────────────────────────────────────────────────
+
+function SignModal({ card, onClose, onSigned }: { card: JobCard; onClose: () => void; onSigned: (card: JobCard) => void }) {
+  const { currentUser } = useAuth();
+  const [signing, setSigning] = useState(false);
+
+  const handleSign = async () => {
+    setSigning(true);
+    try {
+      await signJobCard(card, currentUser.name);
+      onSigned(card);
+    } finally {
+      setSigning(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="glass-card w-full max-w-[560px] p-6 bg-white/95">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text-primary)' }}>Sign Job Card</h2>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{card.id} · via {card.signature?.provider ?? 'DocuSign'}</p>
+          </div>
+          <button onClick={onClose} aria-label="Close"><X className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} /></button>
+        </div>
+
+        <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--color-main-bg)', border: '1px solid var(--color-border-light)' }}>
+          <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 8 }}>{card.campaignName}</div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              ['Service', card.scope.serviceType],
+              ['Geography', card.scope.geography],
+              ['Target Leads', card.scope.targetLeads.toLocaleString('en-US')],
+              ['CPL', `$${card.scope.cpl.toLocaleString('en-US')}`],
+              ['Start', new Date(card.scope.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })],
+              ['End', new Date(card.scope.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })],
+            ].map(([label, value]) => (
+              <div key={label as string}>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{label}: </span>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+          By signing, you confirm the scope above is accurate and authorize Datamatics Business Solutions to begin delivery.
+        </p>
+
+        <div className="flex gap-2 justify-end">
+          <button onClick={onClose} className="btn-secondary px-4 py-2">Cancel</button>
+          <button onClick={handleSign} disabled={signing} className="btn-primary px-4 py-2 flex items-center gap-2">
+            {signing ? <Loader2 className="w-4 h-4 animate-spin" /> : <PenLine className="w-4 h-4" />}
+            {signing ? 'Signing…' : `Sign as ${currentUser.name}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-const mockDocuments: Document[] = [
-  {
-    id: '1',
-    name: 'Master Service Agreement - Q1 2026.pdf',
-    type: 'Contract',
-    uploadedBy: 'Sarah Johnson',
-    uploadDate: '2026-01-15',
-    size: '2.4 MB',
-    status: 'Active',
-    campaign: 'Enterprise IT Security Campaign Q1 2026',
-    tags: ['Legal', 'Important'],
-  },
-  {
-    id: '2',
-    name: 'Statement of Work - Healthcare Campaign.pdf',
-    type: 'SOW',
-    uploadedBy: 'Michael Chen',
-    uploadDate: '2026-02-01',
-    size: '1.8 MB',
-    status: 'Active',
-    campaign: 'Healthcare Content Syndication - Feb 2026',
-    tags: ['Active', 'Q1'],
-  },
-  {
-    id: '3',
-    name: 'Non-Disclosure Agreement.pdf',
-    type: 'NDA',
-    uploadedBy: 'Sarah Johnson',
-    uploadDate: '2025-12-10',
-    size: '980 KB',
-    status: 'Active',
-    tags: ['Legal'],
-  },
-  {
-    id: '4',
-    name: 'Campaign Performance Report - Jan 2026.xlsx',
-    type: 'Report',
-    uploadedBy: 'Data Analytics Team',
-    uploadDate: '2026-02-05',
-    size: '4.2 MB',
-    status: 'Active',
-    campaign: 'Multiple Campaigns',
-    tags: ['Report', 'Analytics'],
-  },
-  {
-    id: '5',
-    name: 'Invoice #INV-2026-001.pdf',
-    type: 'Invoice',
-    uploadedBy: 'Billing Department',
-    uploadDate: '2026-01-30',
-    size: '320 KB',
-    status: 'Active',
-    tags: ['Billing', 'Q1'],
-  },
-  {
-    id: '6',
-    name: 'SaaS Campaign SOW - Feb 2026.pdf',
-    type: 'SOW',
-    uploadedBy: 'Anish Akkoat',
-    uploadDate: '2026-02-10',
-    size: '1.1 MB',
-    status: 'Active',
-    campaign: 'SaaS Appointment Setting Campaign - Feb 2026',
-    tags: ['Active'],
-  },
-  {
-    id: '7',
-    name: 'Q4 2025 Campaign Completion Report.pdf',
-    type: 'Report',
-    uploadedBy: 'Data Analytics Team',
-    uploadDate: '2026-01-05',
-    size: '3.8 MB',
-    status: 'Archived',
-    tags: ['Report', 'Archived'],
-  },
-];
+// ─── Scope intake modal (account manager) ─────────────────────────────────────
 
-const typeConfig: Record<Document['type'], { color: string; bg: string; icon: React.ElementType }> = {
-  Contract: { color: '#0891B2', bg: 'rgba(8,145,178,0.1)', icon: FileText },
-  SOW: { color: '#7C3AED', bg: 'rgba(124,58,237,0.1)', icon: FileText },
-  NDA: { color: '#BA2027', bg: 'rgba(186,32,39,0.1)', icon: Lock },
-  Invoice: { color: '#0F9D58', bg: 'rgba(15,157,88,0.1)', icon: FileText },
-  Report: { color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', icon: FileSpreadsheet },
-  Other: { color: '#6B7280', bg: 'rgba(107,114,128,0.1)', icon: FileText },
-};
+function IntakeModal({ onClose, onCreated }: { onClose: () => void; onCreated: (scope: ScopeSummary, oppId: string, fileName: string) => void }) {
+  const [fileName, setFileName] = useState('');
+  const [extracting, setExtracting] = useState(false);
+  const [scope, setScope] = useState<ScopeSummary | null>(null);
+  const [oppId, setOppId] = useState('');
 
-const statusConfig: Record<Document['status'], { label: string; color: string; bg: string }> = {
-  Active: { label: 'Active', color: '#0F9D58', bg: 'rgba(15,157,88,0.1)' },
-  Expired: { label: 'Expired', color: '#BA2027', bg: 'rgba(186,32,39,0.1)' },
-  Pending: { label: 'Pending', color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
-  Archived: { label: 'Archived', color: '#6B7280', bg: 'rgba(107,114,128,0.1)' },
-};
+  const handleExtract = async () => {
+    if (!fileName.trim()) {
+      toast.error('Name the conversation dump file first');
+      return;
+    }
+    setExtracting(true);
+    try {
+      const res = await uploadScopeDump({ name: fileName, size: 0 });
+      setScope(res.scope);
+      setOppId(res.salesforceOpportunityId);
+    } finally {
+      setExtracting(false);
+    }
+  };
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="glass-card w-full max-w-[560px] p-6 bg-white/95">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text-primary)' }}>New Job Card Intake</h2>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+              Upload the client conversation dump — the scope is extracted and a Salesforce opportunity is created automatically.
+            </p>
+          </div>
+          <button onClick={onClose} aria-label="Close"><X className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} /></button>
+        </div>
+
+        {!scope ? (
+          <>
+            <div className="rounded-xl p-6 mb-4 flex flex-col items-center gap-3 text-center" style={{ border: '2px dashed var(--color-border)', background: 'var(--color-main-bg)' }}>
+              <FileUp className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
+              <input
+                type="text"
+                placeholder="e.g. intentsify-q4-thread.pdf"
+                value={fileName}
+                onChange={(e) => setFileName(e.target.value)}
+                className="input-base w-full max-w-xs px-3 py-2 text-center"
+                style={{ fontSize: 'var(--font-size-sm)' }}
+              />
+              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                Email threads, call notes, or chat exports — PDF, DOCX, or ZIP
+              </span>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button onClick={onClose} className="btn-secondary px-4 py-2">Cancel</button>
+              <button onClick={handleExtract} disabled={extracting} className="btn-primary px-4 py-2 flex items-center gap-2">
+                {extracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                {extracting ? 'Extracting scope…' : 'Upload & Extract'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--color-success-bg, rgba(15,157,88,0.08))', border: '1px solid rgba(15,157,88,0.2)' }}>
+              <div className="flex items-center gap-2 mb-2" style={{ color: 'var(--color-success, #0F9D58)' }}>
+                <CheckCircle2 className="w-4 h-4" />
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>Scope extracted · Salesforce opportunity {oppId} created</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  ['Service', scope.serviceType],
+                  ['Geography', scope.geography],
+                  ['Target Leads', scope.targetLeads.toLocaleString('en-US')],
+                  ['CPL', `$${scope.cpl.toLocaleString('en-US')}`],
+                  ['Industry', scope.industry],
+                  ['Employee Size', scope.employeeSize],
+                ].map(([label, value]) => (
+                  <div key={label as string}>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{label}: </span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+              The client manager will now verify these details before the job card is generated.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => onCreated(scope, oppId, fileName)} className="btn-primary px-4 py-2">
+                Send for Manager Review
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Documents() {
   useDocumentTitle('Documents');
   const { currentUser } = useAuth();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('All');
-  const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>(() =>
-    typeof window !== 'undefined' && window.innerWidth < 640 ? 'grid' : 'table'
-  );
-  const [starred, setStarred] = useState<string[]>([]);
-  const [showStarredOnly, setShowStarredOnly] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [showViewer, setShowViewer] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const perspective: JobCardPerspective =
+    currentUser.role === 'client' ? 'client'
+      : currentUser.role === 'account_manager' ? 'account_manager'
+        : currentUser.role === 'campaign_manager' || currentUser.role === 'campaign_backup' ? 'client_manager'
+          : 'readonly';
 
-  const filteredDocuments = mockDocuments.filter((doc) => {
-    const matchesSearch =
-      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (doc.campaign?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    const matchesType = typeFilter === 'All' || doc.type === typeFilter;
-    const matchesStatus = statusFilter === 'All' || doc.status === statusFilter;
-    const matchesStarred = !showStarredOnly || starred.includes(doc.id);
-    return matchesSearch && matchesType && matchesStatus && matchesStarred;
-  });
+  const [activeTab, setActiveTab] = useState<'jobcards' | 'library'>('jobcards');
+  const [jobCards, setJobCards] = useState<JobCard[]>(mockJobCards);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [signCard, setSignCard] = useState<JobCard | null>(null);
+  const [showIntake, setShowIntake] = useState(false);
 
-  const toggleStar = (id: string) => {
-    setStarred((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
+  // Clients only see their own company's job cards.
+  const visibleCards = useMemo(() => {
+    const cards = perspective === 'client'
+      ? jobCards.filter((c) => c.clientCompany === currentUser.company)
+      : jobCards;
+    return [...cards].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  }, [jobCards, perspective, currentUser.company]);
+
+  const awaitingSignature = visibleCards.filter((c) => c.type === 'client_signature' && c.stage === 'sent_for_signature');
+  const inPipeline = visibleCards.filter((c) => c.stage !== 'signed' && c.stage !== 'completed' && c.stage !== 'declined');
+  const finished = visibleCards.filter((c) => c.stage === 'signed' || c.stage === 'completed');
+
+  const patchCard = (id: string, patch: (c: JobCard) => JobCard) => {
+    setJobCards((prev) => prev.map((c) => (c.id === id ? patch(c) : c)));
   };
 
-  const handleView = (doc: Document) => {
-    setSelectedDocument(doc);
-    setShowViewer(true);
+  const now = () => new Date().toISOString();
+
+  const handleVerify = async (card: JobCard) => {
+    setBusyId(card.id);
+    try {
+      const nextStage = await confirmOpportunity(card);
+      const verified = nextStage === 'completed';
+      patchCard(card.id, (c) => ({
+        ...c,
+        stage: verified ? 'completed' : 'pending_confirmations',
+        documentUrl: verified ? c.documentUrl : '#',
+        updatedAt: now(),
+        history: [
+          ...c.history,
+          {
+            at: now(),
+            actor: currentUser.name,
+            action: verified
+              ? 'Verified opportunity — MSA in place, no job card required'
+              : 'Verified opportunity details',
+          },
+          ...(verified ? [] : [{ at: now(), actor: 'System', action: 'Job card generated from template' }]),
+        ],
+      }));
+      toast.success(verified ? 'Verified — covered by MSA' : 'Job card generated — awaiting dual confirmation');
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  const handleDownload = (doc: Document) => {
-    toast.success(`Downloading ${doc.name}…`);
+  const handleConfirm = async (card: JobCard) => {
+    const role = perspective === 'account_manager' ? 'accountManager' : 'clientManager';
+    setBusyId(card.id);
+    try {
+      const { nextStage, bothConfirmed } = await confirmJobCard(card, role);
+      let signature = card.signature;
+      if (bothConfirmed && nextStage === 'sent_for_signature') {
+        const env = await sendForSignature(card);
+        signature = { provider: 'DocuSign', envelopeId: env.envelopeId, sentAt: env.sentAt };
+      }
+      patchCard(card.id, (c) => ({
+        ...c,
+        stage: nextStage,
+        signature,
+        updatedAt: now(),
+        confirmations: { ...c.confirmations, [role]: { confirmed: true, at: now() } },
+        history: [
+          ...c.history,
+          { at: now(), actor: currentUser.name, action: 'Confirmed job card accuracy' },
+          ...(bothConfirmed && nextStage === 'sent_for_signature'
+            ? [{ at: now(), actor: 'System', action: 'Sent for client signature via DocuSign' }]
+            : bothConfirmed && nextStage === 'completed'
+              ? [{ at: now(), actor: 'System', action: 'Job card finalized for internal records' }]
+              : []),
+        ],
+      }));
+      toast.success(
+        !bothConfirmed ? 'Confirmed — waiting on the other confirmation'
+          : nextStage === 'sent_for_signature' ? 'Both confirmed — sent to the client for signature'
+            : 'Both confirmed — job card finalized',
+      );
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  const handleDelete = (doc: Document) => {
-    toast.success(`${doc.name} deleted`);
-    setActiveMenu(null);
+  const handleSigned = (card: JobCard) => {
+    patchCard(card.id, (c) => ({
+      ...c,
+      stage: 'signed',
+      updatedAt: now(),
+      signature: {
+        provider: c.signature?.provider ?? 'DocuSign',
+        envelopeId: c.signature?.envelopeId,
+        sentAt: c.signature?.sentAt,
+        signedAt: now(),
+        signedBy: currentUser.name,
+      },
+      history: [...c.history, { at: now(), actor: currentUser.name, action: 'Signed the job card' }],
+    }));
+    setSignCard(null);
+    toast.success('Job card signed — the team has been notified');
   };
 
-  const totalActive = mockDocuments.filter((d) => d.status === 'Active').length;
-  const totalContracts = mockDocuments.filter((d) => d.type === 'Contract' || d.type === 'SOW' || d.type === 'NDA').length;
+  const handleRetrySync = async (card: JobCard) => {
+    setBusyId(card.id);
+    await new Promise((r) => setTimeout(r, 1400));
+    patchCard(card.id, (c) => ({
+      ...c,
+      stage: 'pending_cm_review',
+      updatedAt: now(),
+      salesforce: { status: 'synced', opportunityId: `006${Math.random().toString(36).slice(2, 10).toUpperCase()}`, syncedAt: now() },
+      history: [...c.history, { at: now(), actor: 'System', action: 'Salesforce sync retried — opportunity created' }],
+    }));
+    setBusyId(null);
+    toast.success('Salesforce opportunity created');
+  };
+
+  const handleIntakeCreated = (scope: ScopeSummary, oppId: string, fileName: string) => {
+    const id = `JC-2026-00${50 + jobCards.length}`;
+    const card: JobCard = {
+      id,
+      campaignName: `${scope.industry} ${scope.serviceType} – ${scope.geography} ${new Date(scope.startDate).getFullYear()}`,
+      clientId: 'client_1',
+      clientCompany: 'Intentsify',
+      type: 'client_signature',
+      stage: 'pending_cm_review',
+      createdAt: now(),
+      updatedAt: now(),
+      accountManager: currentUser.name,
+      clientManager: 'Anish Akkoat',
+      scope,
+      scopeSource: { fileName, uploadedAt: now(), uploadedBy: currentUser.name },
+      salesforce: { status: 'synced', opportunityId: oppId, syncedAt: now() },
+      confirmations: { accountManager: { confirmed: false }, clientManager: { confirmed: false } },
+      history: [
+        { at: now(), actor: currentUser.name, action: 'Uploaded conversation dump' },
+        { at: now(), actor: 'System', action: 'Scope extracted · Salesforce opportunity created' },
+      ],
+    };
+    setJobCards((prev) => [card, ...prev]);
+    setShowIntake(false);
+    toast.success(`${id} created — awaiting manager review`);
+  };
+
+  const kpis = [
+    { label: 'In Pipeline', value: inPipeline.length, icon: ClipboardList, color: 'var(--color-primary)', bg: 'var(--color-primary-tint)' },
+    { label: 'Awaiting Signature', value: awaitingSignature.length, icon: FileSignature, color: '#D97706', bg: 'rgba(217,119,6,0.1)' },
+    { label: 'Awaiting Confirmation', value: visibleCards.filter((c) => c.stage === 'pending_confirmations').length, icon: Hourglass, color: '#7C3AED', bg: 'rgba(124,58,237,0.1)' },
+    { label: 'Signed / Completed', value: finished.length, icon: CheckCircle2, color: 'var(--color-success, #0F9D58)', bg: 'var(--color-success-bg, rgba(15,157,88,0.1))' },
+  ];
+
+  const subtitle =
+    perspective === 'client' ? 'Job cards for your campaigns, plus contracts and reports'
+      : perspective === 'account_manager' ? 'Upload won-campaign scopes and track job cards through signature'
+        : perspective === 'client_manager' ? 'Verify opportunities and confirm job cards for your clients'
+          : 'Job card pipeline across all clients';
 
   return (
     <AppLayout>
@@ -178,475 +355,109 @@ export default function Documents() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 style={{ color: 'var(--color-text-primary)' }}>Documents</h1>
-            </div>
-            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              Contracts, SOWs, reports, and campaign documents
-            </p>
+            <h1 style={{ color: 'var(--color-text-primary)' }}>Documents</h1>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{subtitle}</p>
           </div>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="btn-primary px-4 py-2 flex items-center gap-2 w-full lg:w-auto justify-center"
-          >
-            <Upload className="w-4 h-4" />
-            Upload Document
-          </button>
+          {perspective === 'account_manager' && activeTab === 'jobcards' && (
+            <button onClick={() => setShowIntake(true)} className="btn-primary px-4 py-2 flex items-center gap-2 w-full lg:w-auto justify-center">
+              <Upload className="w-4 h-4" />
+              New Job Card Intake
+            </button>
+          )}
         </div>
 
-        {/* KPI Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger-children">
-          {[
-            { label: 'Total Documents', value: mockDocuments.length, icon: FileText, color: 'var(--color-primary)', bg: 'var(--color-primary-tint)' },
-            { label: 'Active', value: totalActive, icon: Check, color: 'var(--color-success)', bg: 'var(--color-success-bg)' },
-            { label: 'Contracts & Legal', value: totalContracts, icon: Lock, color: '#7C3AED', bg: 'rgba(124,58,237,0.1)' },
-            { label: 'Reports', value: mockDocuments.filter(d => d.type === 'Report').length, icon: FileSpreadsheet, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
-          ].map(({ label, value, icon: Icon, color, bg }, i) => (
-            <div key={label} className="kpi-card animate-slideInUp" style={{ animationDelay: `${i * 80}ms` }}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: bg }}>
-                  <Icon className="w-5 h-5" style={{ color }} />
-                </div>
-              </div>
-              <div className="kpi-card__number"><AnimatedCounter value={value} /></div>
-              <div className="kpi-card__label">{label}</div>
-            </div>
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit" style={{ background: 'var(--color-border-light)' }}>
+          {([
+            { key: 'jobcards', label: 'Job Cards', icon: FileSignature },
+            { key: 'library', label: 'Document Library', icon: FolderOpen },
+          ] as const).map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className="px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+              style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                background: activeTab === key ? '#fff' : 'transparent',
+                color: activeTab === key ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                boxShadow: activeTab === key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              }}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
           ))}
         </div>
 
-        {/* Filters + View Toggle */}
-        <div className="glass-card p-4 mb-4 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1">
-            {/* Search */}
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
-              <input
-                type="text"
-                placeholder="Search documents…"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-base w-full pl-9 pr-4 py-2"
-                style={{ fontSize: 'var(--font-size-sm)' }}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                >
-                  <X className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
-                </button>
-              )}
-            </div>
-
-            {/* Type Filter */}
-            <div className="relative">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="input-base px-3 py-2 pr-8 appearance-none"
-                style={{ fontSize: 'var(--font-size-sm)' }}
-              >
-                <option value="All">All Types</option>
-                {(['Contract', 'SOW', 'NDA', 'Invoice', 'Report', 'Other'] as const).map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
-            </div>
-
-            {/* Status Filter */}
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="input-base px-3 py-2 pr-8 appearance-none"
-                style={{ fontSize: 'var(--font-size-sm)' }}
-              >
-                <option value="All">All Statuses</option>
-                {(['Active', 'Expired', 'Pending', 'Archived'] as const).map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
-            </div>
-
-            {/* Starred Filter */}
-            <button
-              onClick={() => setShowStarredOnly((v) => !v)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all"
-              style={{
-                fontSize: 'var(--font-size-sm)',
-                fontWeight: showStarredOnly ? 600 : 400,
-                borderColor: showStarredOnly ? '#F59E0B' : 'var(--color-border)',
-                background: showStarredOnly ? 'rgba(245,158,11,0.08)' : 'transparent',
-                color: showStarredOnly ? '#B45309' : 'var(--color-text-secondary)',
-              }}
-            >
-              <Star
-                className="w-4 h-4"
-                style={{
-                  color: showStarredOnly ? '#F59E0B' : '#9CA3AF',
-                  fill: showStarredOnly ? '#F59E0B' : 'transparent',
-                }}
-              />
-              Starred
-              {starred.length > 0 && (
-                <span
-                  className="inline-flex items-center justify-center w-4 h-4 rounded-full"
-                  style={{ fontSize: '10px', fontWeight: 700, background: '#F59E0B', color: 'white' }}
-                >
-                  {starred.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* View Toggle */}
-          <div className="hidden sm:flex items-center gap-1 p-1 rounded-lg" style={{ background: 'var(--color-border-light)' }}>
-            <button
-              onClick={() => setViewMode('table')}
-              className="p-2 rounded-md transition-colors"
-              style={{
-                background: viewMode === 'table' ? 'white' : 'transparent',
-                color: viewMode === 'table' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                boxShadow: viewMode === 'table' ? 'var(--shadow-sm)' : 'none',
-              }}
-              title="Table view"
-            >
-              <List className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className="p-2 rounded-md transition-colors"
-              style={{
-                background: viewMode === 'grid' ? 'white' : 'transparent',
-                color: viewMode === 'grid' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                boxShadow: viewMode === 'grid' ? 'var(--shadow-sm)' : 'none',
-              }}
-              title="Grid view"
-            >
-              <Grid3x3 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Results count */}
-        <p className="mb-3" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-          {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''} found
-        </p>
-
-        {/* Table View */}
-        {viewMode === 'table' && (
-          <div className="glass-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px]">
-                <thead style={{ background: 'var(--color-border-light)', borderBottom: '1px solid var(--color-border)' }}>
-                  <tr>
-                    {['', 'Document', 'Type', 'Status', 'Uploaded By', 'Date', 'Size', ''].map((h, i) => (
-                      <th
-                        key={i}
-                        className="text-left px-4 py-3"
-                        style={{
-                          fontSize: 'var(--font-size-xs)',
-                          fontWeight: 'var(--font-weight-semibold)',
-                          color: 'var(--color-text-secondary)',
-                          textTransform: 'uppercase',
-                          letterSpacing: 'var(--letter-spacing-wide)',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredDocuments.length === 0 ? (
-                    <tr>
-                      <td colSpan={8}>
-                        <EmptyState
-                          icon={FolderOpen}
-                          title="No documents found"
-                          description="No documents match your current filters. Try adjusting your search or category."
-                        />
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredDocuments.map((doc, index) => {
-                      const cfg = typeConfig[doc.type];
-                      const stsCfg = statusConfig[doc.status];
-                      const DocIcon = cfg.icon;
-                      const isStarred = starred.includes(doc.id);
-
-                      return (
-                        <TableRow key={doc.id} index={index}>
-                          {/* Star */}
-                          <td className="px-4 py-3 w-8">
-                            <button
-                              onClick={() => toggleStar(doc.id)}
-                              title={isStarred ? 'Remove from starred' : 'Star this document'}
-                            >
-                              <Star
-                                className="w-4 h-4 transition-all"
-                                style={{
-                                  color: isStarred ? '#F59E0B' : '#9CA3AF',
-                                  fill: isStarred ? '#F59E0B' : 'transparent',
-                                }}
-                              />
-                            </button>
-                          </td>
-
-                          {/* Name + Campaign */}
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <div className="min-w-0">
-                                <div
-                                  className="truncate max-w-[260px] cursor-pointer hover:underline"
-                                  style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}
-                                  onClick={() => handleView(doc)}
-                                  title={doc.name}
-                                >
-                                  {doc.name}
-                                </div>
-                                {doc.campaign && (
-                                  <div className="truncate max-w-[260px]" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                                    {doc.campaign}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Type */}
-                          <td className="px-4 py-3">
-                            <span
-                              className="inline-flex items-center px-2 py-0.5 rounded-full"
-                              style={{ fontSize: '12px', fontWeight: 600, color: cfg.color, background: cfg.bg, whiteSpace: 'nowrap' }}
-                            >
-                              {doc.type}
-                            </span>
-                          </td>
-
-                          {/* Status */}
-                          <td className="px-4 py-3">
-                            <span
-                              className="inline-flex items-center px-2 py-0.5 rounded-full"
-                              style={{ fontSize: '12px', fontWeight: 600, color: stsCfg.color, background: stsCfg.bg, whiteSpace: 'nowrap' }}
-                            >
-                              {stsCfg.label}
-                            </span>
-                          </td>
-
-                          {/* Uploaded By */}
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <User className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }} />
-                              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
-                                {doc.uploadedBy}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* Date */}
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }} />
-                              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
-                                {formatDate(doc.uploadDate)}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* Size */}
-                          <td className="px-4 py-3">
-                            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
-                              {doc.size}
-                            </span>
-                          </td>
-
-                          {/* Actions */}
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => handleView(doc)}
-                                className="p-1.5 rounded-lg transition-colors hover:bg-black/5"
-                                title="Preview"
-                              >
-                                <Eye className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
-                              </button>
-                              <button
-                                onClick={() => handleDownload(doc)}
-                                className="p-1.5 rounded-lg transition-colors hover:bg-black/5"
-                                title="Download"
-                              >
-                                <Download className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
-                              </button>
-                              <div className="relative">
-                                <button
-                                  onClick={() => setActiveMenu(activeMenu === doc.id ? null : doc.id)}
-                                  className="p-1.5 rounded-lg transition-colors hover:bg-black/5"
-                                >
-                                  <MoreVertical className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
-                                </button>
-                                {activeMenu === doc.id && (
-                                  <div
-                                    className="absolute right-0 top-full mt-1 w-36 rounded-xl shadow-xl z-10 overflow-hidden border"
-                                    style={{ background: 'white', borderColor: 'var(--color-border)' }}
-                                  >
-                                    <button
-                                      className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-black/5 transition-colors"
-                                      style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
-                                      onClick={() => { handleDownload(doc); setActiveMenu(null); }}
-                                    >
-                                      <Download className="w-4 h-4" />
-                                      Download
-                                    </button>
-                                    <button
-                                      className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-red-50 transition-colors"
-                                      style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-error)' }}
-                                      onClick={() => handleDelete(doc)}
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                      Delete
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Grid View */}
-        {viewMode === 'grid' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredDocuments.length === 0 ? (
-              <div className="col-span-full">
-                <EmptyState
-                  icon={FolderOpen}
-                  title="No documents found"
-                  description="No documents match your current filters. Try adjusting your search or category."
-                />
-              </div>
-            ) : (
-              filteredDocuments.map((doc, index) => {
-                const cfg = typeConfig[doc.type];
-                const stsCfg = statusConfig[doc.status];
-                const DocIcon = cfg.icon;
-                const isStarred = starred.includes(doc.id);
-
-                return (
-                  <div
-                    key={doc.id}
-                    className="glass-card p-4 flex flex-col gap-3 animate-slideInUp"
-                    style={{ animationDelay: `${index * 60}ms` }}
-                  >
-                    {/* Top row */}
-                    <div className="flex items-start justify-between">
-                      <button
-                        onClick={() => toggleStar(doc.id)}
-                        title={isStarred ? 'Remove from starred' : 'Star this document'}
-                      >
-                        <Star
-                          className="w-4 h-4 transition-all"
-                          style={{
-                            color: isStarred ? '#F59E0B' : '#9CA3AF',
-                            fill: isStarred ? '#F59E0B' : 'transparent',
-                          }}
-                        />
-                      </button>
-                    </div>
-
-                    {/* Name */}
-                    <div>
-                      <div
-                        className="line-clamp-2 cursor-pointer hover:underline"
-                        style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}
-                        onClick={() => handleView(doc)}
-                      >
-                        {doc.name}
-                      </div>
-                      {doc.campaign && (
-                        <div className="mt-1 truncate" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                          {doc.campaign}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Badges */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span
-                        className="inline-flex items-center px-2 py-0.5 rounded-full"
-                        style={{ fontSize: '11px', fontWeight: 600, color: cfg.color, background: cfg.bg }}
-                      >
-                        {doc.type}
-                      </span>
-                      <span
-                        className="inline-flex items-center px-2 py-0.5 rounded-full"
-                        style={{ fontSize: '11px', fontWeight: 600, color: stsCfg.color, background: stsCfg.bg }}
-                      >
-                        {stsCfg.label}
-                      </span>
-                    </div>
-
-                    {/* Meta */}
-                    <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
-                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                        {formatDate(doc.uploadDate)} · {doc.size}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleView(doc)}
-                          className="p-1.5 rounded-lg hover:bg-black/5 transition-colors"
-                          title="Preview"
-                        >
-                          <Eye className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
-                        </button>
-                        <button
-                          onClick={() => handleDownload(doc)}
-                          className="p-1.5 rounded-lg hover:bg-black/5 transition-colors"
-                          title="Download"
-                        >
-                          <Download className="w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
-                        </button>
-                      </div>
+        {activeTab === 'library' ? (
+          <DocumentLibraryTab />
+        ) : (
+          <>
+            {/* KPI row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger-children">
+              {kpis.map(({ label, value, icon: Icon, color, bg }, i) => (
+                <div key={label} className="kpi-card animate-slideInUp" style={{ animationDelay: `${i * 80}ms` }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: bg }}>
+                      <Icon className="w-5 h-5" style={{ color }} />
                     </div>
                   </div>
-                );
-              })
+                  <div className="kpi-card__number"><AnimatedCounter value={value} /></div>
+                  <div className="kpi-card__label">{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Client hero: awaiting your signature */}
+            {perspective === 'client' && awaitingSignature.length > 0 && (
+              <div className="mb-6">
+                <h2 className="mb-3" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                  Awaiting Your Signature
+                </h2>
+                <div className="space-y-4">
+                  {awaitingSignature.map((card) => (
+                    <JobCardCard key={card.id} card={card} perspective={perspective} onSign={setSignCard} busy={busyId === card.id} />
+                  ))}
+                </div>
+              </div>
             )}
-          </div>
+
+            {/* Pipeline */}
+            <h2 className="mb-3" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              {perspective === 'client' ? 'All Job Cards' : 'Pipeline'}
+            </h2>
+            {visibleCards.length === 0 ? (
+              <EmptyState
+                icon={ClipboardList}
+                title="No job cards yet"
+                description="Job cards appear here once a won campaign enters intake."
+              />
+            ) : (
+              <div className="space-y-4">
+                {(perspective === 'client'
+                  ? visibleCards.filter((c) => !awaitingSignature.includes(c))
+                  : visibleCards
+                ).map((card) => (
+                  <JobCardCard
+                    key={card.id}
+                    card={card}
+                    perspective={perspective}
+                    onVerifyOpportunity={handleVerify}
+                    onConfirm={handleConfirm}
+                    onSign={setSignCard}
+                    onRetrySync={handleRetrySync}
+                    busy={busyId === card.id}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* Modals */}
-      {selectedDocument && (
-        <DocumentViewerModal
-          isOpen={showViewer}
-          onClose={() => { setShowViewer(false); setSelectedDocument(null); }}
-          document={selectedDocument}
-        />
-      )}
-
-      <UploadZoneModal
-        isOpen={showUploadModal}
-        onClose={() => setShowUploadModal(false)}
-      />
-
-      {/* Click-away to close menu */}
-      {activeMenu && (
-        <div
-          className="fixed inset-0 z-0"
-          onClick={() => setActiveMenu(null)}
-        />
-      )}
+      {signCard && <SignModal card={signCard} onClose={() => setSignCard(null)} onSigned={handleSigned} />}
+      {showIntake && <IntakeModal onClose={() => setShowIntake(false)} onCreated={handleIntakeCreated} />}
     </AppLayout>
   );
 }
