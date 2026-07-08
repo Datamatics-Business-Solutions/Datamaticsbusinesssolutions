@@ -164,6 +164,8 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
     const role = currentUser?.role;
 
     if (role === 'ops_manager') {
+      // Mirrors production nav (pulse.datamaticsbpm.com): Dashboard, All Campaigns,
+      // Admin Management, Metrics Override, Lead Demographics + the new Phase 2 modules.
       return [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/ops', section: 'PLATFORM' },
         { 
@@ -174,32 +176,12 @@ export function LeftSidebar({ collapsed: controlledCollapsed, onToggle }: Sideba
           badge: badges.activeCampaigns,
           badgeColor: 'bg-[#BA2027]'
         },
-        {
-          name: 'Approvals',
-          icon: ClipboardCheck,
-          path: '/internal/approvals',
-          section: 'PLATFORM',
-          badge: badges.pendingApprovals,
-          badgeColor: 'bg-[#BA2027]',
-        },
-        { 
-          name: 'Upload Leads', 
-          icon: Upload, 
-          path: '/internal/leads', 
-          section: 'PLATFORM',
-          badge: badges.processingUploads > 0 ? badges.processingUploads : undefined,
-          badgeColor: 'bg-[#BA2027]',
-          hasQuickAction: true,
-          quickActionIcon: Plus,
-          quickActionHandler: () => setShowUploadModal(true)
-        },
-        { name: 'Team Management', icon: UsersRound, path: '/dashboard/ops/team', section: 'PLATFORM' },
+        { name: 'Admin Management', icon: UsersRound, path: '/internal/admin', section: 'PLATFORM' },
         { name: 'Metrics Override', icon: BarChart2, path: '/internal/ops-override', section: 'PLATFORM' },
         { name: 'Lead Demographics', icon: Globe, path: '/internal/demographics', section: 'PLATFORM' },
-        { name: 'Job Cards', icon: FolderOpen, path: '/documents', section: 'ORGANIZATION' },
-        { name: 'Invoices', icon: Receipt, path: '/invoices', section: 'ORGANIZATION' },
+        { name: 'Job Cards', icon: FolderOpen, path: '/documents', section: 'PLATFORM' },
+        { name: 'Invoices', icon: Receipt, path: '/invoices', section: 'PLATFORM' },
         { name: 'Settings', icon: Settings, path: '/account', section: 'ORGANIZATION' },
-        { name: 'Feedback', icon: MessageSquare, path: '/feedback', section: 'ORGANIZATION' },
       ];
     }
 

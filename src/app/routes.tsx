@@ -31,6 +31,7 @@ const TeamManagementPage = lazy(() => import('./pages/TeamManagementPage'));
 const ClientAssignmentPage = lazy(() => import('./pages/ClientAssignmentPage'));
 const ErrorBoundary = lazy(() => import('./pages/ErrorBoundary'));
 const CampaignApprovalsPage = lazy(() => import('./pages/CampaignApprovalsPage'));
+const AdminManagementPage = lazy(() => import('./pages/AdminManagementPage'));
 const OpsOverridePage = lazy(() => import('./pages/OpsOverridePage'));
 const DemographicsEntryPage = lazy(() => import('./pages/DemographicsEntryPage'));
 
@@ -143,6 +144,17 @@ export const router = createBrowserRouter([
   {
     path: '/internal/approvals',
     Component: withSuspense(CampaignApprovalsPage),
+  },
+  {
+    path: '/internal/admin',
+    Component: () => {
+      const SuspendedPage = withSuspense(AdminManagementPage);
+      return (
+        <ProtectedRoute blockClient={true} requireManager={true}>
+          <SuspendedPage />
+        </ProtectedRoute>
+      );
+    }
   },
   {
     path: '/internal/ops-override',
