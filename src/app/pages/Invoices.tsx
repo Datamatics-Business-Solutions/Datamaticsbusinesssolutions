@@ -204,6 +204,130 @@ function InvoiceCard({
   );
 }
 
+// ─── Client-facing invoice card ───────────────────────────────────────────────
+// Clients see money facts and actions only: what's due, when, pay, download,
+// and the billable breakdown. No internal pipeline, no Tally, no validation.
+
+type ClientStatus = 'due' | 'overdue' | 'paid';
+
+function clientStatus(inv: InvoiceRecord): ClientStatus {
+  if (inv.stage === 'paid') return 'paid';
+  if (inv.stage === 'overdue') return 'overdue';
+  return 'due';
+}
+
+const CLIENT_STATUS_META: Record<ClientStatus, { label: string; bg: string; color: string }> = {
+  due: { label: 'Due', bg: 'rgba(217,119,6,0.12)', color: '#B45309' },
+  overdue: { label: 'Overdue', bg: 'rgba(220,38,38,0.12)', color: '#DC2626' },
+  paid: { label: 'Paid', bg: 'rgba(5,150,105,0.12)', color: '#065F46' },
+};
+
+function ClientInvoiceCard({ invoice, busy, onPay }: {
+  invoice: InvoiceRecord;
+  busy: boolean;
+  onPay: (inv: InvoiceRecord) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const status = clientStatus(invoice);
+  const meta = CLIENT_STATUS_META[status];
+  const region = invoice.grouping === 'geo_split' && invoice.geo ? invoice.geo : null;
+
+  return (
+    <div className="glass-card p-5">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              {invoice.invoiceNumber}
+            </span>
+            {region && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full" style={{ fontSize: '11px', fontWeight: 500, background: 'var(--color-main-bg)', color: 'var(--color-text-secondary)' }}>
+                {region} region
+              </span>
+            )}
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full" style={{ fontSize: '11px', fontWeight: 600, background: meta.bg, color: meta.color }}>
+              {meta.label}
+            </span>
+          </div>
+          <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+            {formatBillingPeriod(invoice.billingPeriod)} billing
+            {status === 'paid' && invoice.payment?.paidAt
+              ? <> · Paid {fmtDate(invoice.payment.paidAt)}{invoice.payment.reference ? <span style={{ color: 'var(--color-text-muted)' }}> · Ref {invoice.payment.reference}</span> : null}</>
+              : invoice.dueDate ? <> · Due <strong style={{ color: status === 'overdue' ? '#DC2626' : 'var(--color-text-primary)' }}>{fmtDate(invoice.dueDate)}</strong></> : null}
+          </p>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <div style={{ fontSize: '22px', fontWeight: 700, color: status === 'overdue' ? '#DC2626' : 'var(--color-text-primary)' }}>
+            {formatUSD(invoice.total)}
+          </div>
+          {status === 'paid' && (
+            <div className="flex items-center gap-1 justify-end" style={{ fontSize: '12px', color: 'var(--color-success)' }}>
+              <CheckCircle2 className="w-3.5 h-3.5" /> Settled
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 mt-4">
+        {status !== 'paid' && (
+          <button onClick={() => onPay(invoice)} disabled={busy} className="btn-primary px-4 py-2 flex items-center gap-2">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+            {busy ? 'Processing…' : 'Pay Now'}
+          </button>
+        )}
+        <button onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}.pdf…`)} className="btn-secondary px-4 py-2 flex items-center gap-2">
+          <Download className="w-4 h-4" />
+          Download
+        </button>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="ml-auto flex items-center gap-1 px-2 py-1"
+          style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}
+        >
+          View details
+          {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--color-border-light)' }}>
+          <div className="overflow-x-auto">
+            <table className="w-full" style={{ fontSize: '12px' }}>
+              <thead>
+                <tr style={{ color: 'var(--color-text-muted)', textAlign: 'left' }}>
+                  <th className="py-1.5 pr-3 font-semibold">Campaign</th>
+                  <th className="py-1.5 pr-3 font-semibold">Job Card</th>
+                  <th className="py-1.5 pr-3 font-semibold text-right">Billable Leads</th>
+                  <th className="py-1.5 pr-3 font-semibold text-right">Cost per Lead</th>
+                  <th className="py-1.5 font-semibold text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice.lineItems.map((li) => (
+                  <tr key={`${li.campaignId}-${li.geo}`} style={{ borderTop: '1px solid var(--color-border-light)', color: 'var(--color-text-primary)' }}>
+                    <td className="py-2 pr-3">{li.campaignName}</td>
+                    <td className="py-2 pr-3">{li.jobCardId ?? '—'}</td>
+                    <td className="py-2 pr-3 text-right">{li.billableLeads.toLocaleString('en-US')}</td>
+                    <td className="py-2 pr-3 text-right">{formatUSD(li.cpl)}</td>
+                    <td className="py-2 text-right font-semibold">{formatUSD(li.amount)}</td>
+                  </tr>
+                ))}
+                <tr style={{ borderTop: '1px solid var(--color-border-light)' }}>
+                  <td colSpan={4} className="py-2 pr-3 text-right font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Total</td>
+                  <td className="py-2 text-right font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatUSD(invoice.total)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2" style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+            You are only ever billed for accepted, billable leads.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Invoices() {
@@ -225,6 +349,7 @@ export default function Invoices() {
   };
 
   // Clients see only their own sent/paid/overdue invoices — never internal drafts.
+  // Ordering for clients is action-first: overdue, then due (soonest first), then paid.
   const visibleInvoices = useMemo(() => {
     let list = invoices;
     if (perspective === 'client') {
@@ -232,6 +357,13 @@ export default function Invoices() {
         (inv) => inv.clientCompany === currentUser.company
           && ['sent', 'paid', 'overdue'].includes(inv.stage),
       );
+      const rank = (inv: InvoiceRecord) => (inv.stage === 'overdue' ? 0 : inv.stage === 'sent' ? 1 : 2);
+      return [...list].sort((a, b) => {
+        const r = rank(a) - rank(b);
+        if (r !== 0) return r;
+        if (rank(a) < 2) return (a.dueDate ?? '').localeCompare(b.dueDate ?? '');
+        return b.billingPeriod.localeCompare(a.billingPeriod);
+      });
     }
     return [...list].sort((a, b) => b.billingPeriod.localeCompare(a.billingPeriod));
   }, [invoices, perspective, currentUser.company]);
@@ -334,6 +466,13 @@ export default function Invoices() {
   const pendingValidationCount = invoices.filter((i) => i.stage === 'draft' || i.stage === 'pending_validation').length;
   const tallyIssues = invoices.filter((i) => i.tally.invoiceEntry === 'failed' || i.tally.paymentEntry === 'failed').length;
 
+  // Next due date across unpaid invoices (client view)
+  const nextDue = visibleInvoices
+    .filter((i) => i.stage === 'sent' || i.stage === 'overdue')
+    .map((i) => i.dueDate)
+    .filter(Boolean)
+    .sort()[0];
+
   const kpis = perspective === 'accounts'
     ? [
       { label: 'Awaiting Validation', value: pendingValidationCount, icon: FileCheck2, money: false },
@@ -341,15 +480,22 @@ export default function Invoices() {
       { label: 'Collected', value: paidTotal, icon: CheckCircle2, money: true },
       { label: 'Tally Sync Issues', value: tallyIssues, icon: AlertCircle, money: false },
     ]
-    : [
-      { label: 'Outstanding', value: outstanding, icon: Clock, money: true },
-      { label: 'Paid', value: paidTotal, icon: CheckCircle2, money: true },
-      { label: 'Overdue', value: overdueCount, icon: AlertCircle, money: false },
-      { label: 'Total Invoices', value: visibleInvoices.length, icon: Receipt, money: false },
-    ];
+    : perspective === 'client'
+      ? [
+        { label: 'Amount Due', value: outstanding, icon: Clock, money: true },
+        { label: 'Next Due Date', value: nextDue ? fmtDate(nextDue) : '—', icon: Receipt, money: false },
+        { label: 'Overdue', value: overdueCount, icon: AlertCircle, money: false },
+        { label: 'Paid This Year', value: paidTotal, icon: CheckCircle2, money: true },
+      ]
+      : [
+        { label: 'Outstanding', value: outstanding, icon: Clock, money: true },
+        { label: 'Paid', value: paidTotal, icon: CheckCircle2, money: true },
+        { label: 'Overdue', value: overdueCount, icon: AlertCircle, money: false },
+        { label: 'Total Invoices', value: visibleInvoices.length, icon: Receipt, money: false },
+      ];
 
   const subtitle =
-    perspective === 'client' ? 'Monthly invoices from billable leads — pay securely from the portal'
+    perspective === 'client' ? 'Your monthly invoices — pay securely and download copies for your records'
       : perspective === 'accounts' ? 'Validate amounts, sync to Tally, and track collections'
         : 'Invoice pipeline across all clients';
 
@@ -370,7 +516,7 @@ export default function Invoices() {
                 <Icon className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
               </div>
               <div className="kpi-card__number" style={{ fontSize: '24px', marginBottom: '2px' }}>
-                {money ? <>$<AnimatedCounter value={value} /></> : <AnimatedCounter value={value} />}
+                {typeof value === 'string' ? value : money ? <>$<AnimatedCounter value={value} /></> : <AnimatedCounter value={value} />}
               </div>
               <div className="kpi-card__label">{label}</div>
             </div>
@@ -413,15 +559,19 @@ export default function Invoices() {
         ) : (
           <div className="space-y-4">
             {rest.map((inv) => (
-              <InvoiceCard
-                key={inv.id}
-                invoice={inv}
-                perspective={perspective}
-                busy={busyId === inv.id}
-                onValidate={handleValidate}
-                onRetryTally={handleRetryTally}
-                onPay={handlePay}
-              />
+              perspective === 'client' ? (
+                <ClientInvoiceCard key={inv.id} invoice={inv} busy={busyId === inv.id} onPay={handlePay} />
+              ) : (
+                <InvoiceCard
+                  key={inv.id}
+                  invoice={inv}
+                  perspective={perspective}
+                  busy={busyId === inv.id}
+                  onValidate={handleValidate}
+                  onRetryTally={handleRetryTally}
+                  onPay={handlePay}
+                />
+              )
             ))}
           </div>
         )}

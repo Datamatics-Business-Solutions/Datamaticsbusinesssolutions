@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   FileSignature, Upload, CheckCircle2, Hourglass, FolderOpen,
-  ClipboardList, X, Loader2, FileUp, PenLine,
+  ClipboardList, X, Loader2, FileUp, PenLine, Download,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppLayout } from '../components/AppLayout';
@@ -177,6 +177,85 @@ function IntakeModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
   );
 }
 
+// ─── Client-facing views ──────────────────────────────────────────────────────
+// Clients see two things only: job cards awaiting their signature, and signed
+// job cards they can download. Internal pipeline stages, Salesforce sync, and
+// dual-confirmation states never reach this view.
+
+function scopeFacts(card: JobCard) {
+  return [
+    ['Service', card.scope.serviceType],
+    ['Geography', card.scope.geography],
+    ['Target Leads', card.scope.targetLeads.toLocaleString('en-US')],
+    ['Cost per Lead', `$${card.scope.cpl.toLocaleString('en-US')}`],
+    ['Start', new Date(card.scope.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })],
+    ['End', new Date(card.scope.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })],
+  ] as const;
+}
+
+function ClientSignatureCard({ card, onSign, busy }: { card: JobCard; onSign: (c: JobCard) => void; busy: boolean }) {
+  return (
+    <div className="glass-card p-5" style={{ border: '1.5px solid rgba(186,32,39,0.25)' }}>
+      <div className="flex items-center gap-2 mb-1">
+        <PenLine className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
+        <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--color-primary)', textTransform: 'uppercase' }}>
+          Signature requested
+        </span>
+      </div>
+      <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '2px' }}>
+        {card.campaignName}
+      </h3>
+      <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '14px' }}>
+        {card.id}{card.signature?.sentAt && <> · Sent {new Date(card.signature.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</>}
+      </p>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+        {scopeFacts(card).map(([label, value]) => (
+          <div key={label}>
+            <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => onSign(card)} disabled={busy} className="btn-primary px-4 py-2 flex items-center gap-2">
+          <PenLine className="w-4 h-4" />
+          Review &amp; Sign
+        </button>
+        <button onClick={() => toast.success(`Downloading ${card.id}.pdf…`)} className="btn-secondary px-4 py-2 flex items-center gap-2">
+          <Download className="w-4 h-4" />
+          Download Copy
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ClientSignedRow({ card }: { card: JobCard }) {
+  return (
+    <div className="glass-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex items-start gap-3 min-w-0">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--color-success-bg)' }}>
+          <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+        </div>
+        <div className="min-w-0">
+          <div className="truncate" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{card.campaignName}</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+            {card.id}
+            {card.signature?.signedAt && <> · Signed {new Date(card.signature.signedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</>}
+            {card.signature?.signedBy && <> by {card.signature.signedBy}</>}
+          </div>
+        </div>
+      </div>
+      <button onClick={() => toast.success(`Downloading ${card.id}.pdf…`)} className="btn-secondary px-3 py-1.5 flex items-center gap-2 flex-shrink-0" style={{ minHeight: '36px' }}>
+        <Download className="w-3.5 h-3.5" />
+        Download
+      </button>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Documents() {
@@ -206,6 +285,8 @@ export default function Documents() {
   const awaitingSignature = visibleCards.filter((c) => c.type === 'client_signature' && c.stage === 'sent_for_signature');
   const inPipeline = visibleCards.filter((c) => c.stage !== 'signed' && c.stage !== 'completed' && c.stage !== 'declined');
   const finished = visibleCards.filter((c) => c.stage === 'signed' || c.stage === 'completed');
+  // Clients only ever see documents that involve them: signature requests and signed agreements.
+  const clientSigned = visibleCards.filter((c) => c.type === 'client_signature' && c.stage === 'signed');
 
   const patchCard = (id: string, patch: (c: JobCard) => JobCard) => {
     setJobCards((prev) => prev.map((c) => (c.id === id ? patch(c) : c)));
@@ -344,7 +425,7 @@ export default function Documents() {
   ];
 
   const subtitle =
-    perspective === 'client' ? 'Job cards for your campaigns, plus contracts and reports'
+    perspective === 'client' ? 'Sign campaign agreements and download your documents'
       : perspective === 'account_manager' ? 'Upload won-campaign scopes and track job cards through signature'
         : perspective === 'client_manager' ? 'Verify opportunities and confirm job cards for your clients'
           : 'Job card pipeline across all clients';
@@ -392,6 +473,47 @@ export default function Documents() {
 
         {activeTab === 'library' ? (
           <DocumentLibraryTab />
+        ) : perspective === 'client' ? (
+          <>
+            {/* Signature requests */}
+            {awaitingSignature.length > 0 ? (
+              <div className="mb-8">
+                <h2 className="mb-3" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                  Awaiting Your Signature
+                </h2>
+                <div className="space-y-4">
+                  {awaitingSignature.map((card) => (
+                    <ClientSignatureCard key={card.id} card={card} onSign={setSignCard} busy={busyId === card.id} />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="glass-card p-5 mb-8 flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--color-success)' }} />
+                <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
+                  Nothing needs your signature right now.
+                </span>
+              </div>
+            )}
+
+            {/* Signed archive */}
+            <h2 className="mb-3" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              Signed Job Cards
+            </h2>
+            {clientSigned.length === 0 ? (
+              <EmptyState
+                icon={FileSignature}
+                title="No signed job cards yet"
+                description="Signed campaign agreements will appear here for download."
+              />
+            ) : (
+              <div className="space-y-3">
+                {clientSigned.map((card) => (
+                  <ClientSignedRow key={card.id} card={card} />
+                ))}
+              </div>
+            )}
+          </>
         ) : (
           <>
             {/* KPI row */}
@@ -407,23 +529,9 @@ export default function Documents() {
               ))}
             </div>
 
-            {/* Client hero: awaiting your signature */}
-            {perspective === 'client' && awaitingSignature.length > 0 && (
-              <div className="mb-6">
-                <h2 className="mb-3" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-                  Awaiting Your Signature
-                </h2>
-                <div className="space-y-4">
-                  {awaitingSignature.map((card) => (
-                    <JobCardCard key={card.id} card={card} perspective={perspective} onSign={setSignCard} busy={busyId === card.id} />
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Pipeline */}
             <h2 className="mb-3" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-              {perspective === 'client' ? 'All Job Cards' : 'Pipeline'}
+              Pipeline
             </h2>
             {visibleCards.length === 0 ? (
               <EmptyState
@@ -433,10 +541,7 @@ export default function Documents() {
               />
             ) : (
               <div className="space-y-4">
-                {(perspective === 'client'
-                  ? visibleCards.filter((c) => !awaitingSignature.includes(c))
-                  : visibleCards
-                ).map((card) => (
+                {visibleCards.map((card) => (
                   <JobCardCard
                     key={card.id}
                     card={card}
