@@ -175,17 +175,16 @@
    ============================================ */
 
 .btn-primary {
-  background: linear-gradient(135deg, 
-    var(--color-primary) 0%, 
-    var(--color-primary-light) 100%);
+  /* Flat solid — matches production (pulse.datamaticsbpm.com) */
+  background: var(--color-primary);
   color: white;
   font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-base);
-  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
   border: none;
-  box-shadow: var(--shadow-red);
+  box-shadow: var(--shadow-sm);
   transition: 
-    transform var(--transition-fast),
+    background var(--transition-fast),
     box-shadow var(--transition-fast);
   cursor: pointer;
   /* Minimum touch target */
@@ -195,8 +194,40 @@
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px) scale(1.01);
-  box-shadow: 0 8px 28px rgba(186,32,39,0.30);
+  background: var(--color-primary-dark);
+  box-shadow: var(--shadow-red);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tinted secondary — matches production's "Start a Campaign" style */
+.btn-secondary {
+  background: var(--color-primary-tint);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(186, 32, 39, 0.15);
+  transition: 
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+  cursor: pointer;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-secondary:hover {
+  background: rgba(186, 32, 39, 0.12);
+  border-color: rgba(186, 32, 39, 0.25);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-outline {

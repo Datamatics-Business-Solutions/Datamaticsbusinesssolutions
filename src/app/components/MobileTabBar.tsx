@@ -9,6 +9,7 @@ import {
   FileBarChart,
   Users,
   Receipt,
+  FolderOpen,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -23,9 +24,9 @@ const tabsByRole: Record<string, TabItem[]> = {
   ops_manager: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/ops' },
     { name: 'Campaigns', icon: Layers, path: '/internal/campaigns' },
-    { name: 'Upload', icon: Upload, path: '/internal/leads', primary: true },
-    { name: 'Team', icon: UsersRound, path: '/dashboard/ops/team' },
-    { name: 'Reports', icon: FileBarChart, path: '/internal/reports' },
+    { name: 'Admin', icon: UsersRound, path: '/internal/admin', primary: true },
+    { name: 'Override', icon: BarChart2, path: '/internal/ops-override' },
+    { name: 'Job Cards', icon: FolderOpen, path: '/documents' },
   ],
   campaign_manager: [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/manager' },
@@ -45,6 +46,15 @@ const tabsByRole: Record<string, TabItem[]> = {
     { name: 'Leads', icon: Users, path: '/leads' },
     { name: 'Reports', icon: FileBarChart, path: '/reports' },
     { name: 'Invoices', icon: Receipt, path: '/invoices' },
+  ],
+  account_manager: [
+    { name: 'Job Cards', icon: FolderOpen, path: '/documents' },
+    { name: 'Invoices', icon: Receipt, path: '/invoices' },
+    { name: 'Campaigns', icon: BarChart2, path: '/internal/campaigns' },
+  ],
+  accounts: [
+    { name: 'Invoices', icon: Receipt, path: '/invoices' },
+    { name: 'Job Cards', icon: FolderOpen, path: '/documents' },
   ],
 };
 

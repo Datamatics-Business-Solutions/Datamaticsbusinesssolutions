@@ -264,10 +264,8 @@ export default function OpsOverridePage() {
         <div className="mb-8">
           <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">Campaign Metrics Override</h1>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-            Operations Override Center — 
-            {isOpsManager 
-              ? ' Manually enter outreach stats and lead counts below. Changes sync instantly to client dashboards.' 
-              : ' View outbound outreach and lead validation metrics in real time (Read-Only Mode).'}
+            Operations Override Center with live API data and backend persistence.
+            {!isOpsManager && ' You have view-only rights (Read-Only Mode).'}
           </p>
         </div>
 
@@ -467,9 +465,9 @@ export default function OpsOverridePage() {
                     <div className="p-4 rounded-xl bg-green-50/70 dark:bg-green-950/20 border border-green-200/30 flex gap-3">
                       <Sparkles className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5 animate-pulse" />
                       <div>
-                        <div className="text-xs font-bold text-green-800 dark:text-green-300">✏️ Active Edit Mode (Operations)</div>
+                        <div className="text-xs font-bold text-green-800 dark:text-green-300">Live API Edit Mode</div>
                         <div className="text-[11px] text-green-700 dark:text-green-400/90 leading-relaxed mt-1">
-                          You are authenticated as <strong>Praful Sanil</strong>. You can manually override metrics below. Changes saved sync immediately to the client.
+                          Lead goal and validation metrics are read-only from backend. Only outreach metrics are editable.
                         </div>
                       </div>
                     </div>
@@ -495,20 +493,21 @@ export default function OpsOverridePage() {
                         <span className="text-xs font-bold text-[#BA2027] dark:text-red-400">{liveTarget.toLocaleString()} / 5,000</span>
                       </div>
                       <div className="flex items-center gap-4">
+                        {/* Read-only from backend (live API) — production parity */}
                         <input
                           type="range"
                           min="0"
                           max={5000}
-                          disabled={!isOpsManager}
+                          disabled
                           value={Math.min(liveTarget, 5000)}
-                          onChange={(e) => setTargetLeads(e.target.value)}
-                          className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-gray-200 dark:bg-gray-800 accent-[#BA2027] focus:outline-none"
+                          readOnly
+                          className="flex-1 h-2 rounded-lg appearance-none bg-gray-200 dark:bg-gray-800 accent-[#BA2027] focus:outline-none disabled:opacity-40"
                         />
                         <input
                           type="number"
-                          disabled={!isOpsManager}
+                          disabled
                           value={targetLeads}
-                          onChange={(e) => setTargetLeads(e.target.value)}
+                          readOnly
                           placeholder="0"
                           className="input-base w-28 px-3 py-2 text-center text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
                         />
@@ -521,7 +520,7 @@ export default function OpsOverridePage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
                         <Mail className="w-4 h-4 text-indigo-500" />
-                        <span>📧 Email Outreach Metrics</span>
+                        <span>Email Outreach Metrics</span>
                       </div>
                       
                       <div className="space-y-4">
@@ -626,7 +625,7 @@ export default function OpsOverridePage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
                         <Activity className="w-4 h-4 text-emerald-500" />
-                        <span>⚡ Lead Validation Metrics</span>
+                        <span>Lead Validation Metrics (Read-Only)</span>
                       </div>
                       
                       <div className="space-y-4">
@@ -641,16 +640,16 @@ export default function OpsOverridePage() {
                               type="range"
                               min="0"
                               max={5000}
-                              disabled={!isOpsManager}
+                              disabled
                               value={Math.min(liveUploaded, 5000)}
-                              onChange={(e) => setUploadedLeads(e.target.value)}
+                              readOnly
                               className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-gray-200 dark:bg-gray-800 accent-[#BA2027] focus:outline-none"
                             />
                             <input
                               type="number"
-                              disabled={!isOpsManager}
+                              disabled
                               value={uploadedLeads}
-                              onChange={(e) => setUploadedLeads(e.target.value)}
+                              readOnly
                               className="input-base w-28 px-3 py-2 text-center text-sm font-semibold disabled:opacity-60"
                             />
                           </div>
@@ -667,16 +666,16 @@ export default function OpsOverridePage() {
                               type="range"
                               min="0"
                               max={liveUploaded}
-                              disabled={!isOpsManager || liveUploaded === 0}
+                              disabled
                               value={Math.min(liveAccepted, liveUploaded)}
-                              onChange={(e) => setAcceptedLeads(e.target.value)}
+                              readOnly
                               className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-gray-200 dark:bg-gray-800 accent-[#BA2027] focus:outline-none disabled:opacity-40"
                             />
                             <input
                               type="number"
-                              disabled={!isOpsManager}
+                              disabled
                               value={acceptedLeads}
-                              onChange={(e) => setAcceptedLeads(e.target.value)}
+                              readOnly
                               className={`input-base w-28 px-3 py-2 text-center text-sm font-semibold disabled:opacity-60 ${
                                 validationErrors.accepted ? 'border-red-500 focus:ring-1 focus:ring-red-500' : ''
                               }`}

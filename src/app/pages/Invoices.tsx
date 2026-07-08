@@ -1,461 +1,581 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router';
-import { useAuth } from '../context/AuthContext';
+import { useMemo, useState } from 'react';
 import {
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  FileText,
-  Building2,
-  ArrowRightLeft,
-  CreditCard,
-  Search,
-  ChevronDown,
-  Download,
-  DollarSign,
-  Eye,
+  Receipt, CheckCircle2, AlertCircle, Clock, ChevronDown, ChevronUp,
+  Download, CreditCard, Loader2, RefreshCw, Send, FileCheck2, Link2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppLayout } from '../components/AppLayout';
-import { TableRow } from '../components/TableRow';
-import { InvoicePreviewModal } from '../components/InvoicePreviewModal';
-import { mockInvoices } from '../mockInvoices';
-import { generateInvoicePDF, exportInvoicesToCSV } from '../utils/exportUtils';
-import { useDebounce } from '../hooks/useDebounce';
+import { useAuth } from '../context/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { EmptyState } from '../components/EmptyState';
-import { TableSkeleton } from '../components/SkeletonLoader';
+import { WorkflowStepper } from '../components/workflow/WorkflowStepper';
+import { IntegrationChip } from '../components/workflow/IntegrationChip';
+import { mockInvoiceRecords } from '../data/mockInvoiceRecords';
+import {
+  INVOICE_STAGE_ORDER, INVOICE_STAGE_META, GROUPING_META, stageIndex,
+  formatBillingPeriod, formatUSD, validateInvoice, syncInvoiceToTally,
+  sendInvoice, initiatePayment, syncPaymentToTally,
+} from '../utils/invoiceWorkflow';
+import type { InvoiceRecord } from '../types';
+
+type InvoicePerspective = 'client' | 'accounts' | 'readonly';
+
+function fmtDate(iso?: string) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+const stageChipStyles: Record<string, string> = {
+  draft: 'bg-[#F5F3FF] text-[#7C3AED]',
+  pending_validation: 'bg-[#FFF7ED] text-[#C2410C]',
+  approved: 'bg-[#EFF6FF] text-[#2563EB]',
+  sent: 'bg-[#FFFBEB] text-[#D97706]',
+  paid: 'bg-[#ECFDF5] text-[#059669]',
+  overdue: 'bg-[#FEF2F2] text-[#DC2626]',
+  void: 'bg-[#F3F4F6] text-[#6B7280]',
+};
+
+// ─── Single invoice card ──────────────────────────────────────────────────────
+
+function InvoiceCard({
+  invoice, perspective, busy,
+  onValidate, onRetryTally, onPay,
+}: {
+  invoice: InvoiceRecord;
+  perspective: InvoicePerspective;
+  busy: boolean;
+  onValidate: (inv: InvoiceRecord) => void;
+  onRetryTally: (inv: InvoiceRecord) => void;
+  onPay: (inv: InvoiceRecord) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const steps = INVOICE_STAGE_ORDER.map((s) => ({ key: s, label: INVOICE_STAGE_META[s].label }));
+  const isPaid = invoice.stage === 'paid';
+  const isOverdue = invoice.stage === 'overdue';
+  const tallyFailed = invoice.tally.invoiceEntry === 'failed';
+
+  const canValidate = perspective === 'accounts' && (invoice.stage === 'draft' || invoice.stage === 'pending_validation');
+  const canRetryTally = perspective === 'accounts' && tallyFailed;
+  const canPay = perspective === 'client' && (invoice.stage === 'sent' || invoice.stage === 'overdue');
+
+  const groupingLabel = invoice.grouping === 'geo_split' && invoice.geo
+    ? `Geo Split · ${invoice.geo}`
+    : GROUPING_META[invoice.grouping].label;
+
+  return (
+    <div className="glass-card p-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)', letterSpacing: '0.02em' }}>
+              {invoice.invoiceNumber}
+            </span>
+            <span
+              className="inline-flex items-center px-2 py-0.5 rounded-full"
+              style={{ fontSize: '11px', fontWeight: 500, background: 'var(--color-primary-tint)', color: 'var(--color-primary)' }}
+              title={GROUPING_META[invoice.grouping].hint}
+            >
+              {groupingLabel}
+            </span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${stageChipStyles[invoice.stage]}`}>
+              {INVOICE_STAGE_META[invoice.stage].label}
+            </span>
+          </div>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+            {invoice.clientCompany} · Billing period {formatBillingPeriod(invoice.billingPeriod)}
+            {invoice.dueDate && ` · Due ${fmtDate(invoice.dueDate)}`}
+          </p>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <div style={{ fontSize: '20px', fontWeight: 700, color: isOverdue ? '#DC2626' : 'var(--color-text-primary)' }}>
+            {formatUSD(invoice.total)}
+          </div>
+          {isPaid && invoice.payment?.paidAt && (
+            <div className="flex items-center gap-1 justify-end" style={{ fontSize: '11px', color: 'var(--color-success, #0F9D58)' }}>
+              <CheckCircle2 className="w-3 h-3" /> Paid {fmtDate(invoice.payment.paidAt)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Stepper */}
+      <div className="mb-4 overflow-x-auto">
+        <div style={{ minWidth: 420 }}>
+          <WorkflowStepper steps={steps} currentIndex={stageIndex(invoice)} allDone={isPaid} size="sm" />
+        </div>
+      </div>
+
+      {/* Tally + payment chips */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <IntegrationChip system="Tally · Invoice" status={invoice.tally.invoiceEntry} detail={invoice.tally.voucherId} error={invoice.tally.error} />
+        <IntegrationChip system="Tally · Payment" status={invoice.tally.paymentEntry} />
+        {isOverdue && (
+          <span className="inline-flex items-center gap-1" style={{ fontSize: '11px', fontWeight: 600, color: '#DC2626' }}>
+            <AlertCircle className="w-3.5 h-3.5" /> Past due — {fmtDate(invoice.dueDate)}
+          </span>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-wrap items-center gap-2">
+        {canPay && (
+          <button onClick={() => onPay(invoice)} disabled={busy} className="btn-primary px-4 py-2 flex items-center gap-2">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+            {busy ? 'Processing…' : 'Pay Now'}
+          </button>
+        )}
+        {canValidate && (
+          <button onClick={() => onValidate(invoice)} disabled={busy} className="btn-primary px-4 py-2 flex items-center gap-2">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCheck2 className="w-4 h-4" />}
+            {busy ? 'Validating…' : 'Validate & Send'}
+          </button>
+        )}
+        {canRetryTally && (
+          <button onClick={() => onRetryTally(invoice)} disabled={busy} className="btn-secondary px-4 py-2 flex items-center gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Retry Tally Sync
+          </button>
+        )}
+        <button
+          onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}.pdf…`)}
+          className="btn-secondary px-4 py-2 flex items-center gap-2"
+        >
+          <Download className="w-4 h-4" />
+          Download
+        </button>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="ml-auto flex items-center gap-1 px-2 py-1"
+          style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}
+        >
+          {invoice.lineItems.length} line item{invoice.lineItems.length !== 1 ? 's' : ''}
+          {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </button>
+      </div>
+
+      {/* Line items — billable leads × CPL, never Delivered */}
+      {expanded && (
+        <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--color-border-light)' }}>
+          <div className="overflow-x-auto">
+            <table className="w-full" style={{ fontSize: '12px' }}>
+              <thead>
+                <tr style={{ color: 'var(--color-text-muted)', textAlign: 'left' }}>
+                  <th className="py-1.5 pr-3 font-semibold">Campaign</th>
+                  <th className="py-1.5 pr-3 font-semibold">Job Card</th>
+                  <th className="py-1.5 pr-3 font-semibold">Geo</th>
+                  <th className="py-1.5 pr-3 font-semibold text-right">Billable Leads</th>
+                  <th className="py-1.5 pr-3 font-semibold text-right">CPL</th>
+                  <th className="py-1.5 font-semibold text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice.lineItems.map((li) => (
+                  <tr key={`${li.campaignId}-${li.geo}`} style={{ borderTop: '1px solid var(--color-border-light)', color: 'var(--color-text-primary)' }}>
+                    <td className="py-2 pr-3">{li.campaignName}</td>
+                    <td className="py-2 pr-3">
+                      {li.jobCardId ? (
+                        <span className="inline-flex items-center gap-1" style={{ color: 'var(--color-primary)' }}>
+                          <Link2 className="w-3 h-3" />{li.jobCardId}
+                        </span>
+                      ) : '—'}
+                    </td>
+                    <td className="py-2 pr-3">{li.geo}</td>
+                    <td className="py-2 pr-3 text-right">{li.billableLeads.toLocaleString('en-US')}</td>
+                    <td className="py-2 pr-3 text-right">{formatUSD(li.cpl)}</td>
+                    <td className="py-2 text-right font-semibold">{formatUSD(li.amount)}</td>
+                  </tr>
+                ))}
+                <tr style={{ borderTop: '1px solid var(--color-border-light)' }}>
+                  <td colSpan={5} className="py-2 pr-3 text-right font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Total</td>
+                  <td className="py-2 text-right font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatUSD(invoice.total)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2" style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+            Amounts are calculated from billable leads only.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Client-facing invoice card ───────────────────────────────────────────────
+// Clients see money facts and actions only: what's due, when, pay, download,
+// and the billable breakdown. No internal pipeline, no Tally, no validation.
+
+type ClientStatus = 'due' | 'overdue' | 'paid';
+
+function clientStatus(inv: InvoiceRecord): ClientStatus {
+  if (inv.stage === 'paid') return 'paid';
+  if (inv.stage === 'overdue') return 'overdue';
+  return 'due';
+}
+
+const CLIENT_STATUS_META: Record<ClientStatus, { label: string; bg: string; color: string }> = {
+  due: { label: 'Due', bg: 'rgba(217,119,6,0.12)', color: '#B45309' },
+  overdue: { label: 'Overdue', bg: 'rgba(220,38,38,0.12)', color: '#DC2626' },
+  paid: { label: 'Paid', bg: 'rgba(5,150,105,0.12)', color: '#065F46' },
+};
+
+function ClientInvoiceCard({ invoice, busy, onPay }: {
+  invoice: InvoiceRecord;
+  busy: boolean;
+  onPay: (inv: InvoiceRecord) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const status = clientStatus(invoice);
+  const meta = CLIENT_STATUS_META[status];
+  const region = invoice.grouping === 'geo_split' && invoice.geo ? invoice.geo : null;
+
+  return (
+    <div className="glass-card p-5">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              {invoice.invoiceNumber}
+            </span>
+            {region && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full" style={{ fontSize: '11px', fontWeight: 500, background: 'var(--color-main-bg)', color: 'var(--color-text-secondary)' }}>
+                {region} region
+              </span>
+            )}
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full" style={{ fontSize: '11px', fontWeight: 600, background: meta.bg, color: meta.color }}>
+              {meta.label}
+            </span>
+          </div>
+          <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+            {formatBillingPeriod(invoice.billingPeriod)} billing
+            {status === 'paid' && invoice.payment?.paidAt
+              ? <> · Paid {fmtDate(invoice.payment.paidAt)}{invoice.payment.reference ? <span style={{ color: 'var(--color-text-muted)' }}> · Ref {invoice.payment.reference}</span> : null}</>
+              : invoice.dueDate ? <> · Due <strong style={{ color: status === 'overdue' ? '#DC2626' : 'var(--color-text-primary)' }}>{fmtDate(invoice.dueDate)}</strong></> : null}
+          </p>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <div style={{ fontSize: '22px', fontWeight: 700, color: status === 'overdue' ? '#DC2626' : 'var(--color-text-primary)' }}>
+            {formatUSD(invoice.total)}
+          </div>
+          {status === 'paid' && (
+            <div className="flex items-center gap-1 justify-end" style={{ fontSize: '12px', color: 'var(--color-success)' }}>
+              <CheckCircle2 className="w-3.5 h-3.5" /> Settled
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 mt-4">
+        {status !== 'paid' && (
+          <button onClick={() => onPay(invoice)} disabled={busy} className="btn-primary px-4 py-2 flex items-center gap-2">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+            {busy ? 'Processing…' : 'Pay Now'}
+          </button>
+        )}
+        <button onClick={() => toast.success(`Downloading ${invoice.invoiceNumber}.pdf…`)} className="btn-secondary px-4 py-2 flex items-center gap-2">
+          <Download className="w-4 h-4" />
+          Download
+        </button>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="ml-auto flex items-center gap-1 px-2 py-1"
+          style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}
+        >
+          View details
+          {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--color-border-light)' }}>
+          <div className="overflow-x-auto">
+            <table className="w-full" style={{ fontSize: '12px' }}>
+              <thead>
+                <tr style={{ color: 'var(--color-text-muted)', textAlign: 'left' }}>
+                  <th className="py-1.5 pr-3 font-semibold">Campaign</th>
+                  <th className="py-1.5 pr-3 font-semibold">Job Card</th>
+                  <th className="py-1.5 pr-3 font-semibold text-right">Billable Leads</th>
+                  <th className="py-1.5 pr-3 font-semibold text-right">Cost per Lead</th>
+                  <th className="py-1.5 font-semibold text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice.lineItems.map((li) => (
+                  <tr key={`${li.campaignId}-${li.geo}`} style={{ borderTop: '1px solid var(--color-border-light)', color: 'var(--color-text-primary)' }}>
+                    <td className="py-2 pr-3">{li.campaignName}</td>
+                    <td className="py-2 pr-3">{li.jobCardId ?? '—'}</td>
+                    <td className="py-2 pr-3 text-right">{li.billableLeads.toLocaleString('en-US')}</td>
+                    <td className="py-2 pr-3 text-right">{formatUSD(li.cpl)}</td>
+                    <td className="py-2 text-right font-semibold">{formatUSD(li.amount)}</td>
+                  </tr>
+                ))}
+                <tr style={{ borderTop: '1px solid var(--color-border-light)' }}>
+                  <td colSpan={4} className="py-2 pr-3 text-right font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Total</td>
+                  <td className="py-2 text-right font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatUSD(invoice.total)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2" style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+            You are only ever billed for accepted, billable leads.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Invoices() {
   useDocumentTitle('Invoices');
   const { currentUser } = useAuth();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
-  const [previewInvoice, setPreviewInvoice] = useState<any>(null);
-  const [showPreview, setShowPreview] = useState(false);
-  
-  useEffect(() => {
-    const t = setTimeout(() => setIsLoading(false), 700);
-    return () => clearTimeout(t);
-  }, []);
+  const perspective: InvoicePerspective =
+    currentUser.role === 'client' ? 'client'
+      : currentUser.role === 'accounts' ? 'accounts'
+        : 'readonly';
 
-  const debouncedSearch = useDebounce(searchTerm, 300);
+  const [invoices, setInvoices] = useState<InvoiceRecord[]>(mockInvoiceRecords);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  const filteredInvoices = mockInvoices.filter(invoice => {
-    const matchesStatus = statusFilter === 'All' || invoice.status === statusFilter;
-    const matchesSearch = 
-      invoice.invoiceNumber.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      invoice.campaignName.toLowerCase().includes(debouncedSearch.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
+  const now = () => new Date().toISOString();
 
-  const totalPaid = mockInvoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.amount, 0);
-  const totalPending = mockInvoices.filter(inv => inv.status === 'Pending').reduce((sum, inv) => sum + inv.amount, 0);
-  const totalOverdue = mockInvoices.filter(inv => inv.status === 'Overdue').reduce((sum, inv) => sum + inv.amount, 0);
-  const totalAmount = totalPaid + totalPending + totalOverdue;
+  const patchInvoice = (id: string, patch: (inv: InvoiceRecord) => InvoiceRecord) => {
+    setInvoices((prev) => prev.map((inv) => (inv.id === id ? patch(inv) : inv)));
+  };
 
-  const paidCount = mockInvoices.filter(inv => inv.status === 'Paid').length;
-  const pendingCount = mockInvoices.filter(inv => inv.status === 'Pending').length;
-  const overdueCount = mockInvoices.filter(inv => inv.status === 'Overdue').length;
+  // Clients see only their own sent/paid/overdue invoices — never internal drafts.
+  // Ordering for clients is action-first: overdue, then due (soonest first), then paid.
+  const visibleInvoices = useMemo(() => {
+    let list = invoices;
+    if (perspective === 'client') {
+      list = invoices.filter(
+        (inv) => inv.clientCompany === currentUser.company
+          && ['sent', 'paid', 'overdue'].includes(inv.stage),
+      );
+      const rank = (inv: InvoiceRecord) => (inv.stage === 'overdue' ? 0 : inv.stage === 'sent' ? 1 : 2);
+      return [...list].sort((a, b) => {
+        const r = rank(a) - rank(b);
+        if (r !== 0) return r;
+        if (rank(a) < 2) return (a.dueDate ?? '').localeCompare(b.dueDate ?? '');
+        return b.billingPeriod.localeCompare(a.billingPeriod);
+      });
+    }
+    return [...list].sort((a, b) => b.billingPeriod.localeCompare(a.billingPeriod));
+  }, [invoices, perspective, currentUser.company]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Paid':
-        return 'badge badge-active';
-      case 'Pending':
-        return 'badge badge-paused';
-      case 'Overdue':
-        return 'badge badge-paused';
-      default:
-        return 'badge badge-completed';
+  const validationQueue = perspective === 'accounts'
+    ? visibleInvoices.filter((inv) => inv.stage === 'draft' || inv.stage === 'pending_validation')
+    : [];
+  const rest = perspective === 'accounts'
+    ? visibleInvoices.filter((inv) => !validationQueue.includes(inv))
+    : visibleInvoices;
+
+  // ─── Accounts: validate → Tally sales voucher → send to client ───
+  const handleValidate = async (invoice: InvoiceRecord) => {
+    setBusyId(invoice.id);
+    try {
+      const { validatedAt } = await validateInvoice(invoice);
+      patchInvoice(invoice.id, (inv) => ({
+        ...inv,
+        stage: 'approved',
+        validatedBy: currentUser.name,
+        validatedAt,
+        tally: { ...inv.tally, invoiceEntry: 'syncing' },
+        history: [...inv.history, { at: now(), actor: currentUser.name, action: 'Validated amount' }],
+      }));
+
+      const { voucherId } = await syncInvoiceToTally(invoice);
+      patchInvoice(invoice.id, (inv) => ({
+        ...inv,
+        tally: { ...inv.tally, invoiceEntry: 'synced', voucherId, error: undefined },
+        history: [...inv.history, { at: now(), actor: 'System', action: `Sales voucher ${voucherId} created in Tally` }],
+      }));
+
+      const { issueDate, dueDate } = await sendInvoice(invoice);
+      patchInvoice(invoice.id, (inv) => ({
+        ...inv,
+        stage: 'sent',
+        issueDate,
+        dueDate,
+        history: [...inv.history, { at: now(), actor: 'System', action: 'Invoice sent to client' }],
+      }));
+      toast.success(`${invoice.invoiceNumber} validated, synced to Tally, and sent to the client`);
+    } finally {
+      setBusyId(null);
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Paid':
-        return <CheckCircle className="w-4 h-4" />;
-      case 'Pending':
-        return <Clock className="w-4 h-4" />;
-      case 'Overdue':
-        return <AlertCircle className="w-4 h-4" />;
-      default:
-        return <FileText className="w-4 h-4" />;
+  const handleRetryTally = async (invoice: InvoiceRecord) => {
+    setBusyId(invoice.id);
+    try {
+      patchInvoice(invoice.id, (inv) => ({ ...inv, tally: { ...inv.tally, invoiceEntry: 'syncing' } }));
+      const { voucherId } = await syncInvoiceToTally(invoice);
+      const { issueDate, dueDate } = await sendInvoice(invoice);
+      patchInvoice(invoice.id, (inv) => ({
+        ...inv,
+        stage: 'sent',
+        issueDate,
+        dueDate,
+        tally: { ...inv.tally, invoiceEntry: 'synced', voucherId, error: undefined },
+        history: [
+          ...inv.history,
+          { at: now(), actor: 'System', action: `Tally sync retried — voucher ${voucherId} created` },
+          { at: now(), actor: 'System', action: 'Invoice sent to client' },
+        ],
+      }));
+      toast.success('Tally voucher created — invoice sent to the client');
+    } finally {
+      setBusyId(null);
     }
   };
 
-  const handleBulkDownload = () => {
-    if (selectedInvoices.length === 0) {
-      toast.error('Please select invoices first');
-      return;
+  // ─── Client: pay (gateway stubbed) → Tally receipt voucher ───
+  const handlePay = async (invoice: InvoiceRecord) => {
+    setBusyId(invoice.id);
+    try {
+      const { reference, paidAt } = await initiatePayment(invoice);
+      patchInvoice(invoice.id, (inv) => ({
+        ...inv,
+        stage: 'paid',
+        payment: { method: 'Portal payment', reference, paidAt },
+        tally: { ...inv.tally, paymentEntry: 'syncing' },
+        history: [...inv.history, { at: now(), actor: currentUser.name, action: `Payment received (${reference})` }],
+      }));
+      toast.success(`Payment confirmed — ${reference}`);
+
+      await syncPaymentToTally(invoice);
+      patchInvoice(invoice.id, (inv) => ({
+        ...inv,
+        tally: { ...inv.tally, paymentEntry: 'synced' },
+        history: [...inv.history, { at: now(), actor: 'System', action: 'Receipt voucher created in Tally' }],
+      }));
+    } finally {
+      setBusyId(null);
     }
-    const selected = mockInvoices.filter(inv => selectedInvoices.includes(inv.id));
-    exportInvoicesToCSV(selected);
-    toast.success(`Exported ${selected.length} invoices to CSV`);
   };
 
-  const handleDownloadInvoice = (invoice: any) => {
-    generateInvoicePDF(invoice);
-    toast.success(`Downloading ${invoice.invoiceNumber}...`);
-  };
+  // ─── KPIs per perspective ───
+  const outstanding = visibleInvoices.filter((i) => i.stage === 'sent' || i.stage === 'overdue').reduce((s, i) => s + i.total, 0);
+  const paidTotal = visibleInvoices.filter((i) => i.stage === 'paid').reduce((s, i) => s + i.total, 0);
+  const overdueCount = visibleInvoices.filter((i) => i.stage === 'overdue').length;
+  const pendingValidationCount = invoices.filter((i) => i.stage === 'draft' || i.stage === 'pending_validation').length;
+  const tallyIssues = invoices.filter((i) => i.tally.invoiceEntry === 'failed' || i.tally.paymentEntry === 'failed').length;
 
-  const handleViewInvoice = (invoice: any) => {
-    setPreviewInvoice(invoice);
-    setShowPreview(true);
-  };
+  // Next due date across unpaid invoices (client view)
+  const nextDue = visibleInvoices
+    .filter((i) => i.stage === 'sent' || i.stage === 'overdue')
+    .map((i) => i.dueDate)
+    .filter(Boolean)
+    .sort()[0];
 
-  const getDaysUntilDue = (dueDate: string) => {
-    const today = new Date();
-    const due = new Date(dueDate);
-    const diffTime = due.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
+  const kpis = perspective === 'accounts'
+    ? [
+      { label: 'Awaiting Validation', value: pendingValidationCount, icon: FileCheck2, money: false },
+      { label: 'Outstanding', value: outstanding, icon: Clock, money: true },
+      { label: 'Collected', value: paidTotal, icon: CheckCircle2, money: true },
+      { label: 'Tally Sync Issues', value: tallyIssues, icon: AlertCircle, money: false },
+    ]
+    : perspective === 'client'
+      ? [
+        { label: 'Amount Due', value: outstanding, icon: Clock, money: true },
+        { label: 'Next Due Date', value: nextDue ? fmtDate(nextDue) : '—', icon: Receipt, money: false },
+        { label: 'Overdue', value: overdueCount, icon: AlertCircle, money: false },
+        { label: 'Paid This Year', value: paidTotal, icon: CheckCircle2, money: true },
+      ]
+      : [
+        { label: 'Outstanding', value: outstanding, icon: Clock, money: true },
+        { label: 'Paid', value: paidTotal, icon: CheckCircle2, money: true },
+        { label: 'Overdue', value: overdueCount, icon: AlertCircle, money: false },
+        { label: 'Total Invoices', value: visibleInvoices.length, icon: Receipt, money: false },
+      ];
 
-  const getPaymentMethod = (status: string) => {
-    if (status === 'Paid') return { method: 'Wire Transfer', icon: Building2 };
-    if (status === 'Pending') return { method: 'ACH', icon: ArrowRightLeft };
-    if (status === 'Overdue') return { method: 'Credit Card', icon: CreditCard };
-    return { method: 'N/A', icon: FileText };
-  };
+  const subtitle =
+    perspective === 'client' ? 'Your monthly invoices — pay securely and download copies for your records'
+      : perspective === 'accounts' ? 'Validate amounts, sync to Tally, and track collections'
+        : 'Invoice pipeline across all clients';
 
   return (
     <AppLayout>
-      <div className={`max-w-[1440px] mx-auto page-content animate-fadeIn`}>
+      <div className="max-w-[1440px] mx-auto page-content animate-fadeIn">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 md:mb-6 gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 style={{ color: 'var(--color-text-primary)' }} className="text-2xl md:text-3xl lg:text-4xl">Invoices & Billing</h1>
-            </div>
-            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              Manage your invoices and payment history
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-            <Link to="/payment" className="btn-outline px-4 py-2.5 flex items-center justify-center gap-2 no-underline">
-              <CreditCard className="w-4 h-4" />
-              <span className="whitespace-nowrap">Payment Methods</span>
-            </Link>
-            <button
-              onClick={handleBulkDownload}
-              className="btn-primary px-4 py-2.5 flex items-center justify-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              <span className="whitespace-nowrap">Download Selected</span>
-            </button>
-          </div>
+        <div className="mb-6">
+          <h1 style={{ color: 'var(--color-text-primary)' }}>Invoices</h1>
+          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{subtitle}</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6 stagger-children">
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-info-bg)' }}>
-                <FileText className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
+        {/* KPI row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger-children">
+          {kpis.map(({ label, value, icon: Icon, money }, i) => (
+            <div key={label} className="kpi-card animate-slideInUp" style={{ padding: '16px', animationDelay: `${i * 80}ms` }}>
+              <div className="flex items-center justify-between mb-1">
+                <Icon className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
               </div>
-            </div>
-            <div className="kpi-card__number"><AnimatedCounter value={totalAmount} prefix="$" /></div>
-            <div className="kpi-card__label">Total Amount</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-success-bg)' }}>
-                <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+              <div className="kpi-card__number" style={{ fontSize: '24px', marginBottom: '2px' }}>
+                {typeof value === 'string' ? value : money ? <>$<AnimatedCounter value={value} /></> : <AnimatedCounter value={value} />}
               </div>
+              <div className="kpi-card__label">{label}</div>
             </div>
-            <div className="kpi-card__number"><AnimatedCounter value={totalPaid} prefix="$" /></div>
-            <div className="kpi-card__label">Paid ({paidCount})</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-warning-bg)' }}>
-                <Clock className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
-              </div>
-            </div>
-            <div className="kpi-card__number"><AnimatedCounter value={totalPending} prefix="$" /></div>
-            <div className="kpi-card__label">Pending ({pendingCount})</div>
-          </div>
-
-          <div className="kpi-card animate-slideInUp">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-error-bg)' }}>
-                <AlertCircle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />
-              </div>
-            </div>
-            <div className="kpi-card__number"><AnimatedCounter value={totalOverdue} prefix="$" /></div>
-            <div className="kpi-card__label">Overdue ({overdueCount})</div>
-          </div>
+          ))}
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-            <input
-              type="text"
-              placeholder="Search by invoice number or campaign..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-base w-full pl-10 pr-4 py-3"
-            />
-          </div>
-          <div className="relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input-base px-4 py-3 pr-10 appearance-none cursor-pointer w-full sm:w-auto"
-            >
-              <option value="All">All Status</option>
-              <option value="Paid">Paid</option>
-              <option value="Pending">Pending</option>
-              <option value="Overdue">Overdue</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280] pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Invoices Table — desktop (sm+) */}
-        <div className="glass-card overflow-hidden hidden sm:block">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
-              <thead className="table-header">
-                <tr>
-                  <th className="table-th">
-                    <div className="flex items-center justify-center">
-                      <input
-                        type="checkbox"
-                        className="accent-[#BA2027] cursor-pointer"
-                        style={{ width: '18px', height: '18px', minWidth: '18px', minHeight: '18px', maxWidth: '18px', maxHeight: '18px' }}
-                        checked={selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedInvoices(filteredInvoices.map(inv => inv.id));
-                          } else {
-                            setSelectedInvoices([]);
-                          }
-                        }}
-                      />
-                    </div>
-                  </th>
-                  <th className="table-th">Invoice</th>
-                  <th className="table-th">Campaign</th>
-                  <th className="table-th text-right">Amount</th>
-                  <th className="table-th">Due Date</th>
-                  <th className="table-th">Status</th>
-                  <th className="table-th">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  <TableSkeleton rows={6} columns={7} />
-                ) : filteredInvoices.length === 0 ? (
-                  <tr>
-                    <td colSpan={7}>
-                      <EmptyState
-                        icon={FileText}
-                        title="No invoices found"
-                        description="No invoices match your current filters. Try adjusting your search or status filter."
-                        actionLabel="Clear Filters"
-                        onAction={() => { setSearchTerm(''); setStatusFilter('All'); }}
-                      />
-                    </td>
-                  </tr>
-                ) : filteredInvoices.map((invoice, index) => {
-                    const daysUntil = getDaysUntilDue(invoice.dueDate);
-                    const paymentInfo = getPaymentMethod(invoice.status);
-                    const PaymentIcon = paymentInfo.icon;
-
-                    return (
-                      <TableRow
-                        key={invoice.id}
-                        showHoverEffect={true}
-                        animationDelay={index * 50}
-                      >
-                        <td className="table-td" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center">
-                            <input
-                              type="checkbox"
-                              className="accent-[#BA2027] cursor-pointer"
-                              style={{ width: '18px', height: '18px', minWidth: '18px', minHeight: '18px', maxWidth: '18px', maxHeight: '18px' }}
-                              checked={selectedInvoices.includes(invoice.id)}
-                              onChange={() => {
-                                if (selectedInvoices.includes(invoice.id)) {
-                                  setSelectedInvoices(selectedInvoices.filter(id => id !== invoice.id));
-                                } else {
-                                  setSelectedInvoices([...selectedInvoices, invoice.id]);
-                                }
-                              }}
-                            />
-                          </div>
-                        </td>
-                        <td className="table-td">
-                          <div className="t1">{invoice.invoiceNumber}</div>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <PaymentIcon className="w-3 h-3 t3" />
-                            <span className="t3">{paymentInfo.method}</span>
-                          </div>
-                        </td>
-                        <td className="table-td">
-                          <span className="t1">{invoice.campaignName}</span>
-                        </td>
-                        <td className="table-td text-right">
-                          <span className="t1">${invoice.amount.toLocaleString()}</span>
-                        </td>
-                        <td className="table-td">
-                          <div className="t1">{new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                          {invoice.status !== 'Paid' && (
-                            <div className="t3" style={{ color: daysUntil < 0 ? 'var(--color-error)' : undefined }}>
-                              {daysUntil < 0 ? `${Math.abs(daysUntil)} days overdue` : `Due in ${daysUntil} days`}
-                            </div>
-                          )}
-                        </td>
-                        <td className="table-td">
-                          <div className={getStatusColor(invoice.status)}>
-                            {getStatusIcon(invoice.status)}
-                            <span>{invoice.status}</span>
-                          </div>
-                        </td>
-                        <td className="table-td">
-                          <div className="flex items-center gap-1">
-                            {(invoice.status === 'Pending' || invoice.status === 'Overdue') ? (
-                              <button
-                                onClick={() => navigate(`/payment/${invoice.id}`)}
-                                className="btn-ghost p-2"
-                                title="Pay now"
-                              >
-                                <DollarSign className="w-4 h-4 text-[#BA2027]" />
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleViewInvoice(invoice)}
-                                className="btn-ghost p-2"
-                                title="View invoice"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleDownloadInvoice(invoice)}
-                              className="btn-ghost p-2"
-                              title="Download invoice"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </TableRow>
-                    );
-                  })}
-                </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Invoices Card List — mobile (below sm) */}
-        <div className="sm:hidden flex flex-col gap-3">
-          {isLoading ? (
-            <div className="glass-card p-4">
-              <TableSkeleton rows={4} columns={1} />
+        {/* Accounts: validation queue first */}
+        {perspective === 'accounts' && validationQueue.length > 0 && (
+          <div className="mb-6">
+            <h2 className="mb-3 flex items-center gap-2" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              <Send className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
+              Validation Queue
+            </h2>
+            <div className="space-y-4">
+              {validationQueue.map((inv) => (
+                <InvoiceCard
+                  key={inv.id}
+                  invoice={inv}
+                  perspective={perspective}
+                  busy={busyId === inv.id}
+                  onValidate={handleValidate}
+                  onRetryTally={handleRetryTally}
+                  onPay={handlePay}
+                />
+              ))}
             </div>
-          ) : filteredInvoices.length === 0 ? (
-            <div className="glass-card p-4">
-              <EmptyState
-                icon={FileText}
-                title="No invoices found"
-                description="No invoices match your current filters. Try adjusting your search or status filter."
-                actionLabel="Clear Filters"
-                onAction={() => { setSearchTerm(''); setStatusFilter('All'); }}
-              />
-            </div>
-          ) : filteredInvoices.map((invoice) => {
-            const daysUntil = getDaysUntilDue(invoice.dueDate);
-            const paymentInfo = getPaymentMethod(invoice.status);
-            const PaymentIcon = paymentInfo.icon;
+          </div>
+        )}
 
-            return (
-              <div key={invoice.id} className="glass-card p-4 flex flex-col gap-3">
-                {/* Row 1: Invoice number + payment method */}
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold t1">{invoice.invoiceNumber}</span>
-                  <div className="flex items-center gap-1">
-                    <PaymentIcon className="w-3.5 h-3.5 t3" />
-                    <span className="t3 text-sm">{paymentInfo.method}</span>
-                  </div>
-                </div>
-
-                {/* Row 2: Campaign name */}
-                <div className="t3 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                  {invoice.campaignName}
-                </div>
-
-                {/* Row 3: Amount + status badge */}
-                <div className="flex items-center justify-between">
-                  <span className="font-bold t1 text-base">${invoice.amount.toLocaleString()}</span>
-                  <div className={getStatusColor(invoice.status)}>
-                    {getStatusIcon(invoice.status)}
-                    <span>{invoice.status}</span>
-                  </div>
-                </div>
-
-                {/* Row 4: Due date + overdue/days remaining */}
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="t1">
-                    {new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </span>
-                  {invoice.status !== 'Paid' && (
-                    <span className="t3" style={{ color: daysUntil < 0 ? 'var(--color-error)' : undefined }}>
-                      {daysUntil < 0 ? `${Math.abs(daysUntil)} days overdue` : `Due in ${daysUntil} days`}
-                    </span>
-                  )}
-                </div>
-
-                {/* Row 5: Action buttons */}
-                <div className="flex gap-2 pt-1">
-                  {(invoice.status === 'Pending' || invoice.status === 'Overdue') ? (
-                    <button
-                      onClick={() => navigate(`/payment/${invoice.id}`)}
-                      className="btn-primary flex-1 flex items-center justify-center gap-2 py-2"
-                    >
-                      <DollarSign className="w-4 h-4" />
-                      <span>Pay Now</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleViewInvoice(invoice)}
-                      className="btn-outline flex-1 flex items-center justify-center gap-2 py-2"
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span>View</span>
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDownloadInvoice(invoice)}
-                    className="btn-outline flex-1 flex items-center justify-center gap-2 py-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {/* Main list */}
+        <h2 className="mb-3" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+          {perspective === 'accounts' ? 'All Invoices' : 'Your Invoices'}
+        </h2>
+        {rest.length === 0 && validationQueue.length === 0 ? (
+          <EmptyState
+            icon={Receipt}
+            title="No invoices yet"
+            description="Invoices are generated monthly from the previous month's billable leads."
+          />
+        ) : (
+          <div className="space-y-4">
+            {rest.map((inv) => (
+              perspective === 'client' ? (
+                <ClientInvoiceCard key={inv.id} invoice={inv} busy={busyId === inv.id} onPay={handlePay} />
+              ) : (
+                <InvoiceCard
+                  key={inv.id}
+                  invoice={inv}
+                  perspective={perspective}
+                  busy={busyId === inv.id}
+                  onValidate={handleValidate}
+                  onRetryTally={handleRetryTally}
+                  onPay={handlePay}
+                />
+              )
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Invoice Preview Modal */}
-      <InvoicePreviewModal
-        isOpen={showPreview}
-        onClose={() => setShowPreview(false)}
-        invoice={previewInvoice}
-      />
     </AppLayout>
   );
 }

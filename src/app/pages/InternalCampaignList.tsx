@@ -1,237 +1,186 @@
-import { useState, useMemo } from 'react';
-import { AppLayout } from '../components/AppLayout';
-import { TableRow } from '../components/TableRow';
-import { Search, ChevronDown, ChevronUp, Eye } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { Search, Eye, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { AppLayout } from '../components/AppLayout';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { allClients, type Campaign } from '../data/mockClients';
 
-// Flatten all campaigns from allClients into a single array with clientName attached
-type FlatCampaign = Campaign & { clientName: string; clientIndustry: string };
+type FlatCampaign = Campaign & { clientId: string; clientName: string };
 
-function getAllCampaigns(): FlatCampaign[] {
-  const result: FlatCampaign[] = [];
-  for (const client of allClients) {
-    for (const campaign of client.campaigns) {
-      result.push({ ...campaign, clientName: client.companyName, clientIndustry: client.industry });
-    }
-  }
-  return result;
+function fmtDate(iso?: string) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-const ALL_CAMPAIGNS = getAllCampaigns();
-
-function statusLabel(s: string) {
-  switch (s) {
-    case 'active':           return 'Active';
-    case 'completed':        return 'Completed';
-    case 'paused':           return 'Paused';
-    case 'pending_approval': return 'Pending Approval';
-    default:                 return s;
-  }
-}
-
-function statusBadgeClass(s: string) {
-  switch (s) {
-    case 'active':           return 'badge badge-active';
-    case 'completed':        return 'badge badge-completed';
-    case 'paused':           return 'badge badge-paused';
-    case 'pending_approval': return 'badge';
-    default:                 return 'badge';
-  }
-}
+const statusLabel: Record<string, string> = {
+  active: 'Active',
+  paused: 'Paused',
+  completed: 'Ended',
+  pending_approval: 'Pending',
+};
 
 export default function InternalCampaignList() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [sortField, setSortField] = useState<string>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  useDocumentTitle('All Campaigns');
   const navigate = useNavigate();
 
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
+  const [clientFilter, setClientFilter] = useState(allClients[0]?.id ?? 'All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [sortAsc, setSortAsc] = useState(true);
+
+  const allCampaigns: FlatCampaign[] = useMemo(
+    () => allClients.flatMap((c) => c.campaigns.map((cp) => ({ ...cp, clientId: c.id, clientName: c.companyName }))),
+    [],
+  );
+
+  const filtered = useMemo(() => {
+    let rows = allCampaigns;
+    if (clientFilter !== 'All') rows = rows.filter((c) => c.clientId === clientFilter);
+    if (statusFilter !== 'All') rows = rows.filter((c) => statusLabel[c.status] === statusFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      rows = rows.filter((c) => c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q));
     }
-  };
-
-  const SortIcon = ({ field }: { field: string }) => {
-    if (sortField !== field) return null;
-    return sortOrder === 'asc' ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />;
-  };
-
-  const filteredCampaigns = useMemo(() => {
-    return ALL_CAMPAIGNS
-      .filter(campaign => {
-        const matchesSearch =
-          campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          campaign.clientName.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === 'All' || campaign.status === statusFilter;
-        return matchesSearch && matchesStatus;
-      })
-      .sort((a, b) => {
-        let aVal: any, bVal: any;
-        const aTarget = a.target ?? a.totalLeads ?? 0;
-        const bTarget = b.target ?? b.totalLeads ?? 0;
-        const aDelivered = a.delivered ?? a.deliveredLeads ?? 0;
-        const bDelivered = b.delivered ?? b.deliveredLeads ?? 0;
-        switch (sortField) {
-          case 'name':     aVal = a.name;    bVal = b.name;    break;
-          case 'client':   aVal = a.clientName; bVal = b.clientName; break;
-          case 'progress': aVal = aTarget > 0 ? aDelivered / aTarget : 0; bVal = bTarget > 0 ? bDelivered / bTarget : 0; break;
-          case 'status':   aVal = a.status;  bVal = b.status;  break;
-          default:         return 0;
-        }
-        if (typeof aVal === 'string') {
-          return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-        }
-        return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
-      });
-  }, [searchQuery, statusFilter, sortField, sortOrder]);
+    return [...rows].sort((a, b) => (sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)));
+  }, [allCampaigns, clientFilter, statusFilter, searchQuery, sortAsc]);
 
   return (
     <AppLayout>
-      <div className="max-w-[1440px] mx-auto page-content">
+      <div className="max-w-[1440px] mx-auto page-content animate-fadeIn">
+        {/* Header */}
         <div className="mb-6">
-          <h1 style={{ color: 'var(--color-text-primary)' }} className="mb-2">All Campaigns</h1>
+          <h1 style={{ color: 'var(--color-text-primary)', marginBottom: '4px' }}>All Campaigns</h1>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-            {filteredCampaigns.length} campaign{filteredCampaigns.length !== 1 ? 's' : ''} found
+            {allCampaigns.length.toLocaleString('en-US')} campaigns found
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
-          <div className="lg:col-span-8 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-            <input
-              type="text"
-              placeholder="Search campaigns or clients…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-base w-full pl-10 pr-4 py-3"
-            />
-          </div>
-
-          <div className="lg:col-span-4 relative">
+        {/* Select Client */}
+        <div className="mb-4 max-w-md">
+          <label htmlFor="client-select" className="block" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '6px' }}>
+            Select Client
+          </label>
+          <div className="relative">
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input-base w-full px-4 py-3"
+              id="client-select"
+              value={clientFilter}
+              onChange={(e) => setClientFilter(e.target.value)}
+              className="w-full appearance-none bg-white"
+              style={{
+                padding: '11px 14px',
+                fontSize: '14px',
+                fontWeight: 500,
+                color: 'var(--color-text-primary)',
+                border: '1.5px solid var(--color-primary)',
+                borderRadius: 'var(--radius-lg)',
+              }}
             >
-              <option value="All">All Status</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-              <option value="paused">Paused</option>
-              <option value="pending_approval">Pending Approval</option>
+              <option value="All">All Clients</option>
+              {allClients.map((c) => (
+                <option key={c.id} value={c.id}>{c.companyName}</option>
+              ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-primary)' }} />
           </div>
         </div>
 
+        {/* Search + status */}
+        <div className="flex flex-col md:flex-row gap-3 mb-5">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+            <input
+              type="text"
+              placeholder="Search campaigns by name or ID…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input-base w-full pl-10"
+              style={{ padding: '11px 14px 11px 38px', fontSize: '14px' }}
+            />
+          </div>
+          <div className="relative md:w-64">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="input-base w-full appearance-none"
+              style={{ padding: '11px 14px', fontSize: '14px' }}
+            >
+              {['All Status', 'Active', 'Ended', 'Paused', 'Pending'].map((sLbl) => (
+                <option key={sLbl} value={sLbl === 'All Status' ? 'All' : sLbl}>{sLbl}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+          </div>
+        </div>
+
+        {/* Table */}
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
-              <thead className="table-header">
-                <tr>
-                  <th
-                    className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                    style={{ color: sortField === 'name' ? 'var(--color-primary)' : undefined }}
-                    onClick={() => handleSort('name')}
-                  >
-                    <div className="flex items-center gap-1">Campaign <SortIcon field="name" /></div>
+            <table className="w-full" style={{ fontSize: '13px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--color-border-light)' }}>
+                  <th className="text-left px-5 py-3.5">
+                    <button
+                      onClick={() => setSortAsc((v) => !v)}
+                      className="flex items-center gap-1"
+                      style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--color-primary)', textTransform: 'uppercase' }}
+                    >
+                      Campaign <ChevronsUpDown className="w-3 h-3" />
+                    </button>
                   </th>
-                  <th
-                    className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                    style={{ color: sortField === 'client' ? 'var(--color-primary)' : undefined }}
-                    onClick={() => handleSort('client')}
-                  >
-                    <div className="flex items-center gap-1">Client <SortIcon field="client" /></div>
-                  </th>
-                  <th
-                    className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                    style={{ color: sortField === 'progress' ? 'var(--color-primary)' : undefined }}
-                    onClick={() => handleSort('progress')}
-                  >
-                    <div className="flex items-center gap-1">Progress <SortIcon field="progress" /></div>
-                  </th>
-                  <th
-                    className="table-th cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-                    style={{ color: sortField === 'status' ? 'var(--color-primary)' : undefined }}
-                    onClick={() => handleSort('status')}
-                  >
-                    <div className="flex items-center gap-1">Status <SortIcon field="status" /></div>
-                  </th>
-                  <th className="table-th">Actions</th>
+                  {['Status', 'Progress', 'Total Leads', 'Actions'].map((h) => (
+                    <th key={h} className="text-left px-5 py-3.5" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredCampaigns.map((campaign, index) => {
-                  const target = campaign.target ?? campaign.totalLeads ?? 0;
-                  const delivered = campaign.delivered ?? campaign.deliveredLeads ?? 0;
-                  const progress = target > 0
-                    ? Math.min(Math.round((delivered / target) * 100), 100)
-                    : 0;
-
+                {filtered.map((c, i) => {
+                  const target = c.target ?? c.goalLeads ?? 0;
+                  const delivered = c.delivered ?? c.deliveredLeads ?? 0;
+                  const pct = target > 0 ? Math.round((delivered / target) * 100) : 0;
+                  const start = fmtDate(c.startDate);
+                  const end = fmtDate(c.endDate);
                   return (
-                    <TableRow
-                      key={campaign.id}
-                      showHoverEffect={true}
-                      animationDelay={index * 40}
-                      onClick={() => navigate(`/internal/campaigns/${campaign.id}`)}
-                    >
-                      <td className="table-td">
-                        <div className="t1">{campaign.name}</div>
-                        {campaign.startDate && campaign.endDate && (
-                          <div className="t3 mt-0.5">{campaign.startDate} → {campaign.endDate}</div>
-                        )}
-                      </td>
-                      <td className="table-td">
-                        <div className="t2">{campaign.clientName}</div>
-                        <div className="t3">{campaign.clientIndustry}</div>
-                      </td>
-                      <td className="table-td">
-                        <div className="space-y-1.5" style={{ minWidth: '160px' }}>
-                          <div className="flex items-center gap-3">
-                            <div className="progress-bar flex-1">
-                              <div
-                                className={`progress-bar__fill ${campaign.status === 'completed' ? 'progress-bar__fill--completed' : ''}`}
-                                style={{ width: `${progress}%` }}
-                              />
-                            </div>
-                            <span className="t2" style={{ minWidth: '30px' }}>{progress}%</span>
-                          </div>
-                          <div className="t3">
-                            {delivered.toLocaleString()} / {target.toLocaleString()} leads
-                          </div>
+                    <tr key={c.id} style={{ background: i % 2 === 1 ? 'var(--color-main-bg)' : 'transparent', borderTop: '1px solid var(--color-border-light)' }}>
+                      <td className="px-5 py-4">
+                        <div style={{ fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '2px' }}>{c.name}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                          ID: {c.id.replace(/\D/g, '') || c.id}
+                          {start && end && <span> · {start} → {end}</span>}
                         </div>
                       </td>
-                      <td className="table-td">
-                        <span className={statusBadgeClass(campaign.status)}>
-                          {statusLabel(campaign.status)}
-                        </span>
+                      <td className="px-5 py-4" style={{ color: 'var(--color-text-primary)' }}>{statusLabel[c.status]}</td>
+                      <td className="px-5 py-4" style={{ minWidth: '240px' }}>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-border-light)' }}>
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: 'var(--color-primary)' }} />
+                          </div>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>{pct}%</span>
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                          {delivered.toLocaleString('en-US')} / {target.toLocaleString('en-US')} Billable Leads
+                        </div>
                       </td>
-                      <td className="table-td" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-5 py-4" style={{ color: 'var(--color-text-primary)' }}>{c.totalLeads.toLocaleString('en-US')}</td>
+                      <td className="px-5 py-4">
                         <button
-                          className="btn-ghost p-2"
-                          title="View campaign"
-                          onClick={() => navigate(`/internal/campaigns/${campaign.id}`)}
+                          onClick={() => navigate(`/internal/campaigns/${c.id}`)}
+                          aria-label={`View ${c.name}`}
+                          style={{ color: 'var(--color-text-muted)' }}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                       </td>
-                    </TableRow>
+                    </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-
-          {filteredCampaigns.length === 0 && (
-            <div className="text-center py-12">
-              <Search className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-text-muted)' }} />
-              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                No campaigns match your search criteria.
-              </p>
+          {filtered.length === 0 && (
+            <div className="px-5 py-10 text-center" style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>
+              No campaigns match your filters.
             </div>
           )}
         </div>

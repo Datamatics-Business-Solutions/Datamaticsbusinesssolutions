@@ -60,7 +60,8 @@ export default function HomePage() {
   useEffect(() => subscribeDashPrefs(() => setPrefs(getDashPrefs())), []);
 
   // First-load showcase — plays Design's animation over the dashboard, then reveals it
-  const [showIntro, setShowIntro] = useState(shouldShowIntro);
+  // Intro disabled for now (per Vishal, Jul 8) — flip back to useState(shouldShowIntro) to re-enable.
+  const [showIntro, setShowIntro] = useState(false);
 
   // ── Business period toggle ──────────────────────────────────────────────────
   const [bizPeriod, setBizPeriod] = useState<'month' | 'year'>('month');
