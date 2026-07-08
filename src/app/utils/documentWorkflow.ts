@@ -142,3 +142,80 @@ export async function signJobCard(_card: JobCard, signerName: string): Promise<{
   await delay(1400);
   return { signedAt: new Date().toISOString(), signedBy: signerName };
 }
+
+// ─── Human phases & situation line ────────────────────────────────────────────
+// The 9 system stages collapse into the phases a person actually tracks.
+// System events (scope extraction, SF opportunity, JC generation) are instants —
+// they belong in History, not on the stepper.
+
+export interface Phase { key: string; label: string }
+
+const PHASES_FULL: Phase[] = [
+  { key: 'intake', label: 'Intake' },
+  { key: 'review', label: 'Manager Review' },
+  { key: 'confirmation', label: 'Confirmation' },
+  { key: 'signature', label: 'Client Signature' },
+  { key: 'done', label: 'Done' },
+];
+
+export function phasesForType(type: JobCardType): Phase[] {
+  if (type === 'msa_covered') return [PHASES_FULL[0], PHASES_FULL[1], PHASES_FULL[4]];
+  if (type === 'internal_only') return [PHASES_FULL[0], PHASES_FULL[1], PHASES_FULL[2], PHASES_FULL[4]];
+  return PHASES_FULL;
+}
+
+export function phaseIndex(card: JobCard): number {
+  const phases = phasesForType(card.type);
+  const key =
+    card.stage === 'intake' || card.stage === 'sf_opportunity_created' ? 'intake'
+      : card.stage === 'pending_cm_review' ? 'review'
+        : card.stage === 'jc_generated' || card.stage === 'pending_confirmations' ? 'confirmation'
+          : card.stage === 'sent_for_signature' ? 'signature'
+            : 'done';
+  const i = phases.findIndex((p) => p.key === key);
+  return i === -1 ? 0 : i;
+}
+
+export function daysInStage(card: JobCard): number {
+  return Math.max(0, Math.floor((Date.now() - new Date(card.updatedAt).getTime()) / 86400000));
+}
+
+export type SituationTone = 'action' | 'waiting' | 'done' | 'blocked';
+
+export interface Situation {
+  text: string;
+  tone: SituationTone;
+  since?: string; // ISO — when the wait started
+}
+
+/**
+ * The one sentence that answers "who is this waiting on?".
+ * `viewerIsBlocking` is decided by the caller (it depends on perspective);
+ * pass it to upgrade a 'waiting' into an 'action' (waiting on YOU).
+ */
+export function jobCardSituation(card: JobCard, viewerIsBlocking = false): Situation {
+  const since = card.updatedAt;
+  if (card.stage === 'declined') return { text: 'Declined — workflow stopped', tone: 'blocked', since };
+  if (card.salesforce.status === 'failed') {
+    return { text: `Blocked — Salesforce sync failed${card.salesforce.error ? `: ${card.salesforce.error}` : ''}`, tone: 'blocked', since };
+  }
+  if (card.stage === 'signed') {
+    return { text: `Signed by ${card.signature?.signedBy ?? card.clientCompany}`, tone: 'done', since: card.signature?.signedAt ?? since };
+  }
+  if (card.stage === 'completed') return { text: 'Completed', tone: 'done', since };
+  if (card.stage === 'intake' || card.stage === 'sf_opportunity_created') {
+    return { text: 'Processing intake — extracting scope and creating the Salesforce opportunity', tone: 'waiting', since };
+  }
+  if (card.stage === 'pending_cm_review') {
+    return { text: `Waiting on ${card.clientManager} (Client Manager) to verify the opportunity`, tone: viewerIsBlocking ? 'action' : 'waiting', since };
+  }
+  if (card.stage === 'jc_generated' || card.stage === 'pending_confirmations') {
+    const pending: string[] = [];
+    if (!card.confirmations.accountManager.confirmed) pending.push(`${card.accountManager} (Account Manager)`);
+    if (!card.confirmations.clientManager.confirmed) pending.push(`${card.clientManager} (Client Manager)`);
+    const who = pending.length === 2 ? `${pending[0]} and ${pending[1]}` : pending[0] ?? 'confirmation';
+    return { text: `Waiting on ${who} to confirm`, tone: viewerIsBlocking ? 'action' : 'waiting', since };
+  }
+  // sent_for_signature
+  return { text: `Waiting on ${card.clientCompany} to sign`, tone: viewerIsBlocking ? 'action' : 'waiting', since };
+}

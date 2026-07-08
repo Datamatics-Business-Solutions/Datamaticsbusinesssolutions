@@ -1,27 +1,24 @@
 import { useState } from 'react';
 import {
   ChevronDown, ChevronUp, CheckCircle2, Circle, FileSignature,
-  Download, RefreshCw, History, PenLine,
+  Download, RefreshCw, History, PenLine, AlertTriangle, Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { JobCard } from '../../types';
 import {
-  JOB_CARD_STAGE_META, JOB_CARD_TYPE_META, stagesForType, stageIndex,
+  JOB_CARD_TYPE_META, phasesForType, phaseIndex, daysInStage, jobCardSituation,
 } from '../../utils/documentWorkflow';
 import { WorkflowStepper } from './WorkflowStepper';
-import { IntegrationChip } from './IntegrationChip';
 
 export type JobCardPerspective = 'client' | 'account_manager' | 'client_manager' | 'readonly';
 
 interface JobCardCardProps {
   card: JobCard;
   perspective: JobCardPerspective;
-  /** Called with the intended action; the page owns the state mutation. */
   onVerifyOpportunity?: (card: JobCard) => void;
   onConfirm?: (card: JobCard) => void;
   onSign?: (card: JobCard) => void;
   onRetrySync?: (card: JobCard) => void;
-  /** Disables action buttons while an async action is in flight. */
   busy?: boolean;
 }
 
@@ -29,80 +26,99 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-const stageChipStyles: Record<string, string> = {
-  intake: 'bg-[#F5F3FF] text-[#7C3AED]',
-  sf_opportunity_created: 'bg-[#EFF6FF] text-[#2563EB]',
-  pending_cm_review: 'bg-[#FFF7ED] text-[#C2410C]',
-  jc_generated: 'bg-[#EFF6FF] text-[#2563EB]',
-  pending_confirmations: 'bg-[#FFFBEB] text-[#D97706]',
-  sent_for_signature: 'bg-[#FFFBEB] text-[#D97706]',
-  signed: 'bg-[#ECFDF5] text-[#059669]',
-  completed: 'bg-[#ECFDF5] text-[#059669]',
-  declined: 'bg-[#FEF2F2] text-[#DC2626]',
+function relTime(iso: string): string {
+  const days = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  return `${days} days ago`;
+}
+
+const TYPE_PROPERTY: Record<JobCard['type'], string> = {
+  client_signature: 'Requires client e-signature',
+  internal_only: 'Internal record — not sent to the client',
+  msa_covered: 'Covered by the master agreement — no job card needed',
 };
+
+const SITUATION_STYLE = {
+  action: { bg: 'rgba(186,32,39,0.07)', border: 'rgba(186,32,39,0.25)', color: 'var(--color-primary)', icon: AlertTriangle },
+  waiting: { bg: 'rgba(217,119,6,0.07)', border: 'rgba(217,119,6,0.25)', color: '#B45309', icon: Clock },
+  blocked: { bg: 'rgba(220,38,38,0.08)', border: 'rgba(220,38,38,0.3)', color: '#DC2626', icon: AlertTriangle },
+  done: { bg: 'rgba(5,150,105,0.07)', border: 'rgba(5,150,105,0.25)', color: 'var(--color-success)', icon: CheckCircle2 },
+} as const;
 
 export function JobCardCard({
   card, perspective, onVerifyOpportunity, onConfirm, onSign, onRetrySync, busy = false,
 }: JobCardCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const track = stagesForType(card.type);
-  const steps = track.map((s) => ({ key: s, label: JOB_CARD_STAGE_META[s].label }));
+  const phases = phasesForType(card.type);
   const isTerminal = card.stage === 'signed' || card.stage === 'completed';
   const sfFailed = card.salesforce.status === 'failed';
 
   const amConfirmed = card.confirmations.accountManager.confirmed;
   const cmConfirmed = card.confirmations.clientManager.confirmed;
+  const inConfirmation = card.stage === 'jc_generated' || card.stage === 'pending_confirmations';
 
-  // Which action does this perspective get right now?
+  // Available actions per perspective
   const canVerify = perspective === 'client_manager' && card.stage === 'pending_cm_review';
   const canConfirmAM = perspective === 'account_manager' && card.stage === 'pending_confirmations' && !amConfirmed;
   const canConfirmCM = perspective === 'client_manager' && card.stage === 'pending_confirmations' && !cmConfirmed;
   const canSign = perspective === 'client' && card.type === 'client_signature' && card.stage === 'sent_for_signature';
   const canRetry = (perspective === 'account_manager' || perspective === 'client_manager') && sfFailed;
 
+  // Is the viewer the one blocking progress?
+  const viewerIsBlocking = canVerify || canConfirmAM || canConfirmCM || canSign;
+  const situation = jobCardSituation(card, viewerIsBlocking);
+  const sit = SITUATION_STYLE[situation.tone];
+  const SitIcon = sit.icon;
+  const waitingDays = daysInStage(card);
+
   return (
     <div className="glass-card p-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', letterSpacing: '0.03em' }}>
-              {card.id}
-            </span>
-            <span
-              className="inline-flex items-center px-2 py-0.5 rounded-full"
-              style={{ fontSize: '11px', fontWeight: 500, background: 'var(--color-primary-tint)', color: 'var(--color-primary)' }}
-              title={JOB_CARD_TYPE_META[card.type].hint}
-            >
-              {JOB_CARD_TYPE_META[card.type].label}
-            </span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${stageChipStyles[card.stage]}`}>
-              {JOB_CARD_STAGE_META[card.stage].label}
-            </span>
-          </div>
-          <h3 className="truncate" style={{ fontSize: 'var(--font-size-md, 15px)', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-            {card.campaignName}
-          </h3>
-          <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-            {card.clientCompany} · Created {fmtDate(card.createdAt)}
-          </p>
+      <div className="mb-3">
+        <div className="flex items-center gap-2 flex-wrap mb-1">
+          <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', letterSpacing: '0.03em' }}>
+            {card.id}
+          </span>
         </div>
-
-        {isTerminal && (
-          <div className="flex items-center gap-1.5 flex-shrink-0" style={{ color: 'var(--color-success, #0F9D58)' }}>
-            <CheckCircle2 className="w-5 h-5" />
-            <span style={{ fontSize: '13px', fontWeight: 600 }}>
-              {card.stage === 'signed' ? `Signed by ${card.signature?.signedBy}` : 'Completed'}
-            </span>
-          </div>
-        )}
+        <h3 className="truncate" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+          {card.campaignName}
+        </h3>
+        <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+          {card.clientCompany} · Created {fmtDate(card.createdAt)} · {TYPE_PROPERTY[card.type]}
+        </p>
       </div>
 
-      {/* Stepper */}
+      {/* Situation — the one sentence that matters */}
+      <div
+        className="flex items-start gap-2.5 rounded-xl px-3.5 py-2.5 mb-4"
+        style={{ background: sit.bg, border: `1px solid ${sit.border}` }}
+      >
+        <SitIcon className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: sit.color }} />
+        <div style={{ fontSize: '13px', fontWeight: 600, color: sit.color, lineHeight: 1.45 }}>
+          {situation.text}
+          {!isTerminal && situation.tone !== 'blocked' && situation.since && (
+            <span style={{ fontWeight: 500, opacity: 0.85 }}>
+              {' '}— since {fmtDate(situation.since)}{waitingDays > 0 && ` · ${waitingDays} day${waitingDays === 1 ? '' : 's'}`}
+            </span>
+          )}
+          {situation.tone === 'done' && situation.since && (
+            <span style={{ fontWeight: 500, opacity: 0.85 }}> · {fmtDate(situation.since)}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Phase stepper — human phases only */}
       <div className="mb-4 overflow-x-auto">
-        <div style={{ minWidth: track.length * 90 }}>
-          <WorkflowStepper steps={steps} currentIndex={stageIndex(card)} allDone={isTerminal} failed={sfFailed} size="sm" />
+        <div style={{ minWidth: phases.length * 110 }}>
+          <WorkflowStepper
+            steps={phases.map((p) => ({ key: p.key, label: p.label }))}
+            currentIndex={phaseIndex(card)}
+            allDone={isTerminal}
+            failed={sfFailed}
+            size="sm"
+          />
         </div>
       </div>
 
@@ -123,34 +139,25 @@ export function JobCardCard({
         ))}
       </div>
 
-      {/* Integrations + confirmations */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <IntegrationChip
-          system="Salesforce"
-          status={card.salesforce.status}
-          detail={card.salesforce.opportunityId}
-          error={card.salesforce.error}
-        />
-        {card.signature && (
-          <IntegrationChip
-            system={card.signature.provider}
-            status={card.signature.signedAt ? 'synced' : 'syncing'}
-            detail={card.signature.signedAt ? `Signed ${fmtDate(card.signature.signedAt)}` : undefined}
-          />
-        )}
-        {card.type !== 'msa_covered' && card.stage !== 'intake' && card.stage !== 'pending_cm_review' && (
-          <>
-            <span className="inline-flex items-center gap-1" style={{ fontSize: '11px', color: amConfirmed ? 'var(--color-success, #0F9D58)' : 'var(--color-text-muted)' }}>
-              {amConfirmed ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />}
-              AM: {card.accountManager}
-            </span>
-            <span className="inline-flex items-center gap-1" style={{ fontSize: '11px', color: cmConfirmed ? 'var(--color-success, #0F9D58)' : 'var(--color-text-muted)' }}>
-              {cmConfirmed ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />}
-              CM: {card.clientManager}
-            </span>
-          </>
-        )}
-      </div>
+      {/* Confirmation checklist — only while confirmation is live */}
+      {inConfirmation && (
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <span className="inline-flex items-center gap-1.5" style={{ fontSize: '12px', fontWeight: 500, color: amConfirmed ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
+            {amConfirmed ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+            {card.accountManager} · Account Manager
+            {amConfirmed && card.confirmations.accountManager.at && (
+              <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>· {fmtDate(card.confirmations.accountManager.at)}</span>
+            )}
+          </span>
+          <span className="inline-flex items-center gap-1.5" style={{ fontSize: '12px', fontWeight: 500, color: cmConfirmed ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
+            {cmConfirmed ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+            {card.clientManager} · Client Manager
+            {cmConfirmed && card.confirmations.clientManager.at && (
+              <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>· {fmtDate(card.confirmations.clientManager.at)}</span>
+            )}
+          </span>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-2">
@@ -173,7 +180,7 @@ export function JobCardCard({
           </button>
         )}
         {canRetry && (
-          <button onClick={() => onRetrySync?.(card)} disabled={busy} className="btn-secondary px-4 py-2 flex items-center gap-2">
+          <button onClick={() => onRetrySync?.(card)} disabled={busy} className="btn-primary px-4 py-2 flex items-center gap-2">
             <RefreshCw className="w-4 h-4" />
             Retry Salesforce Sync
           </button>
@@ -198,20 +205,28 @@ export function JobCardCard({
         </button>
       </div>
 
-      {/* History timeline */}
+      {/* History — actor-first audit trail */}
       {expanded && (
         <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--color-border-light)' }}>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {card.history.map((event, i) => (
-              <div key={i} className="flex items-start gap-2">
+              <div key={i} className="flex items-start gap-2.5">
                 <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: 'var(--color-primary)' }} />
-                <div>
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>{event.action}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}> — {event.actor}, {fmtDate(event.at)}</span>
+                <div style={{ fontSize: '12px', lineHeight: 1.5 }}>
+                  <span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{event.actor}</span>
+                  <span style={{ color: 'var(--color-text-primary)' }}> — {event.action.charAt(0).toLowerCase() + event.action.slice(1)}</span>
+                  <span style={{ color: 'var(--color-text-muted)' }}> · {fmtDate(event.at)} ({relTime(event.at)})</span>
                 </div>
               </div>
             ))}
           </div>
+          {card.salesforce.opportunityId && (
+            <p className="mt-3" style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+              Salesforce opportunity {card.salesforce.opportunityId}
+              {card.salesforce.syncedAt && ` · synced ${fmtDate(card.salesforce.syncedAt)}`}
+              {card.signature?.envelopeId && ` · ${card.signature.provider} envelope ${card.signature.envelopeId}`}
+            </p>
+          )}
         </div>
       )}
     </div>

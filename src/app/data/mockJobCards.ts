@@ -14,7 +14,7 @@ export const mockJobCards: JobCard[] = [
     stage: 'sent_for_signature',
     createdAt: '2026-06-24T09:12:00Z',
     updatedAt: '2026-07-02T14:30:00Z',
-    accountManager: 'Rahul Desai',
+    accountManager: 'Vishal Mehta',
     clientManager: 'Anish Akkoat',
     scope: {
       serviceType: 'Content Syndication',
@@ -27,7 +27,7 @@ export const mockJobCards: JobCard[] = [
       industry: 'Technology',
       employeeSize: '1,000+',
     },
-    scopeSource: { fileName: 'intentsify-dataplatform-thread.pdf', uploadedAt: '2026-06-24T09:12:00Z', uploadedBy: 'Rahul Desai' },
+    scopeSource: { fileName: 'intentsify-dataplatform-thread.pdf', uploadedAt: '2026-06-24T09:12:00Z', uploadedBy: 'Vishal Mehta' },
     salesforce: { status: 'synced', opportunityId: '006QK2748PLMR3', syncedAt: '2026-06-24T09:15:00Z' },
     confirmations: {
       accountManager: { confirmed: true, at: '2026-07-01T10:05:00Z' },
@@ -36,11 +36,11 @@ export const mockJobCards: JobCard[] = [
     signature: { provider: 'DocuSign', envelopeId: 'ENV-8H2KD91A', sentAt: '2026-07-02T14:30:00Z' },
     documentUrl: '#',
     history: [
-      { at: '2026-06-24T09:12:00Z', actor: 'Rahul Desai', action: 'Uploaded conversation dump' },
+      { at: '2026-06-24T09:12:00Z', actor: 'Vishal Mehta', action: 'Uploaded conversation dump' },
       { at: '2026-06-24T09:15:00Z', actor: 'System', action: 'Scope extracted · Salesforce opportunity created' },
       { at: '2026-06-26T11:40:00Z', actor: 'Anish Akkoat', action: 'Verified opportunity details' },
       { at: '2026-06-26T11:41:00Z', actor: 'System', action: 'Job card generated from template' },
-      { at: '2026-07-01T10:05:00Z', actor: 'Rahul Desai', action: 'Confirmed job card accuracy' },
+      { at: '2026-07-01T10:05:00Z', actor: 'Vishal Mehta', action: 'Confirmed job card accuracy' },
       { at: '2026-07-02T14:28:00Z', actor: 'Anish Akkoat', action: 'Confirmed job card accuracy' },
       { at: '2026-07-02T14:30:00Z', actor: 'System', action: 'Sent for client signature via DocuSign' },
     ],
@@ -56,7 +56,7 @@ export const mockJobCards: JobCard[] = [
     stage: 'pending_confirmations',
     createdAt: '2026-06-28T08:00:00Z',
     updatedAt: '2026-07-05T09:20:00Z',
-    accountManager: 'Rahul Desai',
+    accountManager: 'Vishal Mehta',
     clientManager: 'Anish Akkoat',
     scope: {
       serviceType: 'BANT',
@@ -69,7 +69,7 @@ export const mockJobCards: JobCard[] = [
       industry: 'Financial Services',
       employeeSize: '5,000+',
     },
-    scopeSource: { fileName: 'intentsify-emea-bant-scope.docx', uploadedAt: '2026-06-28T08:00:00Z', uploadedBy: 'Rahul Desai' },
+    scopeSource: { fileName: 'intentsify-emea-bant-scope.docx', uploadedAt: '2026-06-28T08:00:00Z', uploadedBy: 'Vishal Mehta' },
     salesforce: { status: 'synced', opportunityId: '006QK2811TWXR9', syncedAt: '2026-06-28T08:03:00Z' },
     confirmations: {
       accountManager: { confirmed: true, at: '2026-07-05T09:20:00Z' },
@@ -77,11 +77,11 @@ export const mockJobCards: JobCard[] = [
     },
     documentUrl: '#',
     history: [
-      { at: '2026-06-28T08:00:00Z', actor: 'Rahul Desai', action: 'Uploaded conversation dump' },
+      { at: '2026-06-28T08:00:00Z', actor: 'Vishal Mehta', action: 'Uploaded conversation dump' },
       { at: '2026-06-28T08:03:00Z', actor: 'System', action: 'Scope extracted · Salesforce opportunity created' },
       { at: '2026-07-01T16:10:00Z', actor: 'Anish Akkoat', action: 'Verified opportunity details' },
       { at: '2026-07-01T16:11:00Z', actor: 'System', action: 'Job card generated from template' },
-      { at: '2026-07-05T09:20:00Z', actor: 'Rahul Desai', action: 'Confirmed job card accuracy' },
+      { at: '2026-07-05T09:20:00Z', actor: 'Vishal Mehta', action: 'Confirmed job card accuracy' },
     ],
   },
 
@@ -95,7 +95,7 @@ export const mockJobCards: JobCard[] = [
     stage: 'pending_cm_review',
     createdAt: '2026-07-03T12:30:00Z',
     updatedAt: '2026-07-03T12:34:00Z',
-    accountManager: 'Rahul Desai',
+    accountManager: 'Gautam Gupta',
     clientManager: 'Anish Akkoat',
     scope: {
       serviceType: 'Leads',
@@ -108,14 +108,14 @@ export const mockJobCards: JobCard[] = [
       industry: 'SaaS',
       employeeSize: '50–500',
     },
-    scopeSource: { fileName: 'techco-apac-q4-emails.zip', uploadedAt: '2026-07-03T12:30:00Z', uploadedBy: 'Rahul Desai' },
+    scopeSource: { fileName: 'techco-apac-q4-emails.zip', uploadedAt: '2026-07-03T12:30:00Z', uploadedBy: 'Gautam Gupta' },
     salesforce: { status: 'synced', opportunityId: '006QK2903MNBV1', syncedAt: '2026-07-03T12:34:00Z' },
     confirmations: {
       accountManager: { confirmed: false },
       clientManager: { confirmed: false },
     },
     history: [
-      { at: '2026-07-03T12:30:00Z', actor: 'Rahul Desai', action: 'Uploaded conversation dump' },
+      { at: '2026-07-03T12:30:00Z', actor: 'Gautam Gupta', action: 'Uploaded conversation dump' },
       { at: '2026-07-03T12:34:00Z', actor: 'System', action: 'Scope extracted · Salesforce opportunity created' },
     ],
   },
@@ -130,7 +130,7 @@ export const mockJobCards: JobCard[] = [
     stage: 'intake',
     createdAt: '2026-07-06T15:45:00Z',
     updatedAt: '2026-07-06T15:47:00Z',
-    accountManager: 'Rahul Desai',
+    accountManager: 'Gautam Gupta',
     clientManager: 'Anish Akkoat',
     scope: {
       serviceType: 'Appointment Setting',
@@ -143,14 +143,14 @@ export const mockJobCards: JobCard[] = [
       industry: 'Healthcare',
       employeeSize: '1,000+',
     },
-    scopeSource: { fileName: 'techco-healthcare-callnotes.pdf', uploadedAt: '2026-07-06T15:45:00Z', uploadedBy: 'Rahul Desai' },
+    scopeSource: { fileName: 'techco-healthcare-callnotes.pdf', uploadedAt: '2026-07-06T15:45:00Z', uploadedBy: 'Gautam Gupta' },
     salesforce: { status: 'failed', error: 'Salesforce API timeout — retry pending' },
     confirmations: {
       accountManager: { confirmed: false },
       clientManager: { confirmed: false },
     },
     history: [
-      { at: '2026-07-06T15:45:00Z', actor: 'Rahul Desai', action: 'Uploaded conversation dump' },
+      { at: '2026-07-06T15:45:00Z', actor: 'Gautam Gupta', action: 'Uploaded conversation dump' },
       { at: '2026-07-06T15:47:00Z', actor: 'System', action: 'Salesforce sync failed — API timeout' },
     ],
   },
@@ -165,7 +165,7 @@ export const mockJobCards: JobCard[] = [
     stage: 'signed',
     createdAt: '2026-03-10T10:00:00Z',
     updatedAt: '2026-03-21T17:05:00Z',
-    accountManager: 'Rahul Desai',
+    accountManager: 'Vishal Mehta',
     clientManager: 'Anish Akkoat',
     scope: {
       serviceType: 'Leads',
@@ -192,7 +192,7 @@ export const mockJobCards: JobCard[] = [
     },
     documentUrl: '#',
     history: [
-      { at: '2026-03-10T10:00:00Z', actor: 'Rahul Desai', action: 'Uploaded conversation dump' },
+      { at: '2026-03-10T10:00:00Z', actor: 'Vishal Mehta', action: 'Uploaded conversation dump' },
       { at: '2026-03-10T10:04:00Z', actor: 'System', action: 'Scope extracted · Salesforce opportunity created' },
       { at: '2026-03-12T13:20:00Z', actor: 'Anish Akkoat', action: 'Verified opportunity details' },
       { at: '2026-03-15T11:32:00Z', actor: 'System', action: 'Sent for client signature via DocuSign' },
@@ -210,7 +210,7 @@ export const mockJobCards: JobCard[] = [
     stage: 'completed',
     createdAt: '2026-05-18T09:30:00Z',
     updatedAt: '2026-05-19T10:15:00Z',
-    accountManager: 'Rahul Desai',
+    accountManager: 'Gautam Gupta',
     clientManager: 'Anish Akkoat',
     scope: {
       serviceType: 'Single Touch',
@@ -229,7 +229,7 @@ export const mockJobCards: JobCard[] = [
       clientManager: { confirmed: true, at: '2026-05-19T10:15:00Z' },
     },
     history: [
-      { at: '2026-05-18T09:30:00Z', actor: 'Rahul Desai', action: 'Uploaded conversation dump' },
+      { at: '2026-05-18T09:30:00Z', actor: 'Gautam Gupta', action: 'Uploaded conversation dump' },
       { at: '2026-05-18T09:33:00Z', actor: 'System', action: 'Scope extracted · Salesforce opportunity created' },
       { at: '2026-05-19T10:15:00Z', actor: 'Anish Akkoat', action: 'Verified opportunity — MSA in place, no job card required' },
     ],
