@@ -337,10 +337,10 @@ export default function Documents() {
   };
 
   const kpis = [
-    { label: 'In Pipeline', value: inPipeline.length, icon: ClipboardList, color: 'var(--color-primary)', bg: 'var(--color-primary-tint)' },
-    { label: 'Awaiting Signature', value: awaitingSignature.length, icon: FileSignature, color: '#D97706', bg: 'rgba(217,119,6,0.1)' },
-    { label: 'Awaiting Confirmation', value: visibleCards.filter((c) => c.stage === 'pending_confirmations').length, icon: Hourglass, color: '#7C3AED', bg: 'rgba(124,58,237,0.1)' },
-    { label: 'Signed / Completed', value: finished.length, icon: CheckCircle2, color: 'var(--color-success, #0F9D58)', bg: 'var(--color-success-bg, rgba(15,157,88,0.1))' },
+    { label: 'In Pipeline', value: inPipeline.length, icon: ClipboardList },
+    { label: 'Awaiting Signature', value: awaitingSignature.length, icon: FileSignature },
+    { label: 'Awaiting Confirmation', value: visibleCards.filter((c) => c.stage === 'pending_confirmations').length, icon: Hourglass },
+    { label: 'Signed / Completed', value: finished.length, icon: CheckCircle2 },
   ];
 
   const subtitle =
@@ -379,9 +379,9 @@ export default function Documents() {
               style={{
                 fontSize: '13px',
                 fontWeight: 600,
-                background: activeTab === key ? '#fff' : 'transparent',
-                color: activeTab === key ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                boxShadow: activeTab === key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                background: activeTab === key ? 'var(--color-primary)' : 'transparent',
+                color: activeTab === key ? '#fff' : 'var(--color-text-secondary)',
+                boxShadow: activeTab === key ? 'var(--shadow-sm)' : 'none',
               }}
             >
               <Icon className="w-4 h-4" />
@@ -396,14 +396,12 @@ export default function Documents() {
           <>
             {/* KPI row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger-children">
-              {kpis.map(({ label, value, icon: Icon, color, bg }, i) => (
-                <div key={label} className="kpi-card animate-slideInUp" style={{ animationDelay: `${i * 80}ms` }}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: bg }}>
-                      <Icon className="w-5 h-5" style={{ color }} />
-                    </div>
+              {kpis.map(({ label, value, icon: Icon }, i) => (
+                <div key={label} className="kpi-card animate-slideInUp" style={{ padding: '16px', animationDelay: `${i * 80}ms` }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <Icon className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
                   </div>
-                  <div className="kpi-card__number"><AnimatedCounter value={value} /></div>
+                  <div className="kpi-card__number" style={{ fontSize: '24px', marginBottom: '2px' }}><AnimatedCounter value={value} /></div>
                   <div className="kpi-card__label">{label}</div>
                 </div>
               ))}

@@ -109,10 +109,10 @@
 --kpi-number-weight: 700;
 --kpi-number-color: #1A1A1A;
 --kpi-number-tracking: -0.03em;
---kpi-label-size: 12px;
---kpi-label-weight: 500;
---kpi-label-color: #6B7280;
---kpi-label-tracking: 0.04em;
+--kpi-label-size: 11px;
+--kpi-label-weight: 600;
+--kpi-label-color: #9CA3AF;
+--kpi-label-tracking: 0.06em;
 --kpi-label-transform: uppercase;
 --kpi-sublabel-size: 11px;
 --kpi-sublabel-color: #9CA3AF;

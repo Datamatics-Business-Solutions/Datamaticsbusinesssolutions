@@ -336,16 +336,16 @@ export default function Invoices() {
 
   const kpis = perspective === 'accounts'
     ? [
-      { label: 'Awaiting Validation', value: pendingValidationCount, icon: FileCheck2, color: '#C2410C', bg: 'rgba(194,65,12,0.1)', money: false },
-      { label: 'Outstanding', value: outstanding, icon: Clock, color: '#D97706', bg: 'rgba(217,119,6,0.1)', money: true },
-      { label: 'Collected', value: paidTotal, icon: CheckCircle2, color: 'var(--color-success, #0F9D58)', bg: 'var(--color-success-bg, rgba(15,157,88,0.1))', money: true },
-      { label: 'Tally Sync Issues', value: tallyIssues, icon: AlertCircle, color: '#DC2626', bg: 'rgba(220,38,38,0.1)', money: false },
+      { label: 'Awaiting Validation', value: pendingValidationCount, icon: FileCheck2, money: false },
+      { label: 'Outstanding', value: outstanding, icon: Clock, money: true },
+      { label: 'Collected', value: paidTotal, icon: CheckCircle2, money: true },
+      { label: 'Tally Sync Issues', value: tallyIssues, icon: AlertCircle, money: false },
     ]
     : [
-      { label: 'Outstanding', value: outstanding, icon: Clock, color: '#D97706', bg: 'rgba(217,119,6,0.1)', money: true },
-      { label: 'Paid', value: paidTotal, icon: CheckCircle2, color: 'var(--color-success, #0F9D58)', bg: 'var(--color-success-bg, rgba(15,157,88,0.1))', money: true },
-      { label: 'Overdue', value: overdueCount, icon: AlertCircle, color: '#DC2626', bg: 'rgba(220,38,38,0.1)', money: false },
-      { label: 'Total Invoices', value: visibleInvoices.length, icon: Receipt, color: 'var(--color-primary)', bg: 'var(--color-primary-tint)', money: false },
+      { label: 'Outstanding', value: outstanding, icon: Clock, money: true },
+      { label: 'Paid', value: paidTotal, icon: CheckCircle2, money: true },
+      { label: 'Overdue', value: overdueCount, icon: AlertCircle, money: false },
+      { label: 'Total Invoices', value: visibleInvoices.length, icon: Receipt, money: false },
     ];
 
   const subtitle =
@@ -364,14 +364,12 @@ export default function Invoices() {
 
         {/* KPI row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger-children">
-          {kpis.map(({ label, value, icon: Icon, color, bg, money }, i) => (
-            <div key={label} className="kpi-card animate-slideInUp" style={{ animationDelay: `${i * 80}ms` }}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: bg }}>
-                  <Icon className="w-5 h-5" style={{ color }} />
-                </div>
+          {kpis.map(({ label, value, icon: Icon, money }, i) => (
+            <div key={label} className="kpi-card animate-slideInUp" style={{ padding: '16px', animationDelay: `${i * 80}ms` }}>
+              <div className="flex items-center justify-between mb-1">
+                <Icon className="kpi-card__icon" style={{ width: '16px', height: '16px' }} />
               </div>
-              <div className="kpi-card__number">
+              <div className="kpi-card__number" style={{ fontSize: '24px', marginBottom: '2px' }}>
                 {money ? <>$<AnimatedCounter value={value} /></> : <AnimatedCounter value={value} />}
               </div>
               <div className="kpi-card__label">{label}</div>
