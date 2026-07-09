@@ -37,7 +37,7 @@ export function LeadDetailDrawer({ lead, isOpen, onClose, onStatusChange }: Lead
 
   // Mock notes
   const notes = [
-    { date: '2026-02-28', author: 'TJ Leyland', text: 'Very interested in our cybersecurity solutions. Follow up next week.' },
+    { date: '2026-02-28', author: 'John Carter', text: 'Very interested in our cybersecurity solutions. Follow up next week.' },
     { date: '2026-02-26', author: 'Anish Akkoat', text: 'Company matches ICP perfectly. High potential for conversion.' },
   ];
 

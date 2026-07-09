@@ -1,7 +1,7 @@
 import type { JobCard } from '../types';
 
 // Job cards across every pipeline stage so each role's view and action set can
-// be demonstrated. client_1 = Intentsify (the demo client login).
+// be demonstrated. client_1 = Acme Corp (the demo client login).
 
 export const mockJobCards: JobCard[] = [
   // 1 — Awaiting the client's signature: the hero card on the client's Documents page.
@@ -9,7 +9,7 @@ export const mockJobCards: JobCard[] = [
     id: 'JC-2026-0047',
     campaignName: 'Enterprise Data Platform Leads – NAM Q3 2026',
     clientId: 'client_1',
-    clientCompany: 'Intentsify',
+    clientCompany: 'Acme Corp',
     type: 'client_signature',
     stage: 'sent_for_signature',
     createdAt: '2026-06-24T09:12:00Z',
@@ -27,7 +27,7 @@ export const mockJobCards: JobCard[] = [
       industry: 'Technology',
       employeeSize: '1,000+',
     },
-    scopeSource: { fileName: 'intentsify-dataplatform-thread.pdf', uploadedAt: '2026-06-24T09:12:00Z', uploadedBy: 'Vishal Mehta' },
+    scopeSource: { fileName: 'acme-corp-dataplatform-thread.pdf', uploadedAt: '2026-06-24T09:12:00Z', uploadedBy: 'Vishal Mehta' },
     salesforce: { status: 'synced', opportunityId: '006QK2748PLMR3', syncedAt: '2026-06-24T09:15:00Z' },
     confirmations: {
       accountManager: { confirmed: true, at: '2026-07-01T10:05:00Z' },
@@ -51,7 +51,7 @@ export const mockJobCards: JobCard[] = [
     id: 'JC-2026-0046',
     campaignName: 'Cybersecurity BANT Program – EMEA H2 2026',
     clientId: 'client_1',
-    clientCompany: 'Intentsify',
+    clientCompany: 'Acme Corp',
     type: 'client_signature',
     stage: 'pending_confirmations',
     createdAt: '2026-06-28T08:00:00Z',
@@ -69,7 +69,7 @@ export const mockJobCards: JobCard[] = [
       industry: 'Financial Services',
       employeeSize: '5,000+',
     },
-    scopeSource: { fileName: 'intentsify-emea-bant-scope.docx', uploadedAt: '2026-06-28T08:00:00Z', uploadedBy: 'Vishal Mehta' },
+    scopeSource: { fileName: 'acme-corp-emea-bant-scope.docx', uploadedAt: '2026-06-28T08:00:00Z', uploadedBy: 'Vishal Mehta' },
     salesforce: { status: 'synced', opportunityId: '006QK2811TWXR9', syncedAt: '2026-06-28T08:03:00Z' },
     confirmations: {
       accountManager: { confirmed: true, at: '2026-07-05T09:20:00Z' },
@@ -160,7 +160,7 @@ export const mockJobCards: JobCard[] = [
     id: 'JC-2026-0041',
     campaignName: 'AI-Powered SaaS Lead Generation Q2 2026',
     clientId: 'client_1',
-    clientCompany: 'Intentsify',
+    clientCompany: 'Acme Corp',
     type: 'client_signature',
     stage: 'signed',
     createdAt: '2026-03-10T10:00:00Z',
@@ -188,7 +188,7 @@ export const mockJobCards: JobCard[] = [
       envelopeId: 'ENV-3XA9PL07',
       sentAt: '2026-03-15T11:32:00Z',
       signedAt: '2026-03-21T17:05:00Z',
-      signedBy: 'TJ Leyland',
+      signedBy: 'John Carter',
     },
     documentUrl: '#',
     history: [
@@ -196,7 +196,7 @@ export const mockJobCards: JobCard[] = [
       { at: '2026-03-10T10:04:00Z', actor: 'System', action: 'Scope extracted · Salesforce opportunity created' },
       { at: '2026-03-12T13:20:00Z', actor: 'Anish Akkoat', action: 'Verified opportunity details' },
       { at: '2026-03-15T11:32:00Z', actor: 'System', action: 'Sent for client signature via DocuSign' },
-      { at: '2026-03-21T17:05:00Z', actor: 'TJ Leyland', action: 'Signed the job card' },
+      { at: '2026-03-21T17:05:00Z', actor: 'John Carter', action: 'Signed the job card' },
     ],
   },
 

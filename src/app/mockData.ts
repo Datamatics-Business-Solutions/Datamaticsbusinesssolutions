@@ -19,7 +19,7 @@ export interface ClientData {
 export const mockClients: ClientData[] = [
   {
     id: 'client_1',
-    name: 'Intentsify',
+    name: 'Acme Corp',
     industry: 'Information Technology',
     campaignManager: 'Anish Akkoat',
     backupManager: 'Arjun Patel',
@@ -94,7 +94,7 @@ export const mockTeamMembers: TeamMember[] = [
     email: 'anish.akkoat@datamaticsbpm.com',
     phone: '+91 22 4040 1234',
     role: 'Campaign Manager',
-    assignedClients: ['Intentsify', 'TechCo Ltd', 'Meridian Group'],
+    assignedClients: ['Acme Corp', 'TechCo Ltd', 'Meridian Group'],
     activeCampaigns: 7,
     clientsAssigned: 3,
     status: 'Active',
@@ -130,7 +130,7 @@ export const mockTeamMembers: TeamMember[] = [
     email: 'arjun.patel@datamaticsbpm.com',
     phone: '+91 22 4040 5678',
     role: 'Campaign Backup',
-    assignedClients: ['Intentsify', 'TechCo Ltd', 'Meridian Group'],
+    assignedClients: ['Acme Corp', 'TechCo Ltd', 'Meridian Group'],
     activeCampaigns: 5,
     clientsAssigned: 3,
     status: 'Active',
@@ -203,11 +203,11 @@ export const mockCsvPreview = [
 // 17 campaigns across 5 companies — mixed geographies, types, statuses, pricing, progress
 export const mockCampaigns: Campaign[] = [
 
-  // ── Intentsify (Technology) — 3 campaigns ───────────────────────────────────
+  // ── Acme Corp (Technology) — 3 campaigns ───────────────────────────────────
   {
     id: '1',
     name: 'Enterprise IT Security Campaign – US Q1 2026',
-    clientCompany: 'Intentsify',
+    clientCompany: 'Acme Corp',
     serviceType: 'Leads',
     status: 'In progress',
     startDate: '2026-01-15',
@@ -223,9 +223,9 @@ export const mockCampaigns: Campaign[] = [
     jobTitles: 'CIO, CISO, IT Director, Security Manager, VP IT',
     pricingModel: 'Per lead ($45/lead)',
     clientDetails: {
-      name: 'Intentsify',
+      name: 'Acme Corp',
       address: '100 Innovation Drive, San Francisco, CA 94105',
-      contact: 'TJ Leyland, tj.leyland@intentsify.com, +1 415-555-0123',
+      contact: 'John Carter, john@acmecorp.com, +1 415-555-0123',
     },
     scopeOfWork: [
       'Generate qualified B2B leads for IT security solutions',
@@ -238,7 +238,7 @@ export const mockCampaigns: Campaign[] = [
   {
     id: '2',
     name: 'APAC Cloud Migration Leads – Q1 2026',
-    clientCompany: 'Intentsify',
+    clientCompany: 'Acme Corp',
     serviceType: 'Single Touch',
     status: 'In progress',
     startDate: '2026-02-01',
@@ -254,9 +254,9 @@ export const mockCampaigns: Campaign[] = [
     jobTitles: 'CTO, VP Engineering, Head of Cloud, DevOps Director',
     pricingModel: 'Per lead ($52/lead)',
     clientDetails: {
-      name: 'Intentsify',
+      name: 'Acme Corp',
       address: '100 Innovation Drive, San Francisco, CA 94105',
-      contact: 'TJ Leyland, tj.leyland@intentsify.com, +1 415-555-0123',
+      contact: 'John Carter, john@acmecorp.com, +1 415-555-0123',
     },
     scopeOfWork: [
       'Identify cloud migration decision-makers across APAC',
@@ -269,7 +269,7 @@ export const mockCampaigns: Campaign[] = [
   {
     id: '1c',
     name: 'AI-Powered SaaS Lead Generation Q2 2026',
-    clientCompany: 'Intentsify',
+    clientCompany: 'Acme Corp',
     serviceType: 'Leads',
     status: 'Pending Approval',
     startDate: '2026-05-01',
@@ -285,9 +285,9 @@ export const mockCampaigns: Campaign[] = [
     jobTitles: 'CTO, VP Engineering, Director of AI, Head of Data Science, VP Product',
     pricingModel: 'Per lead ($55/lead)',
     clientDetails: {
-      name: 'Intentsify',
+      name: 'Acme Corp',
       address: '100 Innovation Drive, San Francisco, CA 94105',
-      contact: 'TJ Leyland, tj.leyland@intentsify.com, +1 415-555-0123',
+      contact: 'John Carter, john@acmecorp.com, +1 415-555-0123',
     },
     scopeOfWork: [
       'Generate qualified leads from AI-native companies (Series B+)',
@@ -300,7 +300,7 @@ export const mockCampaigns: Campaign[] = [
   {
     id: '1d',
     name: 'Healthcare IT Director Content Syndication',
-    clientCompany: 'Intentsify',
+    clientCompany: 'Acme Corp',
     serviceType: 'Content Syndication',
     status: 'Changes Requested',
     startDate: '2026-04-01',
@@ -316,9 +316,9 @@ export const mockCampaigns: Campaign[] = [
     jobTitles: 'CIO, IT Director, VP Healthcare IT, Director of Clinical Informatics',
     pricingModel: 'Per download ($38/download)',
     clientDetails: {
-      name: 'Intentsify',
+      name: 'Acme Corp',
       address: '100 Innovation Drive, San Francisco, CA 94105',
-      contact: 'TJ Leyland, tj.leyland@intentsify.com, +1 415-555-0123',
+      contact: 'John Carter, john@acmecorp.com, +1 415-555-0123',
     },
     scopeOfWork: [
       'Distribute Q1 Healthcare AI white paper to target audience',
@@ -331,7 +331,7 @@ export const mockCampaigns: Campaign[] = [
   {
     id: '3',
     name: 'Cybersecurity Awareness Campaign – Q4 2025',
-    clientCompany: 'Intentsify',
+    clientCompany: 'Acme Corp',
     serviceType: 'Content Syndication',
     status: 'Completed',
     startDate: '2025-10-01',
@@ -347,9 +347,9 @@ export const mockCampaigns: Campaign[] = [
     jobTitles: 'CISO, CIO, IT Director, Security Architect',
     pricingModel: 'Per download ($38/download)',
     clientDetails: {
-      name: 'Intentsify',
+      name: 'Acme Corp',
       address: '100 Innovation Drive, San Francisco, CA 94105',
-      contact: 'TJ Leyland, tj.leyland@intentsify.com, +1 415-555-0123',
+      contact: 'John Carter, john@acmecorp.com, +1 415-555-0123',
     },
     scopeOfWork: [
       'Distribute 2025 State of Cybersecurity whitepaper',
@@ -872,8 +872,8 @@ export const mockCampaignSubmissions: CampaignSubmission[] = [
     id: 'sub_001',
     campaignName: 'AI-Powered SaaS Lead Generation Q2 2026',
     clientId: 'client_1',
-    clientCompany: 'Intentsify',
-    submittedBy: 'TJ Leyland',
+    clientCompany: 'Acme Corp',
+    submittedBy: 'John Carter',
     submittedAt: '2026-03-01T09:30:00Z',
     assignedManager: 'Anish Akkoat',
     assignedManagerEmail: 'anish.akkoat@datamaticsbpm.com',
@@ -953,8 +953,8 @@ export const mockCampaignSubmissions: CampaignSubmission[] = [
     id: 'sub_003',
     campaignName: 'Healthcare IT Director Content Syndication',
     clientId: 'client_1',
-    clientCompany: 'Intentsify',
-    submittedBy: 'TJ Leyland',
+    clientCompany: 'Acme Corp',
+    submittedBy: 'John Carter',
     submittedAt: '2026-02-25T11:00:00Z',
     assignedManager: 'Anish Akkoat',
     assignedManagerEmail: 'anish.akkoat@datamaticsbpm.com',
@@ -1043,8 +1043,8 @@ export const mockCampaignSubmissions: CampaignSubmission[] = [
     id: 'sub_009',
     campaignName: 'Global C-Suite Outreach – Custom Program',
     clientId: 'client_1',
-    clientCompany: 'Intentsify',
-    submittedBy: 'TJ Leyland',
+    clientCompany: 'Acme Corp',
+    submittedBy: 'John Carter',
     submittedAt: '2026-02-10T10:00:00Z',
     assignedManager: 'Anish Akkoat',
     assignedManagerEmail: 'anish.akkoat@datamaticsbpm.com',

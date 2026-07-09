@@ -33,7 +33,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </span>
             <span style={{ fontSize: '10px', color: 'var(--color-border)' }}>·</span>
             <a
-              href="mailto:vishalpmehta@gmail.com?subject=Datamatics Business Solutions Client Portal"
+              href="mailto:support@datamaticsbpm.com?subject=Datamatics Business Solutions Client Portal"
               style={{ fontSize: '10px', color: '#BA2027', opacity: 0.6, textDecoration: 'none' }}
               onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
               onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}
