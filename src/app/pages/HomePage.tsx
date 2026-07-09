@@ -14,6 +14,8 @@ import { AccountTeam } from '../components/AccountTeam';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAccountTeam, allClients } from '../data/mockClients';
 import { useAuth } from '../context/AuthContext';
+import { mockInvoiceRecords } from '../data/mockInvoiceRecords';
+import { mockJobCards } from '../data/mockJobCards';
 import { PersonAvatar } from '../components/PersonAvatar';
 import { getPersonPhoto } from '../data/personPhotos';
 import { getDashPrefs, subscribeDashPrefs, type DashPrefs } from '../data/dashboardPrefs';
@@ -116,45 +118,55 @@ export default function HomePage() {
   const formattedDate = useMemo(() => getFormattedDate(), []);
   const initials = useMemo(() => getInitials(currentUser?.name ?? ''), [currentUser?.name]);
 
-  // ── Recent Activity ─────────────────────────────────────────────────────────
+  // ── Live state from the Invoices + Documents modules (shared mock data) ─────
+  const myInvoices = mockInvoiceRecords.filter((i) => i.clientCompany === currentUser?.company);
+  const overdueInvoices = myInvoices.filter((i) => i.stage === 'overdue');
+  const dueInvoices = myInvoices.filter((i) => i.stage === 'sent');
+  const dueTotal = dueInvoices.reduce((sum, i) => sum + i.total, 0);
+  const pendingSignatures = mockJobCards.filter(
+    (c) => c.clientCompany === currentUser?.company && c.type === 'client_signature' && c.stage === 'sent_for_signature',
+  );
+  const topOverdue = overdueInvoices[0];
+  const topSignature = pendingSignatures[0];
+  const overdueDays = topOverdue?.dueDate
+    ? Math.max(1, Math.floor((Date.now() - new Date(topOverdue.dueDate).getTime()) / 86400000))
+    : 0;
+  const fmtShortDate = (iso?: string) =>
+    iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+
+  // ── Recent Activity — mirrors the current module data ───────────────────────
   const recentActivity = [
-    { id: 1, icon: CheckCircle2, text: 'Sarah Chen accepted a lead from Healthcare Content Syndication', time: '2 minutes ago', color: '#10B981' },
-    { id: 2, icon: FileText,    text: 'Invoice INV-2026-001088 generated for $2,400', time: '1 hour ago', color: '#6B7280' },
-    { id: 3, icon: Layers,      text: 'APAC Cloud Migration campaign reached 62% completion', time: '3 hours ago', color: '#3B82F6' },
-    { id: 4, icon: Users,       text: 'New lead delivered: David Kim – Director of IT', time: '5 hours ago', color: '#8B5CF6' },
-    { id: 5, icon: TrendingUp,  text: 'Enterprise IT Security campaign surpassed 65% delivery target', time: 'Yesterday', color: '#BA2027' },
+    { id: 1, icon: FileText,    text: `Invoice INV-2026-001313 issued for $6,660 — due Aug 1`, time: '1 hour ago', color: '#6B7280' },
+    { id: 2, icon: FilePenLine, text: 'Job card JC-2026-0047 (Enterprise Data Platform Leads) sent for your signature', time: '3 hours ago', color: '#F59E0B' },
+    { id: 3, icon: Users,       text: 'New lead delivered: David Kim – Director of IT', time: '5 hours ago', color: '#8B5CF6' },
+    { id: 4, icon: Layers,      text: 'APAC Cloud Migration campaign reached 62% completion', time: 'Yesterday', color: '#3B82F6' },
+    { id: 5, icon: CheckCircle2, text: 'Payment received for INV-2026-001271 — $11,250, receipt on file', time: '2 weeks ago', color: '#10B981' },
   ];
 
-  // ── Needs Attention — now includes invoices, signatures, support tickets ────
+  // ── Needs Attention — derived from the Invoices + Documents modules ─────────
   const needsAttention = [
-    {
+    ...(topOverdue ? [{
       id: 1, type: 'error' as const, icon: AlertCircle,
       title: 'Overdue invoice',
-      text: 'INV-2026-001087 is overdue by 14 days — $3,600 outstanding',
+      text: `${topOverdue.invoiceNumber} is overdue by ${overdueDays} days — $${topOverdue.total.toLocaleString('en-US')} outstanding`,
       cta: 'Pay Now', action: () => navigate('/invoices'),
-    },
-    {
+    }] : []),
+    ...(topSignature ? [{
       id: 2, type: 'warning' as const, icon: FilePenLine,
       title: 'Signature required',
-      text: 'Job Card for AI-Powered SaaS Q2 2026 is awaiting your signature before the campaign can go live',
+      text: `Job card ${topSignature.id} (${topSignature.campaignName}) is awaiting your signature before the campaign can go live`,
       cta: 'Sign Now', action: () => navigate('/documents'),
-    },
-    {
+    }] : []),
+    ...(dueInvoices.length > 0 ? [{
       id: 3, type: 'warning' as const, icon: Clock,
-      title: 'Lead pending review',
-      text: "David Kim's lead has been in your acceptance queue for 4 days — please review to keep the campaign on track",
-      cta: 'Review', action: () => navigate('/leads'),
-    },
+      title: `${dueInvoices.length} invoice${dueInvoices.length === 1 ? '' : 's'} due`,
+      text: `$${dueTotal.toLocaleString('en-US')} due by ${fmtShortDate(dueInvoices[0].dueDate)} — pay from the portal in one click`,
+      cta: 'View Invoices', action: () => navigate('/invoices'),
+    }] : []),
     {
       id: 4, type: 'info' as const, icon: MessageSquare,
       title: 'Open support ticket',
       text: 'TKT-001 · Lead verification issue on Healthcare Content Syndication — In Progress',
-      cta: 'View Ticket', action: () => navigate('/support'),
-    },
-    {
-      id: 5, type: 'info' as const, icon: FolderOpen,
-      title: 'Invoice query open',
-      text: 'TKT-002 · Invoice discrepancy flagged for Jan billing — our team is reviewing and will respond shortly',
       cta: 'View Ticket', action: () => navigate('/support'),
     },
   ];
@@ -440,7 +452,9 @@ export default function HomePage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-red-600">Overdue Invoice</p>
-                  <p className="text-xs text-[#6B7280] mt-0.5 truncate">INV-2026-001087 · $3,600 due</p>
+                  <p className="text-xs text-[#6B7280] mt-0.5 truncate">
+                    {topOverdue ? `${topOverdue.invoiceNumber} · $${topOverdue.total.toLocaleString('en-US')} due` : 'All invoices settled'}
+                  </p>
                 </div>
                 <ArrowUpRight className="w-3.5 h-3.5 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
               </motion.button>
@@ -458,7 +472,9 @@ export default function HomePage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-amber-700">Signature Required</p>
-                  <p className="text-xs text-[#6B7280] mt-0.5 truncate">Job Card · AI-Powered SaaS Q2</p>
+                  <p className="text-xs text-[#6B7280] mt-0.5 truncate">
+                    {topSignature ? `${topSignature.id} · ${topSignature.campaignName}` : 'Nothing awaiting signature'}
+                  </p>
                 </div>
                 <ArrowUpRight className="w-3.5 h-3.5 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
               </motion.button>
