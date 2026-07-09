@@ -55,7 +55,7 @@ export const campaignActivities: CampaignActivity[] = [
   {
     id: 'act_8', campaignId: 'camp_1a', type: 'note',
     title: 'Client requested additional BANT fields',
-    description: 'TJ Leyland requested adding "Budget Authority" and "Purchase Timeline" fields to lead format.',
+    description: 'John Carter requested adding "Budget Authority" and "Purchase Timeline" fields to lead format.',
     timestamp: '2026-02-05T14:20:00Z', icon: 'message',
   },
 

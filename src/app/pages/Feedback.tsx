@@ -819,7 +819,7 @@ export default function Feedback() {
 
     try {
       const templateParams = {
-        email:         'vishalpmehta@gmail.com',
+        email:         'support@datamaticsbpm.com',
         from_name:     formData.name,
         from_email:    formData.email,
         user_role:     currentUser?.role || 'Unknown',

@@ -41,12 +41,12 @@ interface AuthContextValue {
 export const mockUsers: User[] = [
   {
     id: 'u1',
-    name: 'TJ Leyland',
-    email: 'vishalpmehta@gmail.com',
+    name: 'John Carter',
+    email: 'john@acmecorp.com',
     role: 'client',
     assignedClients: [],
-    company: 'Intentsify',
-    logo: 'https://intentsify.io/wp-content/uploads/2024/08/Intentsify-logo-dark.svg',
+    company: 'Acme Corp',
+    logo: 'https://placehold.co/200x60/BA2027/FFFFFF?text=ACME',
   },
   {
     id: 'u2',

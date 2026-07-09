@@ -34,7 +34,7 @@ const mockTickets: Ticket[] = [
     status: 'In Progress',
     priority: 'High',
     category: 'Lead Quality',
-    createdBy: 'TJ Leyland',
+    createdBy: 'John Carter',
     createdDate: '2026-02-27',
     lastUpdated: '2026-02-28',
     assignedTo: 'Support Team',
