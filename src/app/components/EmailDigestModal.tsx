@@ -12,7 +12,7 @@ function getCurrentMonthYear() {
 
 export function EmailDigestModal({ isOpen, onClose }: EmailDigestModalProps) {
   const handleSend = () => {
-    toast.success('Digest sent to tj.leyland@intentsify.com!');
+    toast.success('Digest sent to john@acmecorp.com!');
     onClose();
   };
 
@@ -48,7 +48,7 @@ export function EmailDigestModal({ isOpen, onClose }: EmailDigestModalProps) {
                 </div>
                 <div className="flex gap-2">
                   <span className="font-semibold text-gray-500 w-16">To:</span>
-                  <span>tj.leyland@intentsify.com</span>
+                  <span>john@acmecorp.com</span>
                 </div>
                 <div className="flex gap-2">
                   <span className="font-semibold text-gray-500 w-16">Subject:</span>
