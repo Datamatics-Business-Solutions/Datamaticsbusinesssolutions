@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { CheckCircle2, Loader2, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import { useAuth, mockUsers } from '../context/AuthContext';
+import { IS_CLIENT_DEMO } from '../config/demo';
+import { DemoRibbon } from '../components/DemoRibbon';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // Production login palette (pulse.datamaticsbpm.com)
@@ -72,7 +74,9 @@ export default function Login() {
     // Brief visual feedback delay — mock login, no real network call.
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const selectedUser = mockUsers.find((u) => u.id === selectedUserId);
+    const selectedUser = IS_CLIENT_DEMO
+      ? mockUsers.find((u) => u.role === 'client')
+      : mockUsers.find((u) => u.id === selectedUserId);
     if (!selectedUser) {
       setIsLoading(false);
       formRef.current?.classList.add('animate-shake');
@@ -104,6 +108,8 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen w-screen overflow-hidden flex" style={{ background: CANVAS_RED }}>
+      <DemoRibbon />
+
       {/* Top-right clock + greeting */}
       <div
         className="absolute top-5 right-8 select-none"
@@ -175,20 +181,33 @@ export default function Login() {
               Email
             </label>
             <div className="relative mb-4">
-              <select
-                id="login-email"
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="input-base w-full appearance-none pr-9"
-                style={{ padding: '11px 14px', fontSize: '14px' }}
-              >
-                {mockUsers.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} – {roleLabel(user)}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+              {IS_CLIENT_DEMO ? (
+                <input
+                  id="login-email"
+                  type="email"
+                  value="john@acmecorp.com"
+                  readOnly
+                  className="input-base w-full"
+                  style={{ padding: '11px 14px', fontSize: '14px' }}
+                />
+              ) : (
+                <>
+                  <select
+                    id="login-email"
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    className="input-base w-full appearance-none pr-9"
+                    style={{ padding: '11px 14px', fontSize: '14px' }}
+                  >
+                    {mockUsers.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} – {roleLabel(user)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+                </>
+              )}
             </div>
 
             {/* Password — decorative in the demo build */}
