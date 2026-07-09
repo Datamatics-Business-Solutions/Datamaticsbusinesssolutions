@@ -2,19 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { CheckCircle2, Loader2, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import { useAuth, mockUsers } from '../context/AuthContext';
+import { IS_CLIENT_DEMO } from '../config/demo';
+import { DemoRibbon } from '../components/DemoRibbon';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // Production login palette (pulse.datamaticsbpm.com)
 const CANVAS_RED = '#B43A34';
 const WORDMARK_RED = '#9E2F29';
 
-// One complete claim per glance — rotates while the person signs in.
-const CAPABILITIES = [
-  'Campaigns tracked in real time',
-  'Job cards signed in days, not weeks',
-  'Invoices from billable leads — automatically',
-  'One audit trail for everything',
-];
+
 
 /** Small equaliser-style pulse mark used in the card header. */
 function PulseMark({ size = 26 }: { size?: number }) {
@@ -58,13 +54,7 @@ export default function Login() {
   const [showSuccess, setShowSuccess] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const clockGreeting = useClockGreeting();
-  const [capIndex, setCapIndex] = useState(0);
 
-  // Rotate the capability line every 2.6s
-  useEffect(() => {
-    const t = setInterval(() => setCapIndex((i) => (i + 1) % CAPABILITIES.length), 2600);
-    return () => clearInterval(t);
-  }, []);
 
   // Enter anywhere submits
   useEffect(() => {
@@ -84,7 +74,9 @@ export default function Login() {
     // Brief visual feedback delay — mock login, no real network call.
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const selectedUser = mockUsers.find((u) => u.id === selectedUserId);
+    const selectedUser = IS_CLIENT_DEMO
+      ? mockUsers.find((u) => u.role === 'client')
+      : mockUsers.find((u) => u.id === selectedUserId);
     if (!selectedUser) {
       setIsLoading(false);
       formRef.current?.classList.add('animate-shake');
@@ -116,6 +108,8 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen w-screen overflow-hidden flex" style={{ background: CANVAS_RED }}>
+      <DemoRibbon />
+
       {/* Top-right clock + greeting */}
       <div
         className="absolute top-5 right-8 select-none"
@@ -124,53 +118,29 @@ export default function Login() {
         {clockGreeting}
       </div>
 
-      {/* PULSE wordmark — reads bottom→top, anchored bottom-left, letters touching the edge */}
-      <div
+      {/* PULSE wordmark — SVG, reads bottom-to-top, fills the full height,
+          glyphs flush against the left edge. SVG geometry is deterministic:
+          textLength pins the word to exactly the viewport height. */}
+      <svg
         aria-hidden="true"
-        className="hidden lg:flex select-none pointer-events-none absolute top-0 bottom-0 left-0"
-        style={{
-          writingMode: 'vertical-rl',
-          transform: 'rotate(180deg)',
-          alignItems: 'flex-start',
-          justifyContent: 'flex-end',
-          paddingBottom: '28px',
-          marginLeft: '-0.06em',
-          fontSize: 'clamp(64px, 11vh, 92px)',
-          fontWeight: 800,
-          lineHeight: 1,
-          letterSpacing: '0.04em',
-          color: WORDMARK_RED,
-        }}
+        className="hidden lg:block absolute left-0 top-0 h-full pointer-events-none select-none"
+        viewBox="0 0 150 1000"
+        preserveAspectRatio="xMinYMid meet"
       >
-        PULSE
-      </div>
-
-      {/* Rotating capability line — one legible claim at a time */}
-      <style>{`
-        @keyframes pulseCapFade {
-          0% { opacity: 0; transform: translateY(8px); }
-          12% { opacity: 1; transform: translateY(0); }
-          88% { opacity: 1; transform: translateY(0); }
-          100% { opacity: 0; transform: translateY(-4px); }
-        }
-        .pulse-cap-line { animation: pulseCapFade 2600ms ease-in-out both; }
-        @media (prefers-reduced-motion: reduce) {
-          .pulse-cap-line { animation: none; opacity: 1; }
-        }
-      `}</style>
-      <div
-        aria-hidden="true"
-        className="hidden lg:block absolute pointer-events-none select-none"
-        style={{ left: 'calc(17% + 44px)', bottom: '44px', maxWidth: '340px' }}
-      >
-        <span
-          key={capIndex}
-          className="pulse-cap-line block"
-          style={{ fontSize: '17px', fontWeight: 500, color: 'rgba(255,255,255,0.88)', lineHeight: 1.4 }}
+        <text
+          x="0"
+          y="0"
+          transform="translate(140, 998) rotate(-90)"
+          textLength="996"
+          lengthAdjust="spacingAndGlyphs"
+          fontFamily="'Inter', -apple-system, sans-serif"
+          fontSize="190"
+          fontWeight="800"
+          fill={WORDMARK_RED}
         >
-          {CAPABILITIES[capIndex]}
-        </span>
-      </div>
+          PULSE
+        </text>
+      </svg>
 
       {/* Thin vertical divider to the right of the wordmark */}
       <div
@@ -211,20 +181,33 @@ export default function Login() {
               Email
             </label>
             <div className="relative mb-4">
-              <select
-                id="login-email"
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="input-base w-full appearance-none pr-9"
-                style={{ padding: '11px 14px', fontSize: '14px' }}
-              >
-                {mockUsers.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} – {roleLabel(user)}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+              {IS_CLIENT_DEMO ? (
+                <input
+                  id="login-email"
+                  type="email"
+                  value="john@acmecorp.com"
+                  readOnly
+                  className="input-base w-full"
+                  style={{ padding: '11px 14px', fontSize: '14px' }}
+                />
+              ) : (
+                <>
+                  <select
+                    id="login-email"
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    className="input-base w-full appearance-none pr-9"
+                    style={{ padding: '11px 14px', fontSize: '14px' }}
+                  >
+                    {mockUsers.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} – {roleLabel(user)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+                </>
+              )}
             </div>
 
             {/* Password — decorative in the demo build */}

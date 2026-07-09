@@ -1,12 +1,30 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { LeftSidebar } from './LeftSidebar';
 import { MobileTabBar } from './MobileTabBar';
+import { DemoRibbon } from './DemoRibbon';
+import { IS_CLIENT_DEMO, isInternalPath } from '../config/demo';
 
 interface AppLayoutProps {
   children: ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Client demo mode: internal routes do not exist — hard-redirect to the
+  // client dashboard even on direct URL entry.
+  useEffect(() => {
+    if (IS_CLIENT_DEMO && isInternalPath(location.pathname)) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [location.pathname, navigate]);
+
+  if (IS_CLIENT_DEMO && isInternalPath(location.pathname)) {
+    return null; // guard against a flash of internal content before redirect
+  }
+
   return (
     <div
       className="flex h-screen w-screen overflow-hidden"
@@ -14,6 +32,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     >
       {/* Desktop sidebar — hidden on mobile, replaced by MobileTabBar */}
       <LeftSidebar />
+      <DemoRibbon />
 
       {/* Main Content Area */}
       <div className="flex-1 min-w-0 overflow-y-auto h-screen flex flex-col">
