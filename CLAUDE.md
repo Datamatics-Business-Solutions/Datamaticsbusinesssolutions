@@ -285,6 +285,28 @@ genuinely new commits. That has happened once, do not repeat it.
 Do not run two sessions against this repo at the same time unless they are on
 clearly separate areas.
 
+## Session handoff (every session, on any device)
+
+Vishal works on this repo from the Mac terminal, the Claude desktop and phone apps, and
+cloud sessions at claude.ai/code. A cloud session sees only this repo, not the Mac's
+`~/.claude` files or memory, so anything the next session needs goes in this file.
+`main` on GitHub is the single source of truth, and it is protected: every change
+reaches it through a squash-merged pull request.
+
+**Start**
+1. Two SessionStart hooks run. `.claude/hooks/sync-check.sh` prints a sync report: if
+   this copy is behind, `git pull --ff-only` on `main` before cutting a branch; if it
+   lists another branch or an open PR, tell Vishal and ask whether to merge it first.
+   `.claude/hooks/session-start.sh` repairs the dependency install, in cloud sessions only.
+2. Read **Where things stand** below and **Current state** at the bottom of this file.
+
+**Finish** (every session that changed anything, before saying you're done)
+1. Rewrite **Current state**: the date, where you worked (Mac, cloud or phone), what
+   changed, which PRs are open, and what's next. Keep it short and current, not a diary.
+   Lasting context goes in **Where things stand**.
+2. Push the branch and open a pull request (`gh pr create --fill`). Don't merge it
+   yourself unless Vishal says so. Give him the PR link and the Vercel preview link.
+
 ## Where things stand
 
 Context a new session would otherwise have to reconstruct. Update this when it
@@ -397,3 +419,13 @@ End every piece of finished work with its link, without being asked. Code
 changes get the Vercel preview links once pushed; documents get their artifact
 links; files get sent as attachments. Vishal should never have to ask "where
 is it" after something is built.
+
+## Current state
+
+_Updated 2026-09-24 from the Mac._
+- **Live:** `main` at datamatics.mehtahouse.cc (Vercel builds every merge).
+- **Open PRs:** `chore/session-handoff` adds the session sync check, this handoff
+  section, and the cloud dependency repair from #40 (so #40 can be closed once it
+  merges).
+- **Next:** nothing queued. Backend work waits on Gourav's warehouse; see
+  **Where things stand**.
