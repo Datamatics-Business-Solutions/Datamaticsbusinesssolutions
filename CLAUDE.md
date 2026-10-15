@@ -298,47 +298,15 @@ reaches it through a squash-merged pull request.
    this copy is behind, `git pull --ff-only` on `main` before cutting a branch; if it
    lists another branch or an open PR, tell Vishal and ask whether to merge it first.
    `.claude/hooks/session-start.sh` repairs the dependency install, in cloud sessions only.
-2. Read **Where things stand** below and **Current state** at the bottom of this file.
+2. Read **Current state** at the bottom of this file, including its **Standing context** part.
 
 **Finish** (every session that changed anything, before saying you're done)
 1. Rewrite **Current state**: the date, where you worked (Mac, cloud or phone), what
-   changed, which PRs are open, and what's next. Keep it short and current, not a diary.
-   Lasting context goes in **Where things stand**.
+   changed, which PRs are open, and what's next. Keep it short and current, not a diary:
+   the `_Updated …_` line first, under about 25 lines plus the standing context.
+   Lasting context goes in the **Standing context** part of it; update that when it stops being true.
 2. Push the branch and open a pull request (`gh pr create --fill`). Don't merge it
    yourself unless Vishal says so. Give him the PR link and the Vercel preview link.
-
-## Where things stand
-
-Context a new session would otherwise have to reconstruct. Update this when it
-stops being true.
-
-**There is no backend, and that is deliberate for now.** Gourav is building one
-warehouse that pulls Propensity and Relish and holds the content syndication
-data; Pulse will read from it and never write. A field-level requirements
-document covering 22 tables and 222 fields has been shared with him, framed as
-recommendations, since the final schema is his call. Margin and cost arithmetic
-happens on his side; the client sees one combined spend figure.
-
-**Seven gaps are known**, places where a panel exists in the product but no
-warehouse field can fill it yet. One of them cannot be fixed retrospectively:
-Propensity keeps no history, so any account-level trend before snapshots begin
-is unrecoverable.
-
-**Some selectors are more confident than the warehouse will be.**
-`getAssetPerformance` and `getLeadDisposition` split a single total across
-categories rather than aggregating rows. There is a written plan to reshape the
-mock so it mirrors the real schema (making the swap a change of data source
-rather than a rewrite), deliberately held until Gourav's field list settles so
-the mapping is not done twice.
-
-**Real authentication is unbuilt and is the expensive part of going live.**
-Roles are `mockUsers` plus sessionStorage. Reading from a real API is
-comparatively easy, since the ~76 selectors are the whole surface; writing is
-what needs auth, sessions and secrets.
-
-**Cost, CPL, budget and pacing are ops-only.** Never surface them in a
-client-visible panel. Lead vocabulary is delivered / accepted / suppressed, not
-MQL / MQA / SQO.
 
 ## Writing style for anything a person reads
 
@@ -422,10 +390,40 @@ is it" after something is built.
 
 ## Current state
 
-_Updated 2026-09-24 from the Mac._
-- **Live:** `main` at datamatics.mehtahouse.cc (Vercel builds every merge).
-- **Open PRs:** `chore/session-handoff` adds the session sync check, this handoff
-  section, and the cloud dependency repair from #40 (so #40 can be closed once it
-  merges).
-- **Next:** nothing queued. Backend work waits on Gourav's warehouse; see
-  **Where things stand**.
+_Updated 2026-10-14 from the Mac (housekeeping audit: docs only, through a PR)._
+- **Live:** `main` at datamatics.mehtahouse.cc (Vercel builds every merge). Last code change 2026-09-24
+  (PR #50: session sync check, the handoff section, the cloud dependency repair from #40).
+- **Open PRs:** none. The three local branches that existed on no remote (`fix/login-wordmark`,
+  `fix/login-wordmark-v2`, `chore/demo-persona`) were deleted on 2026-10-14; their commits are in
+  `~/dev/_archive/datamatics-orphan-branches.bundle` if ever needed.
+- **Next:** nothing queued. Backend work waits on Gourav's warehouse; see below.
+
+**Standing context** (update when it stops being true)
+
+**There is no backend, and that is deliberate for now.** Gourav is building one
+warehouse that pulls Propensity and Relish and holds the content syndication
+data; Pulse will read from it and never write. A field-level requirements
+document covering 22 tables and 222 fields has been shared with him, framed as
+recommendations, since the final schema is his call. Margin and cost arithmetic
+happens on his side; the client sees one combined spend figure.
+
+**Seven gaps are known**, places where a panel exists in the product but no
+warehouse field can fill it yet. One of them cannot be fixed retrospectively:
+Propensity keeps no history, so any account-level trend before snapshots begin
+is unrecoverable.
+
+**Some selectors are more confident than the warehouse will be.**
+`getAssetPerformance` and `getLeadDisposition` split a single total across
+categories rather than aggregating rows. There is a written plan to reshape the
+mock so it mirrors the real schema (making the swap a change of data source
+rather than a rewrite), deliberately held until Gourav's field list settles so
+the mapping is not done twice.
+
+**Real authentication is unbuilt and is the expensive part of going live.**
+Roles are `mockUsers` plus sessionStorage. Reading from a real API is
+comparatively easy, since the ~76 selectors are the whole surface; writing is
+what needs auth, sessions and secrets.
+
+**Cost, CPL, budget and pacing are ops-only.** Never surface them in a
+client-visible panel. Lead vocabulary is delivered / accepted / suppressed, not
+MQL / MQA / SQO.
