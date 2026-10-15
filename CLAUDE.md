@@ -275,12 +275,12 @@ cards into the DOM at once, hiding one with `md:hidden`, so a naive
 
 ## Working with git here
 
-One branch per unit of work, squash-merged into `main` through a pull request.
-Because merges are squashed, **always cut a new branch from a freshly fetched
-`main`**. Reusing a branch that still holds the individual commits of an
-already-merged pull request makes every touched file conflict with its own
-squashed twin; recovering means rebuilding the branch and cherry-picking the
-genuinely new commits. That has happened once, do not repeat it.
+Since 2026-10-15 `main` is not protected (Vishal removed the branch protection), so this repo
+works like every other one: commit on `main` and push. A pull request is optional, for work
+Vishal wants to look at first. If you do use a branch, **always cut it from a freshly fetched
+`main`** and delete it once merged; reusing a branch that still holds the individual commits
+of an already squash-merged pull request makes every touched file conflict with its own
+squashed twin. That happened once, do not repeat it.
 
 Do not run two sessions against this repo at the same time unless they are on
 clearly separate areas.
@@ -290,8 +290,8 @@ clearly separate areas.
 Vishal works on this repo from the Mac terminal, the Claude desktop and phone apps, and
 cloud sessions at claude.ai/code. A cloud session sees only this repo, not the Mac's
 `~/.claude` files or memory, so anything the next session needs goes in this file.
-`main` on GitHub is the single source of truth, and it is protected: every change
-reaches it through a squash-merged pull request.
+`main` on GitHub is the single source of truth. Pushing to it deploys (Vercel builds every
+push), so test before you push.
 
 **Start**
 1. Two SessionStart hooks run. `.claude/hooks/sync-check.sh` prints a sync report: if
@@ -305,8 +305,12 @@ reaches it through a squash-merged pull request.
    changed, which PRs are open, and what's next. Keep it short and current, not a diary:
    the `_Updated …_` line first, under about 25 lines plus the standing context.
    Lasting context goes in the **Standing context** part of it; update that when it stops being true.
-2. Push the branch and open a pull request (`gh pr create --fill`). Don't merge it
-   yourself unless Vishal says so. Give him the PR link and the Vercel preview link.
+2. Get the work onto `main`:
+   - Mac: commit and `git push origin main`.
+   - Cloud: you can push only your own `claude/...` branch. Push it, then
+     `gh pr create --fill` and `gh pr merge --squash --delete-branch`, unless Vishal
+     asked to review first.
+3. The push deploys it (Vercel builds `main`, about a minute). Say so, with the live link.
 
 ## Writing style for anything a person reads
 
@@ -390,9 +394,11 @@ is it" after something is built.
 
 ## Current state
 
-_Updated 2026-10-14 from the Mac (housekeeping audit: docs only, through a PR)._
+_Updated 2026-10-15 from the Mac (branch protection removed; direct pushes to `main` from now on)._
 - **Live:** `main` at datamatics.mehtahouse.cc (Vercel builds every merge). Last code change 2026-09-24
   (PR #50: session sync check, the handoff section, the cloud dependency repair from #40).
+- **2026-10-15:** `main` branch protection removed at Vishal's request; PR #51 (these docs) was the last
+  PR-only change, fast-forwarded onto `main` directly.
 - **Open PRs:** none. The three local branches that existed on no remote (`fix/login-wordmark`,
   `fix/login-wordmark-v2`, `chore/demo-persona`) were deleted on 2026-10-14; their commits are in
   `~/dev/_archive/datamatics-orphan-branches.bundle` if ever needed.
